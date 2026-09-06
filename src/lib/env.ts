@@ -36,6 +36,13 @@ export const serverEnv = {
   googlePrivateKey: optional(process.env.GOOGLE_PRIVATE_KEY)?.replace(/\\n/g, '\n') ?? null,
   ga4PropertyId: optional(process.env.GA4_PROPERTY_ID),
   gscSiteUrl: optional(process.env.GSC_SITE_URL),
+  /*
+   * Search Console / Bing ownership tokens. Server-only on purpose: they are
+   * public once rendered, but there is no reason to also ship them in the
+   * client bundle. Comma-separate to verify several Google properties at once.
+   */
+  googleSiteVerification: optional(process.env.GOOGLE_SITE_VERIFICATION),
+  bingSiteVerification: optional(process.env.BING_SITE_VERIFICATION),
 } as const;
 
 /** True when a real Supabase project is configured for read/write. */

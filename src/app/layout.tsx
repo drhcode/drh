@@ -4,7 +4,7 @@ import { getLocale } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { RouteProgress } from '@/components/route-progress';
 import { localeLabels, isAppLocale } from '@/i18n/routing';
-import { publicEnv } from '@/lib/env';
+import { publicEnv, serverEnv } from '@/lib/env';
 import { getCompanySettings } from '@/lib/data';
 import './globals.css';
 
@@ -27,8 +27,21 @@ export async function generateMetadata(): Promise<Metadata> {
   // render rather than declared as a static object.
   const settings = await getCompanySettings();
 
+  // Search-engine ownership tokens. Next renders these as
+  // <meta name="google-site-verification"> / <meta name="msvalidate.01">.
+  const google = serverEnv.googleSiteVerification
+    ?.split(',')
+    .map((token) => token.trim())
+    .filter(Boolean);
+
   return {
     metadataBase: new URL(publicEnv.siteUrl),
+    ...((google?.length || serverEnv.bingSiteVerification) && {
+      verification: {
+        ...(google?.length && { google }),
+        ...(serverEnv.bingSiteVerification && { other: { 'msvalidate.01': serverEnv.bingSiteVerification } }),
+      },
+    }),
     title: {
       default: 'Web Development Albania | Websites, Apps & SEO | drh.al',
       template: '%s | drh.al',
