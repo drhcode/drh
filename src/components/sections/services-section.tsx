@@ -5,6 +5,7 @@ import type { ServiceView } from '@/lib/data/types';
 import { ServiceIcon } from '@/components/site/service-icon';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
+import { GlowGrid } from '@/components/ui/glow';
 
 export async function ServicesSection({
   title,
@@ -25,12 +26,13 @@ export async function ServicesSection({
     <Section bordered={bordered}>
       {title && <SectionHeading title={title} subtitle={subtitle} />}
 
-      <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+      <GlowGrid as="ul" className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, index) => (
           <Reveal as="li" key={service.slug} delay={index * 0.05} className="bg-surface">
             <Link
               href={`/services/${service.slug}`}
-              className="group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
+              data-glow
+              className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
             >
               <span className="flex size-11 items-center justify-center rounded-lg border border-border bg-surface-sunken text-accent transition-colors group-hover:border-accent-border group-hover:bg-accent-subtle">
                 <ServiceIcon iconKey={service.iconKey} className="size-5" />
@@ -51,7 +53,7 @@ export async function ServicesSection({
             </Link>
           </Reveal>
         ))}
-      </ul>
+      </GlowGrid>
     </Section>
   );
 }

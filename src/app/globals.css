@@ -223,6 +223,24 @@
     border-radius: 4px;
   }
 
+  /*
+   * Card links wrap an image frame plus a block of text, so the default outline
+   * would trace a tall, awkward rectangle around both. These cards opt out of it
+   * and mark their image frame with `focus-frame` instead: the same two-tone
+   * ring, drawn tight to the visual the card is actually about. Removing the
+   * outline without this class would leave keyboard users with no focus
+   * indicator at all.
+   */
+  .focus-frame {
+    transition: box-shadow 150ms ease-out;
+  }
+
+  a:focus-visible .focus-frame {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--ring);
+  }
+
   ::selection {
     background-color: var(--accent);
     color: var(--accent-foreground);
@@ -542,5 +560,120 @@
     background: var(--accent);
     opacity: 0.5;
     filter: blur(5px);
+  }
+}
+
+/* ==========================================================================
+   Card glow
+   The gradient is masked to a 1px ring so it lights the card's edge rather
+   than washing over its contents — text contrast is untouched. Only opacity
+   transitions; the position is set from JS one write per frame.
+   ========================================================================== */
+@layer components {
+  .glow-card {
+    position: relative;
+  }
+
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      220px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      var(--accent),
+      transparent 65%
+    );
+    /* Keep only the ring: subtract the content box from the border box. */
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: var(--glow-opacity, 0);
+    transition: opacity 260ms ease-out;
+    pointer-events: none;
+  }
+
+  /*
+   * There is deliberately no second, blurred halo layer. Several of these cards
+   * are image frames with `overflow: hidden`, which clips their own pseudo
+   * elements — a halo would silently vanish on exactly those cards and survive
+   * on the text ones, so the effect would read as inconsistent rather than
+   * subtle. The hairline ring alone is uniform everywhere, and closer to the
+   * restraint the rest of the system is built on.
+   */
+
+  /*
+   * Cell grids (`gap-px` tables sharing one hairline) cannot take the ring:
+   * their cells own no border, so a 1px rectangle would cut straight across the
+   * shared separators. They get a pointer-following wash instead — the same
+   * category of effect as the flat hover background it replaces, so it costs no
+   * more contrast than what the cell already did on hover.
+   */
+  .glow-cell {
+    position: relative;
+    /*
+     * `isolation` matters here, not just `position`. A relatively positioned box
+     * with `z-index: auto` is not a stacking context, so the `z-index: -1` wash
+     * below would escape to whichever ancestor is — and paint behind that
+     * ancestor's background instead of the cell's. Isolating pins it: behind the
+     * cell's own text, in front of the surface the cell sits on.
+     */
+    isolation: isolate;
+  }
+
+  .glow-cell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      240px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      var(--accent-glow),
+      transparent 70%
+    );
+    opacity: calc(var(--glow-opacity, 0) * 0.3);
+    transition: opacity 260ms ease-out;
+    pointer-events: none;
+  }
+
+  /*
+   * Cards separated by a single top rule get the rule itself lit, tracking the
+   * pointer along its length. Drawing a full ring here would invent three edges
+   * the design does not have.
+   */
+  .glow-edge {
+    position: relative;
+  }
+
+  .glow-edge::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: radial-gradient(
+      140px circle at var(--glow-x, 50%) 0,
+      var(--accent),
+      transparent 70%
+    );
+    opacity: var(--glow-opacity, 0);
+    transition: opacity 260ms ease-out;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow-card::before,
+    .glow-cell::before,
+    .glow-edge::before {
+      display: none;
+    }
   }
 }

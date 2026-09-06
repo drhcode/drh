@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 import type { ProjectView } from '@/lib/data/types';
 import { ProjectCard } from '@/components/sections/project-card';
+import { GlowGrid } from '@/components/ui/glow';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -167,11 +168,11 @@ export function WorkGrid({
         </div>
       ) : (
         <>
-          <div className="mt-8 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          <GlowGrid className="mt-8 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((project, index) => (
               <ProjectCard key={project.slug} project={project} priority={index < 3} />
             ))}
-          </div>
+          </GlowGrid>
 
           {visible < filtered.length && (
             <div className="mt-14 flex justify-center">

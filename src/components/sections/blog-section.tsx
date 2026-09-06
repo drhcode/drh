@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
+import { GlowGrid } from '@/components/ui/glow';
 
 export async function BlogSection({
   title,
@@ -37,13 +38,13 @@ export async function BlogSection({
         </Button>
       </div>
 
-      <ul className="mt-12 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+      <GlowGrid as="ul" className="mt-12 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => (
           <Reveal as="li" key={post.slug} delay={index * 0.06}>
             <BlogCard post={post} locale={locale} readingLabel={t('minRead', { minutes: post.readingTime })} />
           </Reveal>
         ))}
-      </ul>
+      </GlowGrid>
     </Section>
   );
 }
@@ -62,7 +63,10 @@ export function BlogCard({
   return (
     <article className="group h-full">
       <Link href={`/blog/${post.slug}`} className="flex h-full flex-col focus-visible:outline-none">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken">
+        <div
+          data-glow
+          className="glow-card focus-frame relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken"
+        >
           {post.featuredImage ? (
             <Image
               src={post.featuredImage}

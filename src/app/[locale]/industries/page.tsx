@@ -7,6 +7,7 @@ import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
 import { getIndustries } from '@/lib/data';
 import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
+import { GlowGrid } from '@/components/ui/glow';
 import { CtaSection } from '@/components/sections/cta-section';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
@@ -73,12 +74,13 @@ export default async function IndustriesPage({ params }: Props) {
       </section>
 
       <Section bordered={false}>
-        <ul className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <GlowGrid as="ul" className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
           {industries.map((industry, index) => (
             <Reveal as="li" key={industry.slug} delay={Math.min(index, 9) * 0.04} className="bg-surface">
               <Link
                 href={`/industries/${industry.slug}`}
-                className="group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
+                data-glow
+                className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
               >
                 <h2 className="text-lg font-medium text-foreground transition-colors group-hover:text-accent">
                   {industry.title}
@@ -92,7 +94,7 @@ export default async function IndustriesPage({ params }: Props) {
               </Link>
             </Reveal>
           ))}
-        </ul>
+        </GlowGrid>
       </Section>
 
       <CtaSection title={tCta('title')} body={tCta('body')} primaryCta={tCta('button')} />

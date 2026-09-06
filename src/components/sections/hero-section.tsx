@@ -19,6 +19,12 @@ interface HeroSectionProps {
   note?: string;
   /** Compact variant for inner pages. */
   size?: 'lg' | 'md';
+  /**
+   * Adds the drifting particle layer behind the grid. Reserved for the
+   * homepage: ambient motion on every hero would be exactly the constant
+   * animation this design system avoids.
+   */
+  particles?: boolean;
   as?: 'h1' | 'h2';
 }
 
@@ -39,6 +45,7 @@ export function HeroSection({
   secondaryHref = '/work',
   note,
   size = 'lg',
+  particles = false,
   as: Heading = 'h1',
 }: HeroSectionProps) {
   const reduced = useReducedMotion();
@@ -55,7 +62,7 @@ export function HeroSection({
   return (
     <section className="relative overflow-hidden">
       {/* Structural grid that responds to the pointer — texture, not decoration */}
-      <HeroField />
+      <HeroField particles={particles} />
 
       <div className="container-page relative">
         <div

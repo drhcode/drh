@@ -4,6 +4,7 @@ import type { TestimonialView } from '@/lib/data/types';
 import { initials } from '@/lib/utils';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
+import { GlowGrid } from '@/components/ui/glow';
 
 /**
  * Testimonials (spec §19).
@@ -28,10 +29,13 @@ export function TestimonialsSection({
     <Section bordered={bordered}>
       {title && <SectionHeading title={title} subtitle={subtitle} />}
 
-      <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <GlowGrid as="ul" className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {testimonials.map((testimonial, index) => (
           <Reveal as="li" key={testimonial.id} delay={index * 0.06}>
-            <figure className="flex h-full flex-col rounded-xl border border-border bg-surface p-7">
+            <figure
+              data-glow
+              className="glow-card flex h-full flex-col rounded-xl border border-border bg-surface p-7"
+            >
               {testimonial.rating != null && (
                 <div className="mb-4 flex gap-0.5" aria-label={`${testimonial.rating} / 5`}>
                   {Array.from({ length: 5 }, (_, i) => (
@@ -80,7 +84,7 @@ export function TestimonialsSection({
             </figure>
           </Reveal>
         ))}
-      </ul>
+      </GlowGrid>
     </Section>
   );
 }

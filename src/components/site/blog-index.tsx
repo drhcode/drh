@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import type { BlogPostView } from '@/lib/data/types';
 import { BlogCard } from '@/components/sections/blog-section';
+import { GlowGrid } from '@/components/ui/glow';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -100,7 +101,7 @@ export function BlogIndex({
         <p className="py-24 text-center text-muted-foreground">{t('empty')}</p>
       ) : (
         <>
-          <ul className="mt-10 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+          <GlowGrid as="ul" className="mt-10 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
             {shown.map((post) => (
               <li key={post.slug}>
                 <BlogCard
@@ -110,7 +111,7 @@ export function BlogIndex({
                 />
               </li>
             ))}
-          </ul>
+          </GlowGrid>
 
           {visible < filtered.length && (
             <div className="mt-14 flex justify-center">

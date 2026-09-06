@@ -7,6 +7,7 @@ import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
 import { getBlogCategories, getBlogPosts } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { BlogIndex } from '@/components/site/blog-index';
+import { GlowGrid } from '@/components/ui/glow';
 import { CtaSection } from '@/components/sections/cta-section';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
@@ -81,13 +82,16 @@ export default async function BlogPage({ params }: Props) {
       </section>
 
       {featured && (
-        <div className="container-page py-12 md:py-16">
+        <GlowGrid className="container-page py-12 md:py-16">
           <article className="group">
             <Link
               href={`/blog/${featured.slug}`}
-              className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center"
+              className="grid gap-8 focus-visible:outline-none lg:grid-cols-2 lg:gap-12 lg:items-center"
             >
-              <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken">
+              <div
+                data-glow
+                className="glow-card focus-frame relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken"
+              >
                 {featured.featuredImage && (
                   <Image
                     src={featured.featuredImage}
@@ -130,7 +134,7 @@ export default async function BlogPage({ params }: Props) {
               </div>
             </Link>
           </article>
-        </div>
+        </GlowGrid>
       )}
 
       <div className="container-page pb-16">

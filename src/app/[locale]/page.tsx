@@ -60,7 +60,7 @@ export default async function HomePage({ params }: Props) {
           faqSchema(faqs),
         )}
       />
-      <PageSections sections={page.sections} locale={locale} />
+      <PageSections sections={page.sections} locale={locale} signature />
     </>
   );
 }

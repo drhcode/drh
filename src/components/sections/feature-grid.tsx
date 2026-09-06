@@ -1,6 +1,7 @@
 import type { RichPair } from '@/lib/data/types';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
+import { GlowGrid } from '@/components/ui/glow';
 
 /** "Why drh.al" and similar value-proposition grids (spec §17). */
 export function FeatureGrid({
@@ -22,10 +23,10 @@ export function FeatureGrid({
     <Section bordered={bordered}>
       {title && <SectionHeading title={title} subtitle={subtitle} />}
 
-      <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      <GlowGrid as="ul" className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item, index) => (
           <Reveal as="li" key={item.title} delay={index * 0.05}>
-            <div className="border-t border-border pt-5">
+            <div data-glow className="glow-edge border-t border-border pt-5">
               {numbered && (
                 <span className="mb-3 block font-mono text-xs text-accent">
                   {String(index + 1).padStart(2, '0')}
@@ -36,7 +37,7 @@ export function FeatureGrid({
             </div>
           </Reveal>
         ))}
-      </ul>
+      </GlowGrid>
     </Section>
   );
 }

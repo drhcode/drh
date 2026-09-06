@@ -26,7 +26,10 @@ export function ProjectCard({
   return (
     <article className={cn('group', className)}>
       <Link href={`/work/${project.slug}`} className="block focus-visible:outline-none">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken">
+        <div
+          data-glow
+          className="glow-card focus-frame relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken"
+        >
           {project.coverImage ? (
             <Image
               src={project.coverImage}

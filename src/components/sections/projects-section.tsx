@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
 import { ProjectCard } from './project-card';
+import { GlowGrid } from '@/components/ui/glow';
 
 export async function ProjectsSection({
   title,
@@ -37,13 +38,13 @@ export async function ProjectsSection({
         )}
       </div>
 
-      <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+      <GlowGrid as="div" className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project, index) => (
           <Reveal key={project.slug} delay={index * 0.06}>
             <ProjectCard project={project} priority={index === 0} />
           </Reveal>
         ))}
-      </div>
+      </GlowGrid>
 
       {showCta && (
         <div className="mt-10 sm:hidden">

@@ -10,6 +10,7 @@ import { withHeadingAnchors } from '@/lib/content/html';
 import { Badge } from '@/components/ui/badge';
 import { Section } from '@/components/sections/section';
 import { BlogCard } from '@/components/sections/blog-section';
+import { GlowGrid } from '@/components/ui/glow';
 import { CtaSection } from '@/components/sections/cta-section';
 import { TableOfContents } from '@/components/site/table-of-contents';
 import { JsonLd } from '@/components/seo/json-ld';
@@ -192,7 +193,7 @@ export default async function BlogPostPage({ params }: Props) {
       {related.length > 0 && (
         <Section bordered>
           <h2 className="text-2xl md:text-3xl">{t('relatedPosts')}</h2>
-          <ul className="mt-10 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+          <GlowGrid as="ul" className="mt-10 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <li key={item.slug}>
                 <BlogCard
@@ -202,7 +203,7 @@ export default async function BlogPostPage({ params }: Props) {
                 />
               </li>
             ))}
-          </ul>
+          </GlowGrid>
         </Section>
       )}
 
