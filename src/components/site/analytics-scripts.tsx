@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Script from 'next/script';
 import { publicEnv } from '@/lib/env';
 import { useConsent } from './consent-provider';
@@ -7,10 +8,32 @@ import { useConsent } from './consent-provider';
 /**
  * Analytics and advertising tags (spec §77).
  *
- * Nothing here renders until the visitor has granted the matching consent
- * category, so no third-party cookie is set before that point. Every id is a
- * NEXT_PUBLIC_ value — these are public by design; nothing secret is exposed.
+ * Every id here is a NEXT_PUBLIC_ value — public by design; nothing secret is
+ * exposed. Two different consent strategies are in use, deliberately:
+ *
+ *   Google (gtag) uses **Consent Mode v2 in advanced mode**. The tag itself is
+ *   server-rendered in `src/app/layout.tsx` with every storage type defaulted to
+ *   `denied`, so it sets no cookie and stores nothing until the visitor accepts.
+ *   This component owns the other half: pushing the `consent update` that
+ *   actually grants storage. Keeping the pre-consent state cookieless rather
+ *   than withholding the script is Google's recommended pattern for the EEA, and
+ *   it lets Google's own tag detector confirm the installation.
+ *
+ *   Meta Pixel and Clarity have no equivalent consent signal — for them the
+ *   only way to honour a refusal is not to load them at all, so they stay
+ *   behind a hard gate.
  */
+
+/** Google's consent signals, all denied until the visitor says otherwise. */
+function consentPayload(analytics: boolean, marketing: boolean) {
+  return {
+    ad_storage: marketing ? 'granted' : 'denied',
+    ad_user_data: marketing ? 'granted' : 'denied',
+    ad_personalization: marketing ? 'granted' : 'denied',
+    analytics_storage: analytics ? 'granted' : 'denied',
+  } as const;
+}
+
 export function AnalyticsScripts() {
   const { consent } = useConsent();
 
@@ -19,35 +42,25 @@ export function AnalyticsScripts() {
   const pixel = publicEnv.metaPixelId;
   const clarity = publicEnv.clarityProjectId;
 
-  const loadGoogle = consent.analytics && (ga4 || (consent.marketing && ads));
+  const loadGoogle = Boolean(ga4 || ads);
+
+  /*
+   * Push a consent update whenever the choice changes — including on first
+   * render, when the provider has just rehydrated a stored "accepted" from
+   * localStorage. The bootstrap in the root layout always writes `denied`
+   * defaults, so this is what re-grants storage for a returning visitor.
+   *
+   * Order is safe regardless of when gtag.js finishes loading: the bootstrap
+   * has already defined `gtag` as a dataLayer push, and the queue is replayed
+   * in order once the real library arrives.
+   */
+  React.useEffect(() => {
+    if (!loadGoogle) return;
+    window.gtag?.('consent', 'update', consentPayload(consent.analytics, consent.marketing));
+  }, [loadGoogle, consent.analytics, consent.marketing]);
 
   return (
     <>
-      {loadGoogle && (
-        <>
-          <Script
-            id="gtag-src"
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${ga4 ?? ads}`}
-          />
-          <Script id="gtag-init" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('consent', 'default', {
-                ad_storage: '${consent.marketing ? 'granted' : 'denied'}',
-                ad_user_data: '${consent.marketing ? 'granted' : 'denied'}',
-                ad_personalization: '${consent.marketing ? 'granted' : 'denied'}',
-                analytics_storage: '${consent.analytics ? 'granted' : 'denied'}'
-              });
-              ${ga4 ? `gtag('config', '${ga4}', { anonymize_ip: true });` : ''}
-              ${consent.marketing && ads ? `gtag('config', '${ads}');` : ''}
-            `}
-          </Script>
-        </>
-      )}
-
       {consent.marketing && pixel && (
         <Script id="meta-pixel" strategy="afterInteractive">
           {`

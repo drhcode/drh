@@ -271,7 +271,9 @@ Some things are deliberately absent, and should stay absent:
 `⌘K` / `Ctrl+K` opens command search in both the admin and the public site.
 
 See [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md) for the delivery checklist and what still
-needs real-world data before launch.
+needs real-world data before launch, and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for
+production environment variables — including why a missing `NEXT_PUBLIC_SITE_URL`
+silently breaks canonicals, `sitemap.xml` and `robots.txt`.
 
 ---
 
