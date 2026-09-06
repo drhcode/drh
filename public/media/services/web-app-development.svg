@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img" aria-label="Web Applications">
+  <rect width="1400" height="1050" fill="#1a1918"/>
+  <rect x="56" y="56" width="1288" height="938" rx="18" fill="#ffffff"/>
+  <rect x="56" y="56" width="1288" height="68" rx="18" fill="#f4f2ef"/>
+  <rect x="56" y="106" width="1288" height="18" fill="#f4f2ef"/>
+  <line x1="56" y1="124" x2="1344" y2="124" stroke="#dcd8d3"/>
+  <circle cx="86" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="108" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="130" cy="90" r="6" fill="#dcd8d3"/>
+  <rect x="160" y="79" width="476" height="22" rx="11" fill="#ffffff" stroke="#dcd8d3"/>
+  <svg x="0" y="0" width="1400" height="1050" overflow="hidden"><rect x="148" y="216" width="1104" height="666" rx="14" fill="#eeebe7" stroke="#dcd8d3"/><rect x="102" y="170" width="1196" height="758" rx="14" fill="#eeebe7" stroke="#dcd8d3"/><rect x="56" y="124" width="1288" height="850" rx="14" fill="#ffffff" stroke="#dcd8d3"/><rect x="186" y="254" width="370" height="16" rx="8" fill="#1a1918"/><rect x="186" y="306" width="319" height="132" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="208" y="330" width="34" height="34" rx="8" fill="#dbe4fb"/><rect x="208" y="382" width="253" height="9" rx="4.5" fill="#dcd8d3"/><rect x="529" y="306" width="319" height="132" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="551" y="330" width="34" height="34" rx="8" fill="#dbe4fb"/><rect x="551" y="382" width="253" height="9" rx="4.5" fill="#dcd8d3"/><rect x="871" y="306" width="319" height="132" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="893" y="330" width="34" height="34" rx="8" fill="#dbe4fb"/><rect x="893" y="382" width="253" height="9" rx="4.5" fill="#dcd8d3"/><rect x="186" y="464" width="1028" height="150" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/><polyline points="216,584 337,505 458,480 579,525 700,557 821,490 942,487 1063,550 1184,532" fill="none" stroke="#2f5fe0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <text x="1322" y="972" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="600" fill="#1a1918" opacity="0.28">Web Applications</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img" aria-label="UI/UX Design">
+  <rect width="1400" height="1050" fill="#1a1918"/>
+  <rect x="56" y="56" width="1288" height="938" rx="18" fill="#ffffff"/>
+  <rect x="56" y="56" width="1288" height="68" rx="18" fill="#f4f2ef"/>
+  <rect x="56" y="106" width="1288" height="18" fill="#f4f2ef"/>
+  <line x1="56" y1="124" x2="1344" y2="124" stroke="#dcd8d3"/>
+  <circle cx="86" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="108" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="130" cy="90" r="6" fill="#dcd8d3"/>
+  <rect x="160" y="79" width="476" height="22" rx="11" fill="#ffffff" stroke="#dcd8d3"/>
+  <svg x="0" y="0" width="1400" height="1050" overflow="hidden"><rect x="56" y="124" width="232" height="150" rx="12" fill="#1a1918"/><rect x="306" y="124" width="232" height="150" rx="12" fill="#2f5fe0"/><rect x="555" y="124" width="232" height="150" rx="12" fill="#6b8cf0"/><rect x="805" y="124" width="232" height="150" rx="12" fill="#dbe4fb"/><rect x="1054" y="124" width="232" height="150" rx="12" fill="#eeebe7" stroke="#dcd8d3"/><rect x="56" y="324" width="515" height="26" rx="13" fill="#1a1918"/><rect x="56" y="368" width="386" height="18" rx="9" fill="#dcd8d3"/><rect x="56" y="402" width="464" height="12" rx="6" fill="#dcd8d3"/><rect x="56" y="426" width="283" height="12" rx="6" fill="#dcd8d3"/><rect x="56" y="484" width="168" height="50" rx="10" fill="#2f5fe0"/><rect x="246" y="484" width="168" height="50" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="436" y="484" width="120" height="50" rx="25" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="777" y="324" width="567" height="268" rx="14" fill="#f4f2ef" stroke="#dcd8d3"/><rect x="801" y="348" width="48" height="48" rx="24" fill="#dbe4fb"/><rect x="801" y="416" width="386" height="12" rx="6" fill="#dcd8d3"/><rect x="801" y="444" width="309" height="12" rx="6" fill="#dcd8d3"/><rect x="801" y="472" width="361" height="12" rx="6" fill="#dcd8d3"/></svg>
+  <text x="1322" y="972" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="600" fill="#1a1918" opacity="0.28">UI/UX Design</text>
+</svg>

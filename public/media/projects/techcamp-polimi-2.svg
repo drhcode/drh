@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="TECHCAMP POLIMI">
+  <rect width="1600" height="1000" fill="#1a1918"/>
+  <rect x="72" y="72" width="1456" height="856" rx="14" fill="#ffffff"/>
+  <rect x="72" y="72" width="1456" height="75" rx="14" fill="#f4f2ef"/>
+  <rect x="72" y="133" width="1456" height="14" fill="#f4f2ef"/>
+  <line x1="72" y1="147" x2="1528" y2="147" stroke="#dcd8d3"/>
+  <circle cx="98" cy="109.5" r="5" fill="#dcd8d3"/>
+  <circle cx="116" cy="109.5" r="5" fill="#dcd8d3"/>
+  <circle cx="134" cy="109.5" r="5" fill="#dcd8d3"/>
+  <rect x="158" y="101.5" width="480" height="16" rx="8" fill="#ffffff" stroke="#dcd8d3"/>
+  <rect x="72" y="147" width="320" height="781" fill="#f4f2ef"/>
+  <rect x="88" y="169" width="276" height="8" rx="4" fill="#dcd8d3"/>
+  <rect x="88" y="199" width="276" height="8" rx="4" fill="#dcd8d3"/>
+  <rect x="88" y="229" width="276" height="8" rx="4" fill="#dcd8d3"/>
+  <rect x="88" y="259" width="276" height="8" rx="4" fill="#dcd8d3"/>
+  <rect x="88" y="289" width="276" height="8" rx="4" fill="#dcd8d3"/>
+  <rect x="416" y="171" width="457" height="14" rx="7" fill="#1a1918" opacity="0.75"/>
+  <rect x="416" y="209" width="347" height="203" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/>
+  <rect x="779" y="209" width="347" height="203" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/>
+  <rect x="1142" y="209" width="347" height="203" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/>
+  <rect x="416" y="432" width="1088" height="266" rx="10" fill="#f4f2ef" stroke="#dcd8d3"/>
+  <polyline points="440,651 570,529 700,499 830,584 960,582 1090,498 1220,530 1350,648 1480,527" fill="none" stroke="#2f5fe0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1510" y="910" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="600" fill="#1a1918" opacity="0.32">TECHCAMP POLIMI</text>
+</svg>

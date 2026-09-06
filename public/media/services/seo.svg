@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img" aria-label="SEO">
+  <rect width="1400" height="1050" fill="#1a1918"/>
+  <rect x="56" y="56" width="1288" height="938" rx="18" fill="#ffffff"/>
+  <rect x="56" y="56" width="1288" height="68" rx="18" fill="#f4f2ef"/>
+  <rect x="56" y="106" width="1288" height="18" fill="#f4f2ef"/>
+  <line x1="56" y1="124" x2="1344" y2="124" stroke="#dcd8d3"/>
+  <circle cx="86" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="108" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="130" cy="90" r="6" fill="#dcd8d3"/>
+  <rect x="160" y="79" width="476" height="22" rx="11" fill="#ffffff" stroke="#dcd8d3"/>
+  <svg x="0" y="0" width="1400" height="1050" overflow="hidden"><rect x="56" y="124" width="799" height="56" rx="28" fill="#f4f2ef" stroke="#dcd8d3"/><circle cx="90" cy="152" r="11" fill="#dcd8d3"/><rect x="114" y="146" width="386" height="12" rx="6" fill="#dcd8d3"/><rect x="56" y="220" width="541" height="14" rx="7" fill="#2f5fe0"/><rect x="56" y="250" width="644" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="272" width="541" height="10" rx="5" fill="#dcd8d3"/><rect x="34" y="208" width="6" height="82" rx="3" fill="#2f5fe0"/><rect x="56" y="316" width="399" height="14" rx="7" fill="#1a1918"/><rect x="56" y="346" width="644" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="368" width="541" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="412" width="361" height="14" rx="7" fill="#1a1918"/><rect x="56" y="442" width="644" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="464" width="541" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="508" width="322" height="14" rx="7" fill="#1a1918"/><rect x="56" y="538" width="644" height="10" rx="5" fill="#dcd8d3"/><rect x="56" y="560" width="541" height="10" rx="5" fill="#dcd8d3"/><rect x="906" y="220" width="438" height="300" rx="14" fill="#f4f2ef" stroke="#dcd8d3"/><polyline points="932,480 987,463 1042,439 1097,410 1153,379 1208,344 1263,308 1318,270" fill="none" stroke="#2f5fe0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <text x="1322" y="972" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="600" fill="#1a1918" opacity="0.28">SEO</text>
+</svg>

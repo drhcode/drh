@@ -1,0 +1,13 @@
+# Normalise line endings so Windows and CI produce identical diffs.
+* text=auto eol=lf
+
+# Binary assets git should never try to diff or convert.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary

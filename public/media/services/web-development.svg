@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img" aria-label="Web Development">
+  <rect width="1400" height="1050" fill="#1a1918"/>
+  <rect x="56" y="56" width="1288" height="938" rx="18" fill="#ffffff"/>
+  <rect x="56" y="56" width="1288" height="68" rx="18" fill="#f4f2ef"/>
+  <rect x="56" y="106" width="1288" height="18" fill="#f4f2ef"/>
+  <line x1="56" y1="124" x2="1344" y2="124" stroke="#dcd8d3"/>
+  <circle cx="86" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="108" cy="90" r="6" fill="#dcd8d3"/>
+  <circle cx="130" cy="90" r="6" fill="#dcd8d3"/>
+  <rect x="160" y="79" width="476" height="22" rx="11" fill="#ffffff" stroke="#dcd8d3"/>
+  <svg x="0" y="0" width="1400" height="1050" overflow="hidden"><rect x="56" y="124" width="309" height="870" rx="0" fill="#eeebe7"/><rect x="84" y="158" width="239" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="198" width="217" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="238" width="195" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="278" width="239" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="318" width="217" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="358" width="195" height="9" rx="4.5" fill="#dcd8d3"/><rect x="84" y="398" width="239" height="9" rx="4.5" fill="#dcd8d3"/><rect x="405" y="164" width="450" height="11" rx="5.5" fill="#2f5fe0"/><rect x="433" y="210" width="627" height="11" rx="5.5" fill="#dcd8d3"/><rect x="433" y="256" width="331" height="11" rx="5.5" fill="#dcd8d3"/><rect x="461" y="302" width="540" height="11" rx="5.5" fill="#dcd8d3"/><rect x="405" y="348" width="405" height="11" rx="5.5" fill="#dcd8d3"/><rect x="433" y="394" width="697" height="11" rx="5.5" fill="#2f5fe0"/><rect x="461" y="440" width="253" height="11" rx="5.5" fill="#dcd8d3"/><rect x="433" y="486" width="505" height="11" rx="5.5" fill="#dcd8d3"/><rect x="405" y="532" width="611" height="11" rx="5.5" fill="#dcd8d3"/><rect x="461" y="578" width="354" height="11" rx="5.5" fill="#dcd8d3"/><rect x="433" y="624" width="479" height="11" rx="5.5" fill="#2f5fe0"/></svg>
+  <text x="1322" y="972" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="600" fill="#1a1918" opacity="0.28">Web Development</text>
+</svg>

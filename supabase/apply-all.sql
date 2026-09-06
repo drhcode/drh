@@ -1,0 +1,1492 @@
+-- ============================================================================
+-- drh.al — complete database setup, in order.
+--
+-- GENERATED. Regenerate with: node scripts/build-setup-sql.cjs
+-- Safe to re-run: DDL uses IF NOT EXISTS / DROP IF EXISTS, and every seed
+-- statement upserts.
+-- ============================================================================
+
+
+-- ==========================================================================
+-- Migration 0001 — schema
+-- ==========================================================================
+
+-- ============================================================================
+-- drh.al — core schema
+-- PostgreSQL / Supabase. Run in order: 0001 -> 0002 -> seed.sql
+-- ============================================================================
+
+create extension if not exists "pgcrypto";
+
+-- ─── Enums ──────────────────────────────────────────────────────────────────
+do $enums$ begin
+  create type user_role         as enum ('super_admin','admin','editor','marketing');
+exception when duplicate_object then null; end $enums$;
+do $enums$ begin
+  create type content_status    as enum ('draft','published','archived');
+exception when duplicate_object then null; end $enums$;
+do $enums$ begin
+  create type language_code     as enum ('en','sq');
+exception when duplicate_object then null; end $enums$;
+do $enums$ begin
+  create type lead_status       as enum ('new','contacted','qualified','proposal_sent','won','lost');
+exception when duplicate_object then null; end $enums$;
+do $enums$ begin
+  create type media_kind        as enum ('image','video','document');
+exception when duplicate_object then null; end $enums$;
+do $enums$ begin
+  create type subscriber_status as enum ('pending','subscribed','unsubscribed');
+exception when duplicate_object then null; end $enums$;
+
+-- ─── Utility: updated_at trigger ────────────────────────────────────────────
+create or replace function public.set_updated_at()
+returns trigger language plpgsql as $fn$
+begin
+  new.updated_at = now();
+  return new;
+end $fn$;
+
+-- ============================================================================
+-- Users & access control
+-- ============================================================================
+create table if not exists public.admin_users (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  email         text not null unique,
+  full_name     text,
+  avatar_url    text,
+  role          user_role not null default 'editor',
+  is_active     boolean not null default true,
+  last_login_at timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists admin_users_role_idx on public.admin_users(role) where is_active;
+
+-- ============================================================================
+-- Taxonomy
+-- ============================================================================
+create table if not exists public.technologies (
+  id         uuid primary key default gen_random_uuid(),
+  slug       text not null unique,
+  name       text not null,
+  icon_key   text,
+  color      text,
+  sort_order int not null default 0,
+  is_active  boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.industries (
+  id          uuid primary key default gen_random_uuid(),
+  slug        text not null unique,
+  icon_key    text,
+  cover_image text,
+  status      content_status not null default 'published',
+  featured    boolean not null default false,
+  sort_order  int not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create table if not exists public.industry_translations (
+  id              uuid primary key default gen_random_uuid(),
+  industry_id     uuid not null references public.industries(id) on delete cascade,
+  language        language_code not null,
+  title           text not null,
+  hero_title      text,
+  hero_subtitle   text,
+  description     text,
+  problems        jsonb not null default '[]'::jsonb,   -- [{title, body}]
+  solutions       jsonb not null default '[]'::jsonb,   -- [{title, body}]
+  cta_title       text,
+  cta_body        text,
+  seo_title       text,
+  seo_description text,
+  og_title        text,
+  og_description  text,
+  is_complete     boolean not null default false,
+  updated_at      timestamptz not null default now(),
+  unique (industry_id, language)
+);
+
+-- ============================================================================
+-- Services
+-- ============================================================================
+create table if not exists public.services (
+  id          uuid primary key default gen_random_uuid(),
+  slug        text not null unique,
+  icon_key    text,
+  cover_image text,
+  status      content_status not null default 'published',
+  featured    boolean not null default false,
+  sort_order  int not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create table if not exists public.service_translations (
+  id                uuid primary key default gen_random_uuid(),
+  service_id        uuid not null references public.services(id) on delete cascade,
+  language          language_code not null,
+  title             text not null,
+  headline          text,
+  short_description text,
+  full_description  text,
+  benefits          jsonb not null default '[]'::jsonb,  -- [{title, body}]
+  features          jsonb not null default '[]'::jsonb,  -- ["…"]
+  process           jsonb not null default '[]'::jsonb,  -- [{step,title,body}]
+  cta_title         text,
+  cta_body          text,
+  seo_title         text,
+  seo_description   text,
+  og_title          text,
+  og_description    text,
+  is_complete       boolean not null default false,
+  updated_at        timestamptz not null default now(),
+  unique (service_id, language)
+);
+
+create table if not exists public.service_technologies (
+  service_id    uuid not null references public.services(id) on delete cascade,
+  technology_id uuid not null references public.technologies(id) on delete cascade,
+  primary key (service_id, technology_id)
+);
+
+-- ============================================================================
+-- Projects / portfolio
+-- ============================================================================
+create table if not exists public.projects (
+  id                 uuid primary key default gen_random_uuid(),
+  slug               text not null unique,
+  client_name        text not null,
+  client_logo        text,
+  industry_id        uuid references public.industries(id) on delete set null,
+  country            text,
+  project_date       date,
+  cover_image        text,
+  cover_image_mobile text,
+  og_image           text,
+  canonical_url      text,
+  website_url        text,
+  featured           boolean not null default false,
+  status             content_status not null default 'draft',
+  is_indexable       boolean not null default true,
+  sort_order         int not null default 0,
+  testimonial_id     uuid,
+  view_count         int not null default 0,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),
+  published_at       timestamptz
+);
+create index if not exists projects_status_idx   on public.projects(status, featured, sort_order);
+create index if not exists projects_industry_idx on public.projects(industry_id);
+
+create table if not exists public.project_translations (
+  id                uuid primary key default gen_random_uuid(),
+  project_id        uuid not null references public.projects(id) on delete cascade,
+  language          language_code not null,
+  title             text not null,
+  short_description text,
+  overview          text,
+  challenge         text,
+  solution          text,
+  development       text,
+  results_text      text,
+  seo_title         text,
+  seo_description   text,
+  og_title          text,
+  og_description    text,
+  is_complete       boolean not null default false,
+  updated_at        timestamptz not null default now(),
+  unique (project_id, language)
+);
+
+create table if not exists public.project_media (
+  id         uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  media_id   uuid,
+  url        text not null,
+  alt_en     text,
+  alt_sq     text,
+  caption    text,
+  width      int,
+  height     int,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists project_media_project_idx on public.project_media(project_id, sort_order);
+
+create table if not exists public.project_results (
+  id         uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  value      text not null,           -- e.g. "70%"
+  label_en   text not null,           -- e.g. "Faster load time"
+  label_sq   text,
+  sort_order int not null default 0
+);
+
+create table if not exists public.project_technologies (
+  project_id    uuid not null references public.projects(id) on delete cascade,
+  technology_id uuid not null references public.technologies(id) on delete cascade,
+  primary key (project_id, technology_id)
+);
+
+create table if not exists public.project_services (
+  project_id uuid not null references public.projects(id) on delete cascade,
+  service_id uuid not null references public.services(id) on delete cascade,
+  primary key (project_id, service_id)
+);
+
+-- ============================================================================
+-- Blog
+-- ============================================================================
+create table if not exists public.blog_categories (
+  id         uuid primary key default gen_random_uuid(),
+  slug       text not null unique,
+  name_en    text not null,
+  name_sq    text,
+  sort_order int not null default 0
+);
+
+create table if not exists public.blog_tags (
+  id      uuid primary key default gen_random_uuid(),
+  slug    text not null unique,
+  name_en text not null,
+  name_sq text
+);
+
+create table if not exists public.blog_posts (
+  id                 uuid primary key default gen_random_uuid(),
+  slug               text not null unique,
+  category_id        uuid references public.blog_categories(id) on delete set null,
+  author_id          uuid references public.admin_users(id) on delete set null,
+  author_name        text,
+  featured_image     text,
+  og_image           text,
+  status             content_status not null default 'draft',
+  featured           boolean not null default false,
+  is_indexable       boolean not null default true,
+  published_at       timestamptz,
+  reading_time       int not null default 1,
+  view_count         int not null default 0,
+  related_service_id uuid references public.services(id) on delete set null,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
+);
+create index if not exists blog_posts_status_idx on public.blog_posts(status, published_at desc);
+
+create table if not exists public.blog_translations (
+  id              uuid primary key default gen_random_uuid(),
+  post_id         uuid not null references public.blog_posts(id) on delete cascade,
+  language        language_code not null,
+  title           text not null,
+  excerpt         text,
+  content_html    text,
+  seo_title       text,
+  seo_description text,
+  og_title        text,
+  og_description  text,
+  is_complete     boolean not null default false,
+  updated_at      timestamptz not null default now(),
+  unique (post_id, language)
+);
+
+create table if not exists public.blog_post_tags (
+  post_id uuid not null references public.blog_posts(id) on delete cascade,
+  tag_id  uuid not null references public.blog_tags(id) on delete cascade,
+  primary key (post_id, tag_id)
+);
+
+-- ============================================================================
+-- Leads / CRM
+-- ============================================================================
+create table if not exists public.leads (
+  id              uuid primary key default gen_random_uuid(),
+  name            text not null,
+  email           text not null,
+  phone           text,
+  company         text,
+  website         text,
+  service         text,
+  budget          text,
+  timeline        text,
+  message         text,
+  attachment_url  text,
+  status          lead_status not null default 'new',
+  estimated_value numeric(12,2),
+  won_value       numeric(12,2),
+  language        language_code not null default 'en',
+  -- attribution
+  source          text,
+  source_page     text,
+  landing_page    text,
+  referrer        text,
+  utm_source      text,
+  utm_medium      text,
+  utm_campaign    text,
+  utm_content     text,
+  utm_term        text,
+  first_touch     jsonb,
+  country         text,
+  city            text,
+  device          text,
+  is_archived     boolean not null default false,
+  assigned_to     uuid references public.admin_users(id) on delete set null,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+create index if not exists leads_status_idx  on public.leads(status, created_at desc);
+create index if not exists leads_created_idx on public.leads(created_at desc);
+create index if not exists leads_email_idx   on public.leads(lower(email));
+
+create table if not exists public.lead_notes (
+  id          uuid primary key default gen_random_uuid(),
+  lead_id     uuid not null references public.leads(id) on delete cascade,
+  author_id   uuid references public.admin_users(id) on delete set null,
+  author_name text,
+  body        text not null,
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.lead_activity (
+  id         uuid primary key default gen_random_uuid(),
+  lead_id    uuid not null references public.leads(id) on delete cascade,
+  actor_id   uuid references public.admin_users(id) on delete set null,
+  actor_name text,
+  action     text not null,
+  from_value text,
+  to_value   text,
+  metadata   jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists lead_activity_lead_idx on public.lead_activity(lead_id, created_at desc);
+
+-- ============================================================================
+-- Testimonials / FAQs
+-- ============================================================================
+create table if not exists public.testimonials (
+  id          uuid primary key default gen_random_uuid(),
+  client_name text not null,
+  position    text,
+  company     text,
+  country     text,
+  photo_url   text,
+  logo_url    text,
+  rating      smallint check (rating between 1 and 5),
+  quote_en    text not null,
+  quote_sq    text,
+  project_id  uuid references public.projects(id) on delete set null,
+  featured    boolean not null default false,
+  is_active   boolean not null default true,
+  sort_order  int not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create table if not exists public.faqs (
+  id          uuid primary key default gen_random_uuid(),
+  category    text not null default 'general',
+  question_en text not null,
+  answer_en   text not null,
+  question_sq text,
+  answer_sq   text,
+  service_id  uuid references public.services(id) on delete cascade,
+  industry_id uuid references public.industries(id) on delete cascade,
+  sort_order  int not null default 0,
+  is_active   boolean not null default true,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists faqs_category_idx on public.faqs(category, sort_order) where is_active;
+
+-- ============================================================================
+-- Pages (structured section CMS) & SEO landing pages
+-- ============================================================================
+create table if not exists public.pages (
+  id            uuid primary key default gen_random_uuid(),
+  slug          text not null unique,           -- 'home' | 'about' | 'web-development-albania'
+  kind          text not null default 'system', -- 'system' | 'landing'
+  status        content_status not null default 'published',
+  is_indexable  boolean not null default true,
+  canonical_url text,
+  og_image      text,
+  sort_order    int not null default 0,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create table if not exists public.page_translations (
+  id              uuid primary key default gen_random_uuid(),
+  page_id         uuid not null references public.pages(id) on delete cascade,
+  language        language_code not null,
+  title           text not null,
+  sections        jsonb not null default '[]'::jsonb,  -- ordered predefined section blocks
+  seo_title       text,
+  seo_description text,
+  og_title        text,
+  og_description  text,
+  is_complete     boolean not null default false,
+  updated_at      timestamptz not null default now(),
+  unique (page_id, language)
+);
+
+-- ============================================================================
+-- Media library
+-- ============================================================================
+create table if not exists public.media (
+  id          uuid primary key default gen_random_uuid(),
+  bucket      text not null default 'media',
+  path        text not null,
+  url         text not null,
+  kind        media_kind not null default 'image',
+  mime_type   text not null,
+  file_name   text not null,
+  size_bytes  bigint not null default 0,
+  width       int,
+  height      int,
+  alt_en      text,
+  alt_sq      text,
+  folder      text not null default 'general',
+  uploaded_by uuid references public.admin_users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists media_folder_idx on public.media(folder, created_at desc);
+
+-- ============================================================================
+-- Newsletter
+-- ============================================================================
+create table if not exists public.newsletter_subscribers (
+  id            uuid primary key default gen_random_uuid(),
+  email         text not null unique,
+  language      language_code not null default 'en',
+  source        text,
+  status        subscriber_status not null default 'pending',
+  confirm_token text,
+  confirmed_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ============================================================================
+-- SEO, redirects, settings, integrations
+-- ============================================================================
+create table if not exists public.seo_settings (
+  id              uuid primary key default gen_random_uuid(),
+  path            text not null,
+  language        language_code not null default 'en',
+  seo_title       text,
+  seo_description text,
+  og_title        text,
+  og_description  text,
+  og_image        text,
+  canonical_url   text,
+  is_indexable    boolean not null default true,
+  updated_at      timestamptz not null default now(),
+  unique (path, language)
+);
+
+create table if not exists public.redirects (
+  id          uuid primary key default gen_random_uuid(),
+  source      text not null unique,
+  destination text not null,
+  status_code smallint not null default 301 check (status_code in (301,302,307,308)),
+  is_active   boolean not null default true,
+  hit_count   int not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create table if not exists public.site_settings (
+  key        text primary key,
+  value      jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references public.admin_users(id) on delete set null
+);
+
+create table if not exists public.integrations (
+  key             text primary key,   -- 'ga4' | 'gsc' | 'google_ads' | 'meta_pixel' | 'clarity' | 'resend' | 'turnstile' | 'calendly'
+  label           text not null,
+  is_enabled      boolean not null default false,
+  config          jsonb not null default '{}'::jsonb,   -- non-secret config only
+  last_status     text,
+  last_checked_at timestamptz,
+  updated_at      timestamptz not null default now()
+);
+
+-- ============================================================================
+-- Activity log & notifications
+-- ============================================================================
+create table if not exists public.activity_logs (
+  id           uuid primary key default gen_random_uuid(),
+  actor_id     uuid references public.admin_users(id) on delete set null,
+  actor_email  text,
+  action       text not null,          -- 'created' | 'updated' | 'deleted' | 'published' | 'login'
+  entity_type  text not null,          -- 'project' | 'blog_post' | 'lead' | …
+  entity_id    text,
+  entity_label text,
+  metadata     jsonb,
+  created_at   timestamptz not null default now()
+);
+create index if not exists activity_logs_created_idx on public.activity_logs(created_at desc);
+
+create table if not exists public.admin_notifications (
+  id         uuid primary key default gen_random_uuid(),
+  kind       text not null,            -- 'lead' | 'subscriber' | 'blog' | 'integration' | 'security'
+  title      text not null,
+  body       text,
+  href       text,
+  severity   text not null default 'info',
+  is_read    boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists admin_notifications_unread_idx on public.admin_notifications(is_read, created_at desc);
+
+-- ============================================================================
+-- First-party content engagement events (privacy preserving — no IP stored)
+-- ============================================================================
+create table if not exists public.page_events (
+  id          uuid primary key default gen_random_uuid(),
+  event_name  text not null,
+  entity_type text,
+  entity_id   uuid,
+  path        text,
+  language    language_code default 'en',
+  device      text,
+  country     text,
+  metadata    jsonb,
+  created_at  timestamptz not null default now()
+);
+create index if not exists page_events_name_idx   on public.page_events(event_name, created_at desc);
+create index if not exists page_events_entity_idx on public.page_events(entity_type, entity_id);
+
+-- ─── Rate limiting (hashed identifiers only, short lived) ───────────────────
+create table if not exists public.rate_limits (
+  id              bigserial primary key,
+  bucket          text not null,
+  identifier_hash text not null,      -- sha256(ip + rotating salt); never the raw IP
+  created_at      timestamptz not null default now()
+);
+create index if not exists rate_limits_lookup_idx on public.rate_limits(bucket, identifier_hash, created_at desc);
+
+create or replace function public.prune_rate_limits()
+returns void language sql as $fn$
+  delete from public.rate_limits where created_at < now() - interval '24 hours';
+$fn$;
+
+-- ─── Deferred FKs (circular references) ─────────────────────────────────────
+do $fk$ begin
+  alter table public.projects
+    add constraint projects_testimonial_fk
+    foreign key (testimonial_id) references public.testimonials(id) on delete set null;
+exception when duplicate_object then null; end $fk$;
+
+do $fk$ begin
+  alter table public.project_media
+    add constraint project_media_media_fk
+    foreign key (media_id) references public.media(id) on delete set null;
+exception when duplicate_object then null; end $fk$;
+
+-- ─── updated_at triggers on every mutable table ─────────────────────────────
+do $trg$
+declare t text;
+begin
+  foreach t in array array[
+    'admin_users','industries','industry_translations','services','service_translations',
+    'projects','project_translations','blog_posts','blog_translations','leads','testimonials',
+    'faqs','pages','page_translations','media','newsletter_subscribers','seo_settings',
+    'redirects','site_settings','integrations'
+  ] loop
+    -- One statement per EXECUTE: PL/pgSQL's EXECUTE is documented for a single
+    -- command, so batching two is a portability risk not worth taking.
+    execute format('drop trigger if exists set_updated_at on public.%I;', t);
+    execute format(
+      'create trigger set_updated_at before update on public.%I
+       for each row execute function public.set_updated_at();', t);
+  end loop;
+end $trg$;
+
+-- ==========================================================================
+-- Migration 0002 — row level security
+-- ==========================================================================
+
+-- ============================================================================
+-- drh.al — Row Level Security
+--
+-- Model:
+--   * anon / authenticated visitors  -> read PUBLISHED content only
+--   * admin_users                    -> role-scoped write access
+--   * service_role (server actions)  -> bypasses RLS entirely; every server
+--                                       action still re-checks the role in
+--                                       application code (src/lib/auth/guard.ts)
+--
+-- Nothing writes to `leads`, `newsletter_subscribers`, `rate_limits` or
+-- `page_events` from the browser: those go through server actions using the
+-- service role, so no anon INSERT policy exists for them.
+-- ============================================================================
+
+-- ─── Helpers ────────────────────────────────────────────────────────────────
+-- SECURITY DEFINER so that policies on admin_users itself do not recurse.
+create or replace function public.admin_role()
+returns user_role
+language sql
+stable
+security definer
+set search_path = public
+as $fn$
+  select u.role
+  from public.admin_users u
+  where u.id = auth.uid() and u.is_active
+$fn$;
+
+create or replace function public.has_role(allowed user_role[])
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $fn$
+  select coalesce(public.admin_role() = any(allowed), false)
+$fn$;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $fn$
+  select public.admin_role() is not null
+$fn$;
+
+grant execute on function public.admin_role()  to anon, authenticated;
+grant execute on function public.has_role(user_role[]) to anon, authenticated;
+grant execute on function public.is_admin()    to anon, authenticated;
+
+-- ─── Enable RLS everywhere ──────────────────────────────────────────────────
+do $rls$
+declare t text;
+begin
+  foreach t in array array[
+    'admin_users','technologies','industries','industry_translations','services',
+    'service_translations','service_technologies','projects','project_translations',
+    'project_media','project_results','project_technologies','project_services',
+    'blog_categories','blog_tags','blog_posts','blog_translations','blog_post_tags',
+    'leads','lead_notes','lead_activity','testimonials','faqs','pages','page_translations',
+    'media','newsletter_subscribers','seo_settings','redirects','site_settings',
+    'integrations','activity_logs','admin_notifications','page_events','rate_limits'
+  ] loop
+    execute format('alter table public.%I enable row level security;', t);
+  end loop;
+end $rls$;
+
+-- ============================================================================
+-- Public read policies — published content only
+-- ============================================================================
+
+-- Simple reference tables: readable by everyone.
+drop policy if exists tech_public_read on public.technologies;
+create policy tech_public_read on public.technologies
+  for select using (is_active or public.is_admin());
+
+drop policy if exists blog_categories_public_read on public.blog_categories;
+create policy blog_categories_public_read on public.blog_categories for select using (true);
+
+drop policy if exists blog_tags_public_read on public.blog_tags;
+create policy blog_tags_public_read on public.blog_tags for select using (true);
+
+drop policy if exists site_settings_public_read on public.site_settings;
+create policy site_settings_public_read on public.site_settings for select using (true);
+
+-- Status-gated content.
+drop policy if exists projects_public_read on public.projects;
+create policy projects_public_read on public.projects
+  for select using (status = 'published' or public.is_admin());
+
+drop policy if exists services_public_read on public.services;
+create policy services_public_read on public.services
+  for select using (status = 'published' or public.is_admin());
+
+drop policy if exists industries_public_read on public.industries;
+create policy industries_public_read on public.industries
+  for select using (status = 'published' or public.is_admin());
+
+drop policy if exists pages_public_read on public.pages;
+create policy pages_public_read on public.pages
+  for select using (status = 'published' or public.is_admin());
+
+drop policy if exists blog_posts_public_read on public.blog_posts;
+create policy blog_posts_public_read on public.blog_posts
+  for select using (
+    (status = 'published' and (published_at is null or published_at <= now()))
+    or public.is_admin()
+  );
+
+drop policy if exists testimonials_public_read on public.testimonials;
+create policy testimonials_public_read on public.testimonials
+  for select using (is_active or public.is_admin());
+
+drop policy if exists faqs_public_read on public.faqs;
+create policy faqs_public_read on public.faqs
+  for select using (is_active or public.is_admin());
+
+drop policy if exists redirects_public_read on public.redirects;
+create policy redirects_public_read on public.redirects
+  for select using (is_active or public.is_admin());
+
+drop policy if exists seo_public_read on public.seo_settings;
+create policy seo_public_read on public.seo_settings for select using (true);
+
+drop policy if exists media_public_read on public.media;
+create policy media_public_read on public.media for select using (true);
+
+-- Child tables inherit the visibility of their parent.
+drop policy if exists project_tr_public_read on public.project_translations;
+create policy project_tr_public_read on public.project_translations for select using (
+  exists (select 1 from public.projects p where p.id = project_id
+          and (p.status = 'published' or public.is_admin())));
+
+drop policy if exists project_media_public_read on public.project_media;
+create policy project_media_public_read on public.project_media for select using (
+  exists (select 1 from public.projects p where p.id = project_id
+          and (p.status = 'published' or public.is_admin())));
+
+drop policy if exists project_results_public_read on public.project_results;
+create policy project_results_public_read on public.project_results for select using (
+  exists (select 1 from public.projects p where p.id = project_id
+          and (p.status = 'published' or public.is_admin())));
+
+drop policy if exists project_tech_public_read on public.project_technologies;
+create policy project_tech_public_read on public.project_technologies for select using (
+  exists (select 1 from public.projects p where p.id = project_id
+          and (p.status = 'published' or public.is_admin())));
+
+drop policy if exists project_services_public_read on public.project_services;
+create policy project_services_public_read on public.project_services for select using (
+  exists (select 1 from public.projects p where p.id = project_id
+          and (p.status = 'published' or public.is_admin())));
+
+drop policy if exists service_tr_public_read on public.service_translations;
+create policy service_tr_public_read on public.service_translations for select using (
+  exists (select 1 from public.services s where s.id = service_id
+          and (s.status = 'published' or public.is_admin())));
+
+drop policy if exists service_tech_public_read on public.service_technologies;
+create policy service_tech_public_read on public.service_technologies for select using (
+  exists (select 1 from public.services s where s.id = service_id
+          and (s.status = 'published' or public.is_admin())));
+
+drop policy if exists industry_tr_public_read on public.industry_translations;
+create policy industry_tr_public_read on public.industry_translations for select using (
+  exists (select 1 from public.industries i where i.id = industry_id
+          and (i.status = 'published' or public.is_admin())));
+
+drop policy if exists page_tr_public_read on public.page_translations;
+create policy page_tr_public_read on public.page_translations for select using (
+  exists (select 1 from public.pages pg where pg.id = page_id
+          and (pg.status = 'published' or public.is_admin())));
+
+drop policy if exists blog_tr_public_read on public.blog_translations;
+create policy blog_tr_public_read on public.blog_translations for select using (
+  exists (select 1 from public.blog_posts b where b.id = post_id
+          and ((b.status = 'published' and (b.published_at is null or b.published_at <= now()))
+               or public.is_admin())));
+
+drop policy if exists blog_post_tags_public_read on public.blog_post_tags;
+create policy blog_post_tags_public_read on public.blog_post_tags for select using (
+  exists (select 1 from public.blog_posts b where b.id = post_id
+          and ((b.status = 'published' and (b.published_at is null or b.published_at <= now()))
+               or public.is_admin())));
+
+-- ============================================================================
+-- Admin write policies
+-- ============================================================================
+
+-- Content editable by: super_admin, admin, editor
+do $pol$
+declare t text;
+begin
+  foreach t in array array[
+    'projects','project_translations','project_media','project_results',
+    'project_technologies','project_services','blog_posts','blog_translations',
+    'blog_post_tags','blog_categories','blog_tags','pages','page_translations','media'
+  ] loop
+    -- The policy name is passed as its own identifier rather than glued onto
+    -- %I, which would break the moment a table name needed quoting.
+    execute format('drop policy if exists %I on public.%I;', t || '_editor_write', t);
+    execute format($p$
+      create policy %I on public.%I
+        for all
+        using (public.has_role(array['super_admin','admin','editor']::user_role[]))
+        with check (public.has_role(array['super_admin','admin','editor']::user_role[]));
+    $p$, t || '_editor_write', t);
+  end loop;
+end $pol$;
+
+-- Structural content editable by: super_admin, admin
+do $pol$
+declare t text;
+begin
+  foreach t in array array[
+    'services','service_translations','service_technologies','industries',
+    'industry_translations','technologies','testimonials','faqs'
+  ] loop
+    -- The policy name is passed as its own identifier rather than glued onto
+    -- %I, which would break the moment a table name needed quoting.
+    execute format('drop policy if exists %I on public.%I;', t || '_admin_write', t);
+    execute format($p$
+      create policy %I on public.%I
+        for all
+        using (public.has_role(array['super_admin','admin']::user_role[]))
+        with check (public.has_role(array['super_admin','admin']::user_role[]));
+    $p$, t || '_admin_write', t);
+  end loop;
+end $pol$;
+
+-- Growth surface editable by: super_admin, admin, marketing
+do $pol$
+declare t text;
+begin
+  foreach t in array array[
+    'leads','lead_notes','lead_activity','newsletter_subscribers',
+    'seo_settings','redirects','integrations'
+  ] loop
+    -- The policy name is passed as its own identifier rather than glued onto
+    -- %I, which would break the moment a table name needed quoting.
+    execute format('drop policy if exists %I on public.%I;', t || '_marketing_write', t);
+    execute format($p$
+      create policy %I on public.%I
+        for all
+        using (public.has_role(array['super_admin','admin','marketing']::user_role[]))
+        with check (public.has_role(array['super_admin','admin','marketing']::user_role[]));
+    $p$, t || '_marketing_write', t);
+  end loop;
+end $pol$;
+
+-- Site settings: super_admin + admin
+drop policy if exists site_settings_write on public.site_settings;
+create policy site_settings_write on public.site_settings
+  for all
+  using (public.has_role(array['super_admin','admin']::user_role[]))
+  with check (public.has_role(array['super_admin','admin']::user_role[]));
+
+-- ─── admin_users ────────────────────────────────────────────────────────────
+drop policy if exists admin_users_self_read on public.admin_users;
+create policy admin_users_self_read on public.admin_users
+  for select using (id = auth.uid() or public.is_admin());
+
+drop policy if exists admin_users_self_update on public.admin_users;
+create policy admin_users_self_update on public.admin_users
+  for update using (id = auth.uid()) with check (id = auth.uid());
+
+-- Only a super admin manages the team.
+drop policy if exists admin_users_super_write on public.admin_users;
+create policy admin_users_super_write on public.admin_users
+  for all
+  using (public.has_role(array['super_admin']::user_role[]))
+  with check (public.has_role(array['super_admin']::user_role[]));
+
+-- ─── Logs & notifications: readable by any admin, written server-side ───────
+drop policy if exists activity_logs_read on public.activity_logs;
+create policy activity_logs_read on public.activity_logs
+  for select using (public.is_admin());
+
+drop policy if exists notifications_read on public.admin_notifications;
+create policy notifications_read on public.admin_notifications
+  for select using (public.is_admin());
+
+drop policy if exists notifications_update on public.admin_notifications;
+create policy notifications_update on public.admin_notifications
+  for update using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists page_events_read on public.page_events;
+create policy page_events_read on public.page_events
+  for select using (public.is_admin());
+
+-- `rate_limits` has RLS on and no policies at all: unreachable except via the
+-- service role. That is deliberate.
+
+-- ============================================================================
+-- Storage buckets
+-- ============================================================================
+insert into storage.buckets (id, name, public)
+values ('media', 'media', true)
+on conflict (id) do nothing;
+
+-- Private bucket: lead attachments are never publicly readable.
+insert into storage.buckets (id, name, public)
+values ('lead-attachments', 'lead-attachments', false)
+on conflict (id) do nothing;
+
+drop policy if exists media_public_select on storage.objects;
+create policy media_public_select on storage.objects
+  for select using (bucket_id = 'media');
+
+drop policy if exists media_admin_write on storage.objects;
+create policy media_admin_write on storage.objects
+  for all
+  using (bucket_id = 'media' and public.is_admin())
+  with check (bucket_id = 'media' and public.is_admin());
+
+drop policy if exists lead_attachments_admin_read on storage.objects;
+create policy lead_attachments_admin_read on storage.objects
+  for select using (
+    bucket_id = 'lead-attachments'
+    and public.has_role(array['super_admin','admin','marketing']::user_role[])
+  );
+
+-- ============================================================================
+-- Auth hook: mirror new auth users into admin_users (inactive by default)
+-- A super admin then activates and assigns the role from /admin/users.
+-- ============================================================================
+create or replace function public.handle_new_admin_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+begin
+  insert into public.admin_users (id, email, full_name, role, is_active)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    coalesce((new.raw_user_meta_data->>'role')::user_role, 'editor'),
+    coalesce((new.raw_user_meta_data->>'is_active')::boolean, false)
+  )
+  on conflict (id) do nothing;
+  return new;
+end $fn$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_admin_user();
+
+-- ==========================================================================
+-- Seed — initial content
+-- ==========================================================================
+
+-- ============================================================================
+-- drh.al — seed data
+-- GENERATED FILE. Edit src/content/seed/*.ts and run `npm run seed:sql`.
+-- Safe to re-run: every statement upserts.
+-- ============================================================================
+
+begin;
+
+insert into public.technologies (id, slug, name, icon_key, color, sort_order, is_active) values
+  ('00000004-0000-4000-8000-000000000001', 'react', 'React', 'react', '#61DAFB', 0, true),
+  ('00000004-0000-4000-8000-000000000002', 'nextjs', 'Next.js', 'nextjs', '#000000', 1, true),
+  ('00000004-0000-4000-8000-000000000003', 'nodejs', 'Node.js', 'nodejs', '#5FA04E', 2, true),
+  ('00000004-0000-4000-8000-000000000004', 'typescript', 'TypeScript', 'typescript', '#3178C6', 3, true),
+  ('00000004-0000-4000-8000-000000000005', 'javascript', 'JavaScript', 'javascript', '#F7DF1E', 4, true),
+  ('00000004-0000-4000-8000-000000000006', 'wordpress', 'WordPress', 'wordpress', '#21759B', 5, true),
+  ('00000004-0000-4000-8000-000000000007', 'woocommerce', 'WooCommerce', 'woocommerce', '#96588A', 6, true),
+  ('00000004-0000-4000-8000-000000000008', 'php', 'PHP', 'php', '#777BB4', 7, true),
+  ('00000004-0000-4000-8000-000000000009', 'supabase', 'Supabase', 'supabase', '#3ECF8E', 8, true),
+  ('00000004-0000-4000-8000-00000000000a', 'react-native', 'React Native', 'react', '#61DAFB', 9, true),
+  ('00000004-0000-4000-8000-00000000000b', 'postgresql', 'PostgreSQL', 'postgresql', '#4169E1', 10, true),
+  ('00000004-0000-4000-8000-00000000000c', 'tailwind', 'Tailwind CSS', 'tailwind', '#06B6D4', 11, true)
+on conflict (id) do update set slug = excluded.slug, name = excluded.name, icon_key = excluded.icon_key, color = excluded.color, sort_order = excluded.sort_order, is_active = excluded.is_active;
+
+insert into public.industries (id, slug, icon_key, cover_image, status, featured, sort_order) values
+  ('00000001-0000-4000-8000-000000000001', 'construction', 'hard-hat', null, 'published', true, 0),
+  ('00000001-0000-4000-8000-000000000002', 'real-estate', 'building', null, 'published', true, 1),
+  ('00000001-0000-4000-8000-000000000003', 'medical-dental', 'stethoscope', null, 'published', true, 2),
+  ('00000001-0000-4000-8000-000000000004', 'hospitality', 'utensils', null, 'published', true, 3),
+  ('00000001-0000-4000-8000-000000000005', 'legal', 'scale', null, 'published', false, 4),
+  ('00000001-0000-4000-8000-000000000006', 'fitness-wellness', 'dumbbell', null, 'published', false, 5),
+  ('00000001-0000-4000-8000-000000000007', 'automotive', 'car', null, 'published', false, 6),
+  ('00000001-0000-4000-8000-000000000008', 'ecommerce', 'shopping-bag', null, 'published', true, 7),
+  ('00000001-0000-4000-8000-000000000009', 'saas', 'cloud', null, 'published', false, 8),
+  ('00000001-0000-4000-8000-00000000000a', 'education', 'graduation-cap', null, 'published', false, 9)
+on conflict (id) do update set slug = excluded.slug, icon_key = excluded.icon_key, cover_image = excluded.cover_image, status = excluded.status, featured = excluded.featured, sort_order = excluded.sort_order;
+
+insert into public.industry_translations (title, hero_title, hero_subtitle, description, problems, solutions, cta_title, cta_body, seo_title, seo_description, industry_id, language, og_title, og_description, is_complete) values
+  ('Roofing & Construction', 'Websites That Win Construction Contracts', 'Digital presence for contractors, roofers and construction firms in Albania and abroad.', 'Construction buyers check credibility before they call. A clear project record, honest photography and fast answers to the questions that decide a contract matter more than decoration.', '[{"title":"Work that is invisible online","body":"Years of completed projects exist only in a phone gallery, so credibility has to be rebuilt in every conversation."},{"title":"Enquiries with no detail","body":"Contact forms that ask for a name and message produce calls that waste an hour qualifying."},{"title":"Invisible in local search","body":"Competitors appear for \"roofing\" or \"construction company\" searches in your city and you do not."}]'::jsonb, '[{"title":"A project record that sells","body":"Structured project pages with scope, location, timeline and photography — the proof a buyer needs."},{"title":"Qualifying enquiry forms","body":"Project type, scale, location and timeline captured up front, so your first call is already informed."},{"title":"Local search visibility","body":"Service and location pages, Google Business Profile and local schema that put you in the map results."}]'::jsonb, 'Ready to turn completed projects into new contracts?', 'Tell us about your company and the work you want more of.', 'Web Design for Construction & Roofing Companies | drh.al', 'Websites for construction and roofing companies in Albania: project portfolios, qualifying enquiry forms and local SEO that generates contract enquiries.', '00000001-0000-4000-8000-000000000001', 'en', null, null, true),
+  ('Ndërtim & Çati', 'Website që Fitojnë Kontrata Ndërtimi', 'Prani dixhitale për kontraktorë dhe kompani ndërtimi në Shqipëri dhe jashtë saj.', 'Blerësit në ndërtim kontrollojnë kredibilitetin para se të telefonojnë. Një historik i qartë projektesh, fotografi e ndershme dhe përgjigje të shpejta kanë më shumë rëndësi se dekorimi.', '[{"title":"Punë që nuk duket online","body":"Vite projektesh të përfunduara ekzistojnë vetëm në galerinë e telefonit."},{"title":"Kërkesa pa detaje","body":"Formularë që kërkojnë vetëm emër dhe mesazh sjellin telefonata që harxhojnë një orë për kualifikim."},{"title":"Të padukshëm në kërkimin lokal","body":"Konkurrentët shfaqen për kërkime si “kompani ndërtimi” në qytetin tuaj, ju jo."}]'::jsonb, '[{"title":"Një portofol që shet","body":"Faqe projektesh të strukturuara me fushëveprim, vendndodhje, afat dhe fotografi — provat që i duhen blerësit."},{"title":"Formularë që kualifikojnë","body":"Lloji i projektit, përmasa, vendndodhja dhe afati mblidhen që në fillim."},{"title":"Dukshmëri në kërkimin lokal","body":"Faqe shërbimesh dhe vendndodhjesh, Google Business Profile dhe schema lokale."}]'::jsonb, 'Gati t’i ktheni projektet e përfunduara në kontrata të reja?', 'Na tregoni për kompaninë tuaj dhe punën që doni të keni më shumë.', 'Website për Kompani Ndërtimi dhe Çatish | drh.al', 'Website për kompani ndërtimi në Shqipëri: portofol projektesh, formularë kualifikues dhe SEO lokal që gjeneron kërkesa për kontrata.', '00000001-0000-4000-8000-000000000001', 'sq', null, null, true),
+  ('Real Estate', 'Property Websites Built for Enquiries', 'Listing platforms and agency websites for the Albanian and international property market.', 'Property buyers compare fast and decide slowly. Your site has to load instantly on mobile, make search effortless, and give a serious buyer a reason to trust the agency behind the listing.', '[{"title":"Listings that are slow to browse","body":"Heavy galleries and unoptimised images lose mobile buyers before the second property."},{"title":"Manual listing management","body":"Updating properties means emailing a developer, so the site is always out of date."},{"title":"International buyers unserved","body":"A single-language site with local-only context loses the diaspora and foreign investor audience."}]'::jsonb, '[{"title":"Fast, filterable search","body":"Location, price, size and type filters with optimised images that stay quick on mobile data."},{"title":"A listing CMS your agents run","body":"Add, edit, feature and archive properties without touching code."},{"title":"Multilingual by design","body":"Albanian and English content with correct hreflang, so both audiences find you in search."}]'::jsonb, 'Want a property site that generates viewings?', 'Tell us about your portfolio and target buyers.', 'Real Estate Website Development Albania | drh.al', 'Real estate websites and listing platforms in Albania: fast property search, an agent-friendly CMS, multilingual content and enquiry-focused design.', '00000001-0000-4000-8000-000000000002', 'en', null, null, true),
+  ('Pasuri të Paluajtshme', 'Website Pronash të Ndërtuara për Kërkesa', 'Platforma listimesh dhe website agjencish për tregun shqiptar dhe atë ndërkombëtar.', 'Blerësit e pronave krahasojnë shpejt dhe vendosin ngadalë. Faqja juaj duhet të ngarkohet menjëherë në celular dhe t’i japë blerësit një arsye për të besuar agjencinë.', '[{"title":"Listime të ngadalta për t’u shfletuar","body":"Galeri të rënda dhe imazhe të paoptimizuara humbasin blerësit para pronës së dytë."},{"title":"Menaxhim manual i listimeve","body":"Përditësimi i pronave kërkon një zhvillues, prandaj faqja është gjithmonë e vjetëruar."},{"title":"Blerësit ndërkombëtarë të pashërbyer","body":"Një faqe njëgjuhëshe humbet diasporën dhe investitorët e huaj."}]'::jsonb, '[{"title":"Kërkim i shpejtë me filtra","body":"Filtra për vendndodhje, çmim, sipërfaqe dhe tip, me imazhe të optimizuara për celular."},{"title":"Një CMS që e drejtojnë agjentët","body":"Shtoni, redaktoni dhe arkivoni prona pa prekur kodin."},{"title":"Shumëgjuhësh nga dizajni","body":"Përmbajtje shqip dhe anglisht me hreflang të saktë."}]'::jsonb, 'Doni një faqe pronash që gjeneron vizita?', 'Na tregoni për portofolin dhe blerësit që synoni.', 'Zhvillim Website për Pasuri të Paluajtshme Shqipëri | drh.al', 'Website dhe platforma listimesh pronash në Shqipëri: kërkim i shpejtë, CMS për agjentët, përmbajtje shumëgjuhëshe dhe dizajn i fokusuar te kërkesat.', '00000001-0000-4000-8000-000000000002', 'sq', null, null, true),
+  ('Medical & Dental', 'Clinic Websites That Fill the Appointment Book', 'Digital presence for clinics, dental practices and medical specialists.', 'Patients choose a clinic on trust and convenience. Clear treatment information, visible credentials and a booking path that takes seconds do more for a practice than any advertising campaign.', '[{"title":"Booking friction","body":"Appointments depend on a phone line that nobody answers during procedures."},{"title":"Treatments explained poorly","body":"Patients arrive uninformed, or never arrive, because the site does not answer their real questions."},{"title":"Missing from local search","body":"Patients searching for a specialist nearby never see the clinic."}]'::jsonb, '[{"title":"Booking that takes seconds","body":"Online appointment requests or scheduling integration, with confirmations handled automatically."},{"title":"Treatment pages that inform","body":"Procedure, expectations, recovery and pricing guidance — written to reduce anxiety."},{"title":"Local and specialist visibility","body":"Location pages, Google Business Profile and medical schema so nearby patients find you."}]'::jsonb, 'Want more of the right patients?', 'Tell us about your clinic and the treatments you want to grow.', 'Medical & Dental Clinic Website Development | drh.al', 'Websites for clinics and dental practices in Albania: online booking, clear treatment information and local SEO that brings in new patients.', '00000001-0000-4000-8000-000000000003', 'en', null, null, true),
+  ('Mjekësi & Dentistri', 'Website Klinikash që Mbushin Axhendën', 'Prani dixhitale për klinika, praktika dentare dhe specialistë mjekësorë.', 'Pacientët zgjedhin një klinikë mbi besimin dhe lehtësinë. Informacion i qartë për trajtimet dhe një rrugë rezervimi që zgjat sekonda bëjnë më shumë se çdo fushatë reklamimi.', '[{"title":"Pengesa në rezervim","body":"Takimet varen nga një linjë telefonike që nuk përgjigjet gjatë procedurave."},{"title":"Trajtime të shpjeguara keq","body":"Pacientët vijnë të painformuar, ose nuk vijnë fare."},{"title":"Mungesë në kërkimin lokal","body":"Pacientët që kërkojnë një specialist afër nuk e shohin klinikën."}]'::jsonb, '[{"title":"Rezervim në pak sekonda","body":"Kërkesa online për takim ose integrim me sistem planifikimi, me konfirmime automatike."},{"title":"Faqe trajtimesh që informojnë","body":"Procedura, pritshmëritë, rikuperimi dhe orientim mbi çmimet."},{"title":"Dukshmëri lokale dhe specialistike","body":"Faqe vendndodhjesh, Google Business Profile dhe schema mjekësore."}]'::jsonb, 'Doni më shumë pacientë të duhur?', 'Na tregoni për klinikën dhe trajtimet që doni të rrisni.', 'Zhvillim Website për Klinika Mjekësore dhe Dentare | drh.al', 'Website për klinika dhe praktika dentare në Shqipëri: rezervime online, informacion i qartë për trajtimet dhe SEO lokal që sjell pacientë të rinj.', '00000001-0000-4000-8000-000000000003', 'sq', null, null, true),
+  ('Restaurants & Hospitality', 'Hospitality Websites That Fill Tables and Rooms', 'For restaurants, hotels and hospitality groups in Albania and the region.', 'Hospitality decisions are made on a phone, often minutes before booking. Menu, photos, location and availability have to be one tap away — and the site has to work on a weak mobile connection.', '[{"title":"Menus locked in PDFs","body":"A PDF menu is unreadable on mobile and invisible to search engines."},{"title":"Bookings lost to platforms","body":"Every reservation through a third party costs commission that direct booking would keep."},{"title":"Seasonal updates need a developer","body":"Changing hours or a menu takes days instead of minutes."}]'::jsonb, '[{"title":"Menus as real content","body":"Structured, searchable, instantly editable menus that also work for SEO."},{"title":"Direct booking","body":"Reservation forms or booking-engine integration that keep the margin with you."},{"title":"Self-service updates","body":"Hours, menus, events and photos managed by your team from the admin."}]'::jsonb, 'Want more direct bookings?', 'Tell us about your venue and your busiest season.', 'Restaurant & Hotel Website Development Albania | drh.al', 'Hospitality websites in Albania: editable menus, direct booking, fast mobile performance and local SEO for restaurants and hotels.', '00000001-0000-4000-8000-000000000004', 'en', null, null, true),
+  ('Restorante & Mikpritje', 'Website Mikpritjeje që Mbushin Tavolina dhe Dhoma', 'Për restorante, hotele dhe grupe mikpritjeje në Shqipëri dhe rajon.', 'Vendimet në mikpritje merren nga telefoni, shpesh minuta para rezervimit. Menuja, fotot, vendndodhja dhe disponueshmëria duhet të jenë një prekje larg.', '[{"title":"Menu të mbyllura në PDF","body":"Një menu PDF është e palexueshme në celular dhe e padukshme për motorët e kërkimit."},{"title":"Rezervime të humbura te platformat","body":"Çdo rezervim përmes palëve të treta ka komision që rezervimi direkt do ta ruante."},{"title":"Përditësimet sezonale kërkojnë zhvillues","body":"Ndryshimi i orareve apo i menusë zgjat ditë në vend të minutave."}]'::jsonb, '[{"title":"Menu si përmbajtje reale","body":"Menu të strukturuara, të kërkueshme dhe të redaktueshme menjëherë."},{"title":"Rezervim direkt","body":"Formularë rezervimi ose integrim me sistem rezervimesh që ruajnë marzhin tuaj."},{"title":"Përditësime vetëshërbimi","body":"Oraret, menutë, eventet dhe fotot menaxhohen nga ekipi juaj."}]'::jsonb, 'Doni më shumë rezervime direkte?', 'Na tregoni për lokalin tuaj dhe sezonin më të ngarkuar.', 'Zhvillim Website për Restorante dhe Hotele Shqipëri | drh.al', 'Website mikpritjeje në Shqipëri: menu të redaktueshme, rezervim direkt, performancë e shpejtë në celular dhe SEO lokal.', '00000001-0000-4000-8000-000000000004', 'sq', null, null, true),
+  ('Legal & Professional Services', 'Websites for Firms Sold on Credibility', 'For law firms, accountants, consultants and professional practices.', 'Professional services are bought on confidence. The website has to demonstrate expertise clearly, respect confidentiality, and make the first contact feel low-risk.', '[{"title":"Expertise that is not visible","body":"Deep specialist knowledge reduced to a generic \"About us\" paragraph."},{"title":"No qualified enquiry path","body":"Enquiries arrive with no matter type, so partners spend time triaging."},{"title":"Losing search to directories","body":"Aggregator sites rank for the practice areas that should be yours."}]'::jsonb, '[{"title":"Practice area pages","body":"A dedicated, substantive page per specialism — the pages that earn search visibility."},{"title":"Structured intake","body":"Enquiry forms that capture matter type and urgency while respecting confidentiality."},{"title":"Authority content","body":"Insight articles that answer the questions clients ask before they engage."}]'::jsonb, 'Want enquiries from better-qualified clients?', 'Tell us about your practice areas and target clients.', 'Law Firm & Professional Services Web Development | drh.al', 'Websites for law firms and professional services in Albania: practice area pages, structured enquiry intake and content that builds authority.', '00000001-0000-4000-8000-000000000005', 'en', null, null, true),
+  ('Shërbime Ligjore & Profesionale', 'Website për Firma që Shiten mbi Kredibilitetin', 'Për studio ligjore, kontabilistë, konsulentë dhe praktika profesionale.', 'Shërbimet profesionale blihen mbi besimin. Website-i duhet të demonstrojë ekspertizë qartë, të respektojë konfidencialitetin dhe ta bëjë kontaktin e parë të lehtë.', '[{"title":"Ekspertizë që nuk duket","body":"Njohuri të thella specialistike të reduktuara në një paragraf “Rreth nesh”."},{"title":"Pa rrugë kërkese të kualifikuar","body":"Kërkesat vijnë pa llojin e çështjes, ndaj partnerët harxhojnë kohë duke i klasifikuar."},{"title":"Humbje e kërkimit ndaj direktorive","body":"Faqet grumbulluese renditen për fushat që duhet të ishin tuajat."}]'::jsonb, '[{"title":"Faqe për fushat e praktikës","body":"Një faqe e dedikuar dhe substanciale për çdo specializim."},{"title":"Marrje e strukturuar e kërkesave","body":"Formularë që kapin llojin dhe urgjencën duke respektuar konfidencialitetin."},{"title":"Përmbajtje autoriteti","body":"Artikuj që u përgjigjen pyetjeve që klientët bëjnë para se të angazhohen."}]'::jsonb, 'Doni kërkesa nga klientë më të kualifikuar?', 'Na tregoni për fushat e praktikës dhe klientët që synoni.', 'Zhvillim Website për Studio Ligjore dhe Shërbime Profesionale | drh.al', 'Website për studio ligjore dhe shërbime profesionale në Shqipëri: faqe fushash praktike, marrje e strukturuar kërkesash dhe përmbajtje autoriteti.', '00000001-0000-4000-8000-000000000005', 'sq', null, null, true),
+  ('Fitness & Wellness', 'Websites That Convert Interest Into Memberships', 'For gyms, studios, trainers and wellness brands.', 'Fitness decisions are emotional and time-limited. The moment someone decides to start, the schedule, the price and the sign-up have to be immediately available.', '[{"title":"Schedules hidden or stale","body":"Class times posted only on social media, out of date within a week."},{"title":"Sign-up friction","body":"A prospect ready to join is asked to visit in person or call during working hours."},{"title":"Pricing that is never shown","body":"Hiding prices filters out serious prospects, not just price shoppers."}]'::jsonb, '[{"title":"Live schedule and booking","body":"Class timetable and booking that your team updates in seconds."},{"title":"Membership sign-up online","body":"Trials, memberships and payments handled without a phone call."},{"title":"Honest pricing pages","body":"Clear plans and what is included — the fastest way to qualify enquiries."}]'::jsonb, 'Want to convert more first-time visitors?', 'Tell us about your studio and membership model.', 'Gym & Fitness Website Development Albania | drh.al', 'Websites for gyms, studios and wellness brands in Albania: live class schedules, online sign-up, clear pricing and local SEO.', '00000001-0000-4000-8000-000000000006', 'en', null, null, true),
+  ('Fitnes & Mirëqenie', 'Website që e Kthejnë Interesin në Anëtarësime', 'Për palestra, studio, trajnerë dhe brande mirëqenieje.', 'Vendimet për fitnesin janë emocionale dhe me afat të shkurtër. Në momentin që dikush vendos të fillojë, orari, çmimi dhe regjistrimi duhet të jenë menjëherë të disponueshme.', '[{"title":"Oraret e fshehura ose të vjetruara","body":"Oraret e klasave publikohen vetëm në rrjete sociale dhe vjetërohen brenda javës."},{"title":"Pengesa në regjistrim","body":"Një i interesuar i gatshëm duhet të vijë personalisht ose të telefonojë brenda orarit."},{"title":"Çmime që nuk tregohen kurrë","body":"Fshehja e çmimeve largon të interesuarit seriozë, jo vetëm ata që kërkojnë lirë."}]'::jsonb, '[{"title":"Orar dhe rezervim live","body":"Orari i klasave dhe rezervimi që ekipi juaj i përditëson në sekonda."},{"title":"Anëtarësim online","body":"Prova, anëtarësime dhe pagesa pa telefonatë."},{"title":"Faqe çmimesh të ndershme","body":"Plane të qarta dhe çfarë përfshihet — mënyra më e shpejtë për të kualifikuar kërkesat."}]'::jsonb, 'Doni të konvertoni më shumë vizitorë të parë?', 'Na tregoni për studion dhe modelin e anëtarësimit.', 'Zhvillim Website për Palestra dhe Fitnes Shqipëri | drh.al', 'Website për palestra, studio dhe brande mirëqenieje në Shqipëri: orare live, regjistrim online, çmime të qarta dhe SEO lokal.', '00000001-0000-4000-8000-000000000006', 'sq', null, null, true),
+  ('Automotive', 'Automotive Websites Built for Enquiries and Bookings', 'For dealerships, service centres and automotive specialists.', 'Vehicle buyers research extensively and decide quickly. Inventory has to be current, searchable and fast — and a service booking should never require a phone call.', '[{"title":"Stale inventory","body":"Vehicles sold weeks ago still listed, which destroys trust on the first visit."},{"title":"Service bookings by phone only","body":"Every booking costs staff time and some are simply lost."},{"title":"Poor mobile experience","body":"Buyers browse from a phone on a forecourt, where a heavy site fails."}]'::jsonb, '[{"title":"Inventory your team controls","body":"Add, update and remove vehicles with photos and specs in minutes."},{"title":"Online service booking","body":"Service type, vehicle and preferred time captured before the customer arrives."},{"title":"Fast mobile browsing","body":"Optimised images and filtering that stay quick on mobile connections."}]'::jsonb, 'Want more qualified vehicle enquiries?', 'Tell us about your dealership or service centre.', 'Automotive & Dealership Web Development Albania | drh.al', 'Automotive websites in Albania: manageable vehicle inventory, online service booking and fast mobile browsing for dealerships and service centres.', '00000001-0000-4000-8000-000000000007', 'en', null, null, true),
+  ('Automjete', 'Website Automjetesh të Ndërtuara për Kërkesa dhe Rezervime', 'Për tregtarë automjetesh, qendra servisi dhe specialistë.', 'Blerësit e automjeteve hulumtojnë gjerësisht dhe vendosin shpejt. Inventari duhet të jetë i përditësuar, i kërkueshëm dhe i shpejtë.', '[{"title":"Inventar i vjetëruar","body":"Automjete të shitura javë më parë ende të listuara, gjë që shkatërron besimin."},{"title":"Rezervime servisi vetëm me telefon","body":"Çdo rezervim kushton kohë stafi dhe disa humbasin krejt."},{"title":"Përvojë e dobët në celular","body":"Blerësit shfletojnë nga telefoni, ku një faqe e rëndë dështon."}]'::jsonb, '[{"title":"Inventar që e kontrollon ekipi juaj","body":"Shtoni, përditësoni dhe hiqni automjete me foto dhe specifika brenda minutash."},{"title":"Rezervim servisi online","body":"Lloji i shërbimit, automjeti dhe ora e preferuar mblidhen paraprakisht."},{"title":"Shfletim i shpejtë në celular","body":"Imazhe të optimizuara dhe filtrim që mbeten të shpejtë."}]'::jsonb, 'Doni kërkesa më të kualifikuara?', 'Na tregoni për pikën tuaj të shitjes ose servisin.', 'Zhvillim Website Automjetesh Shqipëri | drh.al', 'Website automjetesh në Shqipëri: inventar i menaxhueshëm, rezervim servisi online dhe shfletim i shpejtë në celular.', '00000001-0000-4000-8000-000000000007', 'sq', null, null, true),
+  ('E-commerce & Retail', 'Online Stores Built to Sell, Not Just to Exist', 'For retailers and brands selling in Albania and across borders.', 'Retail online is decided by details: how fast the catalogue loads, how few steps the checkout takes, and whether the customer trusts you with a card at the last screen.', '[{"title":"Checkout abandonment","body":"Too many steps, surprise shipping costs and payment options customers do not recognise."},{"title":"Catalogue that cannot scale","body":"Search and filtering break down as the product count grows."},{"title":"No revenue attribution","body":"Marketing spend is judged on clicks because purchases are not tracked properly."}]'::jsonb, '[{"title":"A checkout designed to complete","body":"Fewer steps, transparent totals, guest checkout and familiar payment methods."},{"title":"Catalogue architecture","body":"Product data, variants, filters and search that stay fast at scale."},{"title":"Full revenue tracking","body":"E-commerce events wired to analytics and ads so every channel is judged on revenue."}]'::jsonb, 'Want a store that converts?', 'Tell us what you sell and where the funnel breaks today.', 'E-commerce & Retail Web Development Albania | drh.al', 'E-commerce websites for retailers in Albania: optimised checkout, scalable catalogues, multilingual stores and complete revenue tracking.', '00000001-0000-4000-8000-000000000008', 'en', null, null, true),
+  ('E-commerce & Shitje me Pakicë', 'Dyqane Online të Ndërtuara për të Shitur', 'Për tregtarë dhe brande që shesin në Shqipëri dhe përtej kufijve.', 'Shitja online vendoset nga detajet: sa shpejt ngarkohet katalogu, sa pak hapa ka checkout-i dhe nëse klienti ju beson kartën në ekranin e fundit.', '[{"title":"Braktisje e checkout-it","body":"Shumë hapa, kosto transporti të papritura dhe metoda pagese që klientët nuk i njohin."},{"title":"Katalog që nuk shkallëzohet","body":"Kërkimi dhe filtrimi dështojnë kur rriten produktet."},{"title":"Pa atribuim të ardhurash","body":"Shpenzimi i marketingut gjykohet nga klikimet sepse blerjet nuk gjurmohen si duhet."}]'::jsonb, '[{"title":"Një checkout i dizajnuar për t’u përfunduar","body":"Më pak hapa, totale transparente, blerje si vizitor dhe metoda pagese të njohura."},{"title":"Arkitekturë katalogu","body":"Të dhëna produktesh, variante, filtra dhe kërkim që mbeten të shpejta."},{"title":"Gjurmim i plotë i të ardhurave","body":"Evente e-commerce të lidhura me analitikën dhe reklamat."}]'::jsonb, 'Doni një dyqan që konverton?', 'Na tregoni çfarë shisni dhe ku prishet funnel-i sot.', 'Zhvillim E-commerce dhe Retail Shqipëri | drh.al', 'Website e-commerce për tregtarë në Shqipëri: checkout i optimizuar, katalogje të shkallëzueshme, dyqane shumëgjuhëshe dhe gjurmim i plotë.', '00000001-0000-4000-8000-000000000008', 'sq', null, null, true),
+  ('SaaS', 'Product Sites and Platforms for SaaS Companies', 'For founders and product teams building software businesses.', 'SaaS lives or dies on activation. The marketing site has to explain the product in one screen, and the product itself has to get a new user to value before they lose interest.', '[{"title":"The product is hard to explain","body":"Visitors leave the homepage without understanding what the software does."},{"title":"Slow to ship","body":"A fragile codebase makes every new feature more expensive than the last."},{"title":"Onboarding drop-off","body":"Sign-ups happen but users never reach the moment the product proves itself."}]'::jsonb, '[{"title":"A marketing site that converts","body":"Positioning, product clarity, pricing and trial sign-up designed as one funnel."},{"title":"An architecture built to ship","body":"TypeScript, PostgreSQL and a structure that keeps feature velocity high."},{"title":"Instrumented onboarding","body":"Activation events tracked so you can see exactly where new users stall."}]'::jsonb, 'Building a software product?', 'Tell us where you are — pre-launch, scaling, or rebuilding.', 'SaaS Web Development & Product Sites | drh.al', 'SaaS development and marketing sites: React and Next.js platforms, conversion-focused product pages and instrumented onboarding.', '00000001-0000-4000-8000-000000000009', 'en', null, null, true),
+  ('SaaS', 'Faqe Produkti dhe Platforma për Kompani SaaS', 'Për themelues dhe ekipe produkti që ndërtojnë biznese software.', 'SaaS jeton ose vdes nga aktivizimi. Faqja e marketingut duhet ta shpjegojë produktin në një ekran, dhe produkti duhet ta çojë përdoruesin te vlera para se të humbasë interesin.', '[{"title":"Produkti është i vështirë për t’u shpjeguar","body":"Vizitorët largohen pa kuptuar çfarë bën software-i."},{"title":"I ngadaltë për të nxjerrë funksione","body":"Një kod i brishtë e bën çdo funksion të ri më të shtrenjtë se i mëparshmi."},{"title":"Braktisje gjatë onboarding-ut","body":"Regjistrimet ndodhin, por përdoruesit nuk arrijnë kurrë te momenti i vlerës."}]'::jsonb, '[{"title":"Një faqe marketingu që konverton","body":"Pozicionimi, qartësia e produktit, çmimet dhe regjistrimi si një funnel i vetëm."},{"title":"Arkitekturë e ndërtuar për shpejtësi","body":"TypeScript, PostgreSQL dhe një strukturë që mban ritmin e zhvillimit."},{"title":"Onboarding i matur","body":"Evente aktivizimi të gjurmuara që të shihni ku ndalen përdoruesit e rinj."}]'::jsonb, 'Po ndërtoni një produkt software?', 'Na tregoni ku jeni — para lansimit, në rritje, apo duke rindërtuar.', 'Zhvillim SaaS dhe Faqe Produkti | drh.al', 'Zhvillim SaaS dhe faqe marketingu: platforma React dhe Next.js, faqe produkti të fokusuara te konvertimi dhe onboarding i matur.', '00000001-0000-4000-8000-000000000009', 'sq', null, null, true),
+  ('Education', 'Websites and Platforms for Education Providers', 'For schools, academies, training providers and course creators.', 'Education buyers — students, parents and employers — need clarity on outcomes, cost and dates. The site has to make enrolment obvious and the programme credible.', '[{"title":"Programmes described vaguely","body":"Course pages that list topics but never state the outcome or who it is for."},{"title":"Enrolment handled by email","body":"Applications tracked in an inbox, with no visibility on where each candidate stands."},{"title":"Multilingual audiences","body":"International students cannot access the information they need to apply."}]'::jsonb, '[{"title":"Programme pages that convert","body":"Outcomes, curriculum, schedule, price and admission requirements, clearly structured."},{"title":"Structured applications","body":"Online enrolment forms feeding a pipeline your admissions team can actually manage."},{"title":"Multilingual delivery","body":"Independent content per language with correct hreflang for international reach."}]'::jsonb, 'Want to fill more course places?', 'Tell us about your programmes and enrolment cycle.', 'Education & Training Website Development | drh.al', 'Websites and platforms for schools, academies and training providers: clear programme pages, online enrolment and multilingual content.', '00000001-0000-4000-8000-00000000000a', 'en', null, null, true),
+  ('Arsim', 'Website dhe Platforma për Ofrues Arsimi', 'Për shkolla, akademi, ofrues trajnimesh dhe krijues kursesh.', 'Blerësit në arsim — studentë, prindër dhe punëdhënës — kërkojnë qartësi mbi rezultatet, koston dhe datat. Faqja duhet ta bëjë regjistrimin të qartë dhe programin të besueshëm.', '[{"title":"Programe të përshkruara në mënyrë të paqartë","body":"Faqe kursesh që listojnë tema por nuk thonë kurrë rezultatin apo për kë janë."},{"title":"Regjistrim përmes email-it","body":"Aplikimet ndiqen në inbox, pa dukshmëri se ku ndodhet secili kandidat."},{"title":"Audienca shumëgjuhëshe","body":"Studentët ndërkombëtarë nuk gjejnë informacionin që u duhet për të aplikuar."}]'::jsonb, '[{"title":"Faqe programesh që konvertojnë","body":"Rezultatet, kurrikula, orari, çmimi dhe kriteret e pranimit, të strukturuara qartë."},{"title":"Aplikime të strukturuara","body":"Formularë regjistrimi online që ushqejnë një pipeline të menaxhueshëm."},{"title":"Shpërndarje shumëgjuhëshe","body":"Përmbajtje e pavarur për çdo gjuhë me hreflang të saktë."}]'::jsonb, 'Doni të mbushni më shumë vende në kurse?', 'Na tregoni për programet dhe ciklin e regjistrimeve.', 'Zhvillim Website për Arsim dhe Trajnime | drh.al', 'Website dhe platforma për shkolla, akademi dhe ofrues trajnimesh: faqe programesh të qarta, regjistrim online dhe përmbajtje shumëgjuhëshe.', '00000001-0000-4000-8000-00000000000a', 'sq', null, null, true)
+on conflict (industry_id, language) do update set title = excluded.title, hero_title = excluded.hero_title, hero_subtitle = excluded.hero_subtitle, description = excluded.description, problems = excluded.problems, solutions = excluded.solutions, cta_title = excluded.cta_title, cta_body = excluded.cta_body, seo_title = excluded.seo_title, seo_description = excluded.seo_description, og_title = excluded.og_title, og_description = excluded.og_description, is_complete = excluded.is_complete;
+
+insert into public.services (id, slug, icon_key, cover_image, status, featured, sort_order) values
+  ('00000002-0000-4000-8000-000000000001', 'web-development', 'code', '/media/services/web-development.svg', 'published', true, 0),
+  ('00000002-0000-4000-8000-000000000002', 'web-app-development', 'layers', '/media/services/web-app-development.svg', 'published', true, 1),
+  ('00000002-0000-4000-8000-000000000003', 'mobile-app-development', 'smartphone', '/media/services/mobile-app-development.svg', 'published', true, 2),
+  ('00000002-0000-4000-8000-000000000004', 'wordpress-development', 'wordpress', '/media/services/wordpress-development.svg', 'published', true, 3),
+  ('00000002-0000-4000-8000-000000000005', 'ecommerce-development', 'shopping-cart', '/media/services/ecommerce-development.svg', 'published', false, 4),
+  ('00000002-0000-4000-8000-000000000006', 'ui-ux-design', 'palette', '/media/services/ui-ux-design.svg', 'published', true, 5),
+  ('00000002-0000-4000-8000-000000000007', 'seo', 'search', '/media/services/seo.svg', 'published', true, 6),
+  ('00000002-0000-4000-8000-000000000008', 'google-ads', 'target', '/media/services/google-ads.svg', 'published', false, 7)
+on conflict (id) do update set slug = excluded.slug, icon_key = excluded.icon_key, cover_image = excluded.cover_image, status = excluded.status, featured = excluded.featured, sort_order = excluded.sort_order;
+
+insert into public.service_translations (title, headline, short_description, full_description, benefits, features, process, cta_title, cta_body, seo_title, seo_description, service_id, language, og_title, og_description, is_complete) values
+  ('Web Design & Development', 'Web Development in Albania for Ambitious Businesses', 'Fast, modern and conversion-focused websites engineered around your business objectives.', 'We build business websites the way we would build a product: with a clear goal, a defined audience and measurable outcomes. Every page is designed to answer a visitor question and move them one step closer to contacting you.
+
+Our sites are built on React and Next.js, or on WordPress where an editorial workflow matters more than custom logic. In both cases the result is the same — fast, accessible, easy to maintain, and structured so search engines can read it properly from day one.', '[{"title":"Built around a business goal","body":"We define what the site has to achieve before choosing a single layout — leads, bookings, applications or qualified enquiries."},{"title":"Performance as an architecture decision","body":"Core Web Vitals are handled in the build, not patched afterwards with a caching plugin."},{"title":"Editable without a developer","body":"The content your team changes weekly lives in a CMS. The code stays stable."},{"title":"Multilingual from the start","body":"Albanian and English (or any other pair) with correct hreflang, independent metadata and clean URLs."}]'::jsonb, '["Business and corporate websites","High-intent landing pages","Multilingual websites with correct hreflang","Next.js and React websites","Headless and traditional CMS setups","Custom functionality and business logic","Third-party and API integrations","Analytics, tracking and conversion measurement"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors, technical requirements and the metrics that define success."},{"step":"02","title":"Design & UX","body":"Information architecture, user flows, wireframes and a high-fidelity interface."},{"step":"03","title":"Development","body":"Production-grade code optimised for speed, responsiveness, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure real behaviour after launch, then improve and scale through SEO and marketing."}]'::jsonb, 'Need a website that actually performs?', 'Tell us about your business and we will come back within 24 hours with a recommended approach, scope and timeline.', 'Web Development Albania | Websites Built to Perform | drh.al', 'Web development in Albania for businesses that need speed, structure and results. Next.js, React and WordPress websites built around clear business goals.', '00000002-0000-4000-8000-000000000001', 'en', null, null, true),
+  ('Dizajn & Zhvillim Web', 'Zhvillim Website në Shqipëri për Biznese Ambicioze', 'Website të shpejtë, modernë dhe të fokusuar te konvertimi, ndërtuar rreth objektivave të biznesit tuaj.', 'Ne e ndërtojmë një website biznesi ashtu siç ndërtohet një produkt: me një qëllim të qartë, një audiencë të përcaktuar dhe rezultate të matshme. Çdo faqe është menduar t’i përgjigjet një pyetjeje të vizitorit dhe ta afrojë atë një hap më pranë kontaktit me ju.
+
+Faqet tona ndërtohen mbi React dhe Next.js, ose mbi WordPress kur puna editoriale ka më shumë rëndësi se logjika e personalizuar. Në të dyja rastet rezultati është i njëjtë — i shpejtë, i aksesueshëm, i lehtë për t’u mirëmbajtur dhe i strukturuar që motorët e kërkimit ta lexojnë saktë që nga dita e parë.', '[{"title":"Ndërtuar rreth një qëllimi biznesi","body":"Përcaktojmë çfarë duhet të arrijë faqja para se të zgjedhim një layout — kontakte, rezervime, aplikime ose kërkesa të kualifikuara."},{"title":"Performanca si vendim arkitekture","body":"Core Web Vitals trajtohen gjatë ndërtimit, jo më pas me një plugin cache."},{"title":"E ndryshueshme pa zhvillues","body":"Përmbajtja që ekipi juaj e ndryshon çdo javë qëndron në CMS. Kodi mbetet i qëndrueshëm."},{"title":"Shumëgjuhësh që nga fillimi","body":"Shqip dhe anglisht (ose çdo çift tjetër) me hreflang të saktë, metadata të pavarura dhe URL të pastra."}]'::jsonb, '["Website biznesi dhe korporate","Landing page me qëllim të lartë konvertimi","Website shumëgjuhësh me hreflang të saktë","Website me Next.js dhe React","Konfigurime CMS headless dhe tradicionale","Funksionalitet dhe logjikë biznesi e personalizuar","Integrime me palë të treta dhe API","Analitika, gjurmim dhe matje konvertimesh"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Objektivat, audienca, konkurrentët, kërkesat teknike dhe metrikat që përcaktojnë suksesin."},{"step":"02","title":"Dizajn & UX","body":"Arkitektura e informacionit, rrjedhat e përdoruesit, wireframe dhe ndërfaqja finale."},{"step":"03","title":"Zhvillim","body":"Kod i nivelit produksion, i optimizuar për shpejtësi, responsivitet, SEO, aksesueshmëri dhe siguri."},{"step":"04","title":"Lansim & Rritje","body":"Masim sjelljen reale pas lansimit, pastaj përmirësojmë dhe rrisim përmes SEO dhe marketingut."}]'::jsonb, 'Ju duhet një website që vërtet performon?', 'Na tregoni për biznesin tuaj dhe ne kthehemi brenda 24 orësh me qasjen, fushëveprimin dhe afatin e rekomanduar.', 'Zhvillim Website Shqipëri | Faqe që Performojnë | drh.al', 'Zhvillim website në Shqipëri për biznese që kërkojnë shpejtësi, strukturë dhe rezultate. Faqe me Next.js, React dhe WordPress rreth qëllimeve të qarta të biznesit.', '00000002-0000-4000-8000-000000000001', 'sq', null, null, true),
+  ('Custom Web Applications', 'Custom Web Application Development', 'Scalable React and Next.js applications including SaaS platforms, dashboards, marketplaces and internal systems.', 'When a website is not enough, you need software. We design and build web applications that carry real business logic — authentication, roles, permissions, data models, workflows, integrations and reporting.
+
+We work in TypeScript end to end, on top of PostgreSQL, with an architecture chosen for the next three years rather than the next three weeks. That means clear data relationships, server-side authorisation, and a codebase your future team can actually read.', '[{"title":"A data model that holds up","body":"Relational schema design, proper constraints and indexes — the part that decides whether year two is painful."},{"title":"Security enforced on the server","body":"Row level security, server-side permission checks and validated inputs. Never a hidden button as a security model."},{"title":"Built to be handed over","body":"Strong typing, predictable structure and documentation, so you are never locked to one agency."},{"title":"Integrated, not isolated","body":"Payments, CRMs, ERPs, email and analytics connected through well-defined APIs."}]'::jsonb, '["SaaS platforms","Analytics dashboards and reporting tools","Internal tools and admin panels","Marketplaces","Customer and client portals","Booking and scheduling platforms","API-driven systems and integrations","Workflow and automation platforms"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Map the workflow that exists today, the constraints around it and what success has to look like."},{"step":"02","title":"Design & UX","body":"Data model, user roles, key screens and the flows that carry the most business value."},{"step":"03","title":"Development","body":"Iterative delivery in TypeScript with authentication, permissions, testing and observability."},{"step":"04","title":"Launch & Growth","body":"Onboarding, monitoring and a roadmap for the features that follow the first release."}]'::jsonb, 'Have a platform in mind?', 'Send us the problem you are trying to solve. We will reply with an architecture direction and a realistic scope.', 'Custom Web Application Development | React & Next.js | drh.al', 'Custom web application development with React, Next.js, TypeScript and PostgreSQL. SaaS platforms, dashboards, portals and internal tools built to scale.', '00000002-0000-4000-8000-000000000002', 'en', null, null, true),
+  ('Aplikacione Web të Personalizuara', 'Zhvillim Aplikacionesh Web të Personalizuara', 'Aplikacione të shkallëzueshme me React dhe Next.js: platforma SaaS, dashboard, marketplace dhe sisteme të brendshme.', 'Kur një website nuk mjafton, ju duhet software. Ne dizajnojmë dhe ndërtojmë aplikacione web që mbajnë logjikë reale biznesi — autentikim, role, leje, modele të dhënash, rrjedha pune, integrime dhe raportim.
+
+Punojmë me TypeScript nga fillimi në fund, mbi PostgreSQL, me një arkitekturë të zgjedhur për tre vitet e ardhshme dhe jo për tre javët e ardhshme. Kjo do të thotë marrëdhënie të qarta të dhënash, autorizim në server dhe një kod që ekipi juaj i ardhshëm mund ta lexojë.', '[{"title":"Një model të dhënash që qëndron","body":"Dizajn skeme relacionale, kufizime dhe indekse të sakta — pjesa që vendos nëse viti i dytë do të jetë i dhimbshëm."},{"title":"Siguri e zbatuar në server","body":"Row level security, kontrolle lejesh në server dhe validim i të dhënave. Kurrë një buton i fshehur si model sigurie."},{"title":"E ndërtuar për t’u dorëzuar","body":"Tipizim i fortë, strukturë e parashikueshme dhe dokumentim, që të mos jeni kurrë të varur nga një agjenci e vetme."},{"title":"E integruar, jo e izoluar","body":"Pagesa, CRM, ERP, email dhe analitika të lidhura përmes API-ve të mirëpërcaktuara."}]'::jsonb, '["Platforma SaaS","Dashboard analitike dhe mjete raportimi","Mjete të brendshme dhe panele administrimi","Marketplace","Portale klientësh","Platforma rezervimesh dhe planifikimi","Sisteme dhe integrime të bazuara në API","Platforma automatizimi dhe rrjedhash pune"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Hartëzojmë rrjedhën aktuale të punës, kufizimet dhe si duhet të duket suksesi."},{"step":"02","title":"Dizajn & UX","body":"Modeli i të dhënave, rolet e përdoruesve, ekranet kryesore dhe rrjedhat me vlerën më të madhe."},{"step":"03","title":"Zhvillim","body":"Dorëzim iterativ në TypeScript me autentikim, leje, testim dhe monitorim."},{"step":"04","title":"Lansim & Rritje","body":"Onboarding, monitorim dhe një plan për funksionet pas versionit të parë."}]'::jsonb, 'Keni një platformë në mendje?', 'Na dërgoni problemin që doni të zgjidhni. Ju kthejmë përgjigje me një drejtim arkitekture dhe një fushëveprim realist.', 'Zhvillim Aplikacionesh Web | React & Next.js | drh.al', 'Zhvillim aplikacionesh web të personalizuara me React, Next.js, TypeScript dhe PostgreSQL. Platforma SaaS, dashboard, portale dhe mjete të brendshme.', '00000002-0000-4000-8000-000000000002', 'sq', null, null, true),
+  ('Mobile App Development', 'Mobile App Development in Albania for iOS and Android', 'High-quality iOS and Android applications designed around performance and usability.', 'Mobile is where habit forms. We build applications that people can open every day without friction — fast startup, offline tolerance, predictable navigation and interface patterns that match the platform instead of fighting it.
+
+We usually build with React Native so one well-structured codebase serves both App Store and Google Play, with native modules where a feature genuinely requires them.', '[{"title":"One codebase, two platforms","body":"React Native keeps iOS and Android in step, which keeps both cost and release cycles under control."},{"title":"Backed by a real API","body":"Authentication, data sync, push notifications and payments designed together with the app, not bolted on later."},{"title":"Store-ready delivery","body":"We handle App Store and Google Play submission, review requirements and release configuration."},{"title":"Performance you can feel","body":"Startup time, list rendering and network behaviour are measured, not assumed."}]'::jsonb, '["iOS applications","Android applications","React Native cross-platform development","API and backend integrations","Authentication and user accounts","Push notifications","In-app payments and subscriptions","App Store deployment","Google Play deployment"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Define the core job the app does on day one and what can wait for version two."},{"step":"02","title":"Design & UX","body":"Platform-aware navigation, key flows and a high-fidelity interface for both platforms."},{"step":"03","title":"Development","body":"Cross-platform build with the backend, notifications, payments and analytics wired in."},{"step":"04","title":"Launch & Growth","body":"Store submission, release management and iteration based on real usage data."}]'::jsonb, 'Planning a mobile product?', 'Tell us who it is for and what it has to do. We will come back with scope, platform advice and a timeline.', 'Mobile App Development Albania | iOS & Android | drh.al', 'Mobile app development in Albania. iOS and Android applications built with React Native, including APIs, authentication, push notifications and store deployment.', '00000002-0000-4000-8000-000000000003', 'en', null, null, true),
+  ('Zhvillim Aplikacionesh Mobile', 'Zhvillim Aplikacionesh Mobile në Shqipëri për iOS dhe Android', 'Aplikacione cilësore iOS dhe Android, të dizajnuara rreth performancës dhe përdorshmërisë.', 'Mobile është vendi ku formohet zakoni. Ne ndërtojmë aplikacione që njerëzit mund t’i hapin çdo ditë pa pengesa — nisje e shpejtë, tolerancë ndaj mungesës së internetit, navigim i parashikueshëm dhe modele ndërfaqeje që përputhen me platformën.
+
+Zakonisht ndërtojmë me React Native, që një kod i strukturuar mirë të shërbejë si për App Store ashtu edhe për Google Play, me module native aty ku një funksion i kërkon vërtet.', '[{"title":"Një kod, dy platforma","body":"React Native i mban iOS dhe Android në hap, duke kontrolluar kostot dhe ciklet e lansimit."},{"title":"I mbështetur nga një API real","body":"Autentikim, sinkronizim të dhënash, njoftime push dhe pagesa të dizajnuara bashkë me aplikacionin."},{"title":"Gati për dyqanet","body":"Ne kujdesemi për dorëzimin në App Store dhe Google Play, kërkesat e rishikimit dhe konfigurimin e publikimit."},{"title":"Performancë që ndihet","body":"Koha e nisjes, renderimi i listave dhe sjellja e rrjetit maten, nuk supozohen."}]'::jsonb, '["Aplikacione iOS","Aplikacione Android","Zhvillim cross-platform me React Native","Integrime me API dhe backend","Autentikim dhe llogari përdoruesish","Njoftime push","Pagesa dhe abonime brenda aplikacionit","Publikim në App Store","Publikim në Google Play"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Përcaktojmë punën kryesore që bën aplikacioni ditën e parë dhe çfarë mund të presë për versionin e dytë."},{"step":"02","title":"Dizajn & UX","body":"Navigim sipas platformës, rrjedhat kryesore dhe ndërfaqja finale për të dyja platformat."},{"step":"03","title":"Zhvillim","body":"Ndërtim cross-platform me backend, njoftime, pagesa dhe analitikë të integruara."},{"step":"04","title":"Lansim & Rritje","body":"Dorëzimi në dyqane, menaxhimi i publikimeve dhe përmirësime bazuar në përdorimin real."}]'::jsonb, 'Po planifikoni një produkt mobile?', 'Na tregoni për kë është dhe çfarë duhet të bëjë. Ju kthehemi me fushëveprim, këshillë platforme dhe afat.', 'Zhvillim Aplikacionesh Mobile Shqipëri | iOS & Android | drh.al', 'Zhvillim aplikacionesh mobile në Shqipëri. Aplikacione iOS dhe Android me React Native, përfshirë API, autentikim, njoftime push dhe publikim në dyqane.', '00000002-0000-4000-8000-000000000003', 'sq', null, null, true),
+  ('WordPress & WooCommerce', 'WordPress Development in Albania Without Template Limits', 'Custom WordPress development, WooCommerce stores and advanced functionality without template limitations.', 'Most WordPress problems are not WordPress problems — they are the result of a bloated theme and twenty plugins doing the work of two. We build WordPress sites the disciplined way: a clean custom theme, only the plugins that earn their place, and content structures that editors understand.
+
+The result is a site your team can update daily, that loads quickly on mobile, and that does not degrade every time someone adds a page.', '[{"title":"Custom themes, not marketplace bloat","body":"Only the code your site needs, which is why performance holds up over time."},{"title":"An editor experience people use","body":"Custom fields and content blocks that match how your team actually writes."},{"title":"Performance and Core Web Vitals","body":"Image handling, caching strategy and script discipline built in from the start."},{"title":"Maintained and secure","body":"Update routines, backups and hardening — the boring work that avoids the expensive week."}]'::jsonb, '["Custom WordPress websites","Custom themes built from scratch","Elementor-based builds where a page builder fits","WooCommerce stores","Custom plugin development","Multilingual WordPress websites","Performance optimisation and Core Web Vitals","API and third-party integrations","Ongoing maintenance and support"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Audit the current site, the editorial workflow and the functionality that actually matters."},{"step":"02","title":"Design & UX","body":"Page structures, content models and the interface for the templates you will reuse."},{"step":"03","title":"Development","body":"Custom theme, content fields, integrations and performance work."},{"step":"04","title":"Launch & Growth","body":"Migration, redirects, training for your editors and ongoing maintenance."}]'::jsonb, 'WordPress site holding you back?', 'Send us the URL. We will tell you honestly whether it should be improved or rebuilt.', 'WordPress Development Albania | Custom Themes & WooCommerce | drh.al', 'WordPress development in Albania: custom themes, WooCommerce stores, custom plugins, multilingual sites and performance optimisation without template limits.', '00000002-0000-4000-8000-000000000004', 'en', null, null, true),
+  ('WordPress & WooCommerce', 'Zhvillim WordPress në Shqipëri pa Kufijtë e Template-ve', 'Zhvillim i personalizuar WordPress, dyqane WooCommerce dhe funksionalitet i avancuar pa kufizimet e template-ve.', 'Shumica e problemeve me WordPress nuk janë probleme të WordPress — janë rezultat i një teme të rënduar dhe njëzet plugin-ave që bëjnë punën e dy prej tyre. Ne ndërtojmë me disiplinë: një temë e pastër e personalizuar, vetëm plugin-at që e meritojnë vendin, dhe struktura përmbajtjeje që redaktorët i kuptojnë.
+
+Rezultati është një faqe që ekipi juaj mund ta përditësojë çdo ditë, që ngarkohet shpejt në celular dhe që nuk degradon sa herë shtohet një faqe e re.', '[{"title":"Tema të personalizuara, jo template të rënduara","body":"Vetëm kodi që faqja juaj ka nevojë — prandaj performanca qëndron me kalimin e kohës."},{"title":"Një përvojë redaktimi që përdoret vërtet","body":"Fusha dhe blloqe përmbajtjeje që përputhen me mënyrën si shkruan ekipi juaj."},{"title":"Performancë dhe Core Web Vitals","body":"Trajtimi i imazheve, strategjia e cache dhe disiplina e skripteve që nga fillimi."},{"title":"E mirëmbajtur dhe e sigurt","body":"Rutina përditësimi, backup dhe forcim sigurie — puna e mërzitshme që shmang javën e shtrenjtë."}]'::jsonb, '["Website të personalizuar WordPress","Tema të ndërtuara nga e para","Ndërtime me Elementor kur page builder-i ka kuptim","Dyqane WooCommerce","Zhvillim plugin-ash të personalizuar","Website WordPress shumëgjuhësh","Optimizim performance dhe Core Web Vitals","Integrime me API dhe palë të treta","Mirëmbajtje dhe mbështetje e vazhdueshme"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Auditojmë faqen aktuale, rrjedhën editoriale dhe funksionalitetin që ka vërtet rëndësi."},{"step":"02","title":"Dizajn & UX","body":"Strukturat e faqeve, modelet e përmbajtjes dhe ndërfaqja për template-t e ripërdorshme."},{"step":"03","title":"Zhvillim","body":"Temë e personalizuar, fusha përmbajtjeje, integrime dhe punë për performancën."},{"step":"04","title":"Lansim & Rritje","body":"Migrim, ridrejtime, trajnim për redaktorët tuaj dhe mirëmbajtje e vazhdueshme."}]'::jsonb, 'Faqja WordPress po ju pengon?', 'Na dërgoni URL-në. Ju themi ndershmërisht nëse duhet përmirësuar apo rindërtuar.', 'Zhvillim WordPress Shqipëri | Tema të Personalizuara & WooCommerce | drh.al', 'Zhvillim WordPress në Shqipëri: tema të personalizuara, dyqane WooCommerce, plugin-a, faqe shumëgjuhëshe dhe optimizim performance pa kufijtë e template-ve.', '00000002-0000-4000-8000-000000000004', 'sq', null, null, true),
+  ('E-commerce Development', 'E-commerce Development Built Around Conversion', 'WooCommerce stores and custom storefronts engineered around checkout, catalogue and repeat purchase.', 'An online store is a system, not a page. Catalogue structure, search, product data, checkout, shipping rules, payment methods, stock and tax all have to work together — and every one of them can quietly cost you revenue.
+
+We build stores on WooCommerce or as custom storefronts, then instrument them properly so you can see exactly where purchases are being lost.', '[{"title":"Checkout treated as the product","body":"Fewer steps, clearer costs, saved progress and payment options your customers expect."},{"title":"Catalogue that scales","body":"Product data, variants, filters and search that still work at a thousand SKUs."},{"title":"Operations connected","body":"Stock, shipping, invoicing and fulfilment integrated with the tools you already run."},{"title":"Measured revenue","body":"Full e-commerce tracking so every channel is judged on revenue, not clicks."}]'::jsonb, '["WooCommerce store development","Custom storefronts","Payment gateway integration","Product and catalogue management","Checkout optimisation","Inventory and ERP integrations","Shipping and delivery rules","Multilingual and multi-currency stores","Conversion and revenue tracking"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Catalogue, margins, logistics, payment methods and the customer journey you need to support."},{"step":"02","title":"Design & UX","body":"Category structure, product page, cart and a checkout designed to remove friction."},{"step":"03","title":"Development","body":"Store build, integrations, tax and shipping logic, plus full tracking."},{"step":"04","title":"Launch & Growth","body":"Launch, monitor funnel drop-off and improve the steps that cost the most revenue."}]'::jsonb, 'Ready to sell more online?', 'Tell us about your products and current setup. We will identify where the revenue is leaking.', 'E-commerce Development Albania | WooCommerce & Custom Stores | drh.al', 'E-commerce development in Albania. WooCommerce stores and custom storefronts with optimised checkout, integrations, multilingual support and revenue tracking.', '00000002-0000-4000-8000-000000000005', 'en', null, null, true),
+  ('Zhvillim E-commerce', 'Zhvillim E-commerce i Ndërtuar rreth Konvertimit', 'Dyqane WooCommerce dhe storefront të personalizuar, të ndërtuar rreth checkout-it, katalogut dhe blerjeve të përsëritura.', 'Një dyqan online është një sistem, jo një faqe. Struktura e katalogut, kërkimi, të dhënat e produkteve, checkout-i, rregullat e transportit, metodat e pagesës, stoku dhe taksat duhet të funksionojnë së bashku — dhe secila prej tyre mund t’ju kushtojë të ardhura pa u vënë re.
+
+Ndërtojmë dyqane mbi WooCommerce ose si storefront të personalizuar, pastaj i pajisim me matje të sakta që të shihni saktësisht ku humbasin blerjet.', '[{"title":"Checkout-i trajtohet si produkt","body":"Më pak hapa, kosto më të qarta, progres i ruajtur dhe opsione pagese që klientët i presin."},{"title":"Katalog që shkallëzohet","body":"Të dhëna produktesh, variante, filtra dhe kërkim që funksionojnë edhe me një mijë SKU."},{"title":"Operacione të lidhura","body":"Stoku, transporti, faturimi dhe përmbushja të integruara me mjetet që përdorni tashmë."},{"title":"Të ardhura të matura","body":"Gjurmim i plotë e-commerce, që çdo kanal të gjykohet nga të ardhurat, jo nga klikimet."}]'::jsonb, '["Zhvillim dyqanesh WooCommerce","Storefront të personalizuar","Integrim i sistemeve të pagesave","Menaxhim produktesh dhe katalogu","Optimizim i checkout-it","Integrime me inventar dhe ERP","Rregulla transporti dhe dërgese","Dyqane shumëgjuhëshe dhe shumëvalutore","Gjurmim konvertimesh dhe të ardhurash"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Katalogu, marzhet, logjistika, metodat e pagesës dhe udhëtimi i klientit që duhet mbështetur."},{"step":"02","title":"Dizajn & UX","body":"Struktura e kategorive, faqja e produktit, shporta dhe një checkout pa pengesa."},{"step":"03","title":"Zhvillim","body":"Ndërtimi i dyqanit, integrimet, logjika e taksave dhe transportit, plus gjurmim i plotë."},{"step":"04","title":"Lansim & Rritje","body":"Lansimi, monitorimi i braktisjes në funnel dhe përmirësimi i hapave më të kushtueshëm."}]'::jsonb, 'Gati të shisni më shumë online?', 'Na tregoni për produktet dhe konfigurimin aktual. Ne identifikojmë ku po humbasin të ardhurat.', 'Zhvillim E-commerce Shqipëri | WooCommerce & Dyqane të Personalizuara | drh.al', 'Zhvillim e-commerce në Shqipëri. Dyqane WooCommerce dhe storefront të personalizuar me checkout të optimizuar, integrime dhe gjurmim të ardhurash.', '00000002-0000-4000-8000-000000000005', 'sq', null, null, true),
+  ('UI/UX & Brand Design', 'UI/UX and Brand Design for Digital Products', 'Digital identities and product experiences designed to communicate trust and simplify user journeys.', 'Good design is mostly good decisions: what to show first, what to remove, and what a person is trying to do on this screen. We design interfaces that are calm and legible, with a visual identity that makes a company look like what it actually is.
+
+Every design we produce is built to be implemented — real components, real states, real content, handed over in a system your developers can use.', '[{"title":"Research before pixels","body":"We look at the audience, the competitors and the actual user task before opening a design file."},{"title":"A system, not a set of screens","body":"Type scale, spacing, colour and components defined once and reused everywhere."},{"title":"Designed for implementation","body":"States, breakpoints and edge cases specified — so the build matches the design."},{"title":"Accessible by default","body":"Contrast, focus states, tap targets and reduced-motion support treated as requirements."}]'::jsonb, '["UX research and information architecture","User flows and wireframes","High-fidelity interface design","Design systems and component libraries","Brand identity and visual language","Landing page and conversion design","Mobile and responsive design","Design-to-development handover"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Audience, competitive landscape, current friction points and the outcome the design must support."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes, then a high-fidelity interface and a reusable system."},{"step":"03","title":"Development","body":"We implement the design ourselves or support your team through handover."},{"step":"04","title":"Launch & Growth","body":"Watch how people actually use it and refine the screens that matter most."}]'::jsonb, 'Need design that survives development?', 'Show us what you have today. We will tell you what to keep, what to fix and what to rethink.', 'UI/UX Design Albania | Product & Brand Design | drh.al', 'UI/UX and brand design in Albania. Research-led product design, design systems and interfaces built to be implemented, accessible and conversion-focused.', '00000002-0000-4000-8000-000000000006', 'en', null, null, true),
+  ('Dizajn UI/UX & Brand', 'Dizajn UI/UX dhe Brand për Produkte Dixhitale', 'Identitete dixhitale dhe përvoja produkti të dizajnuara për të ndërtuar besim dhe për të thjeshtuar udhëtimin e përdoruesit.', 'Dizajni i mirë është kryesisht vendime të mira: çfarë të shfaqet e para, çfarë të hiqet dhe çfarë po përpiqet të bëjë personi në këtë ekran. Ne dizajnojmë ndërfaqe të qeta dhe të lexueshme, me një identitet vizual që e bën kompaninë të duket ashtu siç është vërtet.
+
+Çdo dizajn që prodhojmë është i ndërtuar për t’u implementuar — komponentë realë, gjendje reale, përmbajtje reale, të dorëzuara në një sistem që zhvilluesit tuaj mund ta përdorin.', '[{"title":"Kërkim para pikselave","body":"Shikojmë audiencën, konkurrentët dhe detyrën reale të përdoruesit para se të hapim një skedar dizajni."},{"title":"Një sistem, jo një grup ekranesh","body":"Shkalla tipografike, hapësirat, ngjyrat dhe komponentët përcaktohen një herë dhe ripërdoren kudo."},{"title":"Dizajn për implementim","body":"Gjendjet, breakpoint-et dhe rastet kufitare të specifikuara — që ndërtimi të përputhet me dizajnin."},{"title":"I aksesueshëm si standard","body":"Kontrasti, fokusi, zonat e prekjes dhe reduced-motion trajtohen si kërkesa."}]'::jsonb, '["Kërkim UX dhe arkitekturë informacioni","Rrjedha përdoruesi dhe wireframe","Dizajn ndërfaqeje me besnikëri të lartë","Sisteme dizajni dhe biblioteka komponentësh","Identitet brandi dhe gjuhë vizuale","Dizajn landing page dhe konvertimi","Dizajn mobile dhe responsiv","Dorëzim nga dizajni te zhvillimi"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Audienca, konkurrenca, pengesat aktuale dhe rezultati që dizajni duhet të mbështesë."},{"step":"02","title":"Dizajn & UX","body":"Arkitektura, rrjedhat, wireframe, pastaj ndërfaqja finale dhe një sistem i ripërdorshëm."},{"step":"03","title":"Zhvillim","body":"E implementojmë vetë dizajnin ose mbështesim ekipin tuaj gjatë dorëzimit."},{"step":"04","title":"Lansim & Rritje","body":"Vëzhgojmë si përdoret vërtet dhe përmirësojmë ekranet më të rëndësishme."}]'::jsonb, 'Ju duhet dizajn që mbijeton zhvillimin?', 'Na tregoni çfarë keni sot. Ju themi çfarë të mbani, çfarë të rregulloni dhe çfarë të rimendoni.', 'Dizajn UI/UX Shqipëri | Dizajn Produkti & Brandi | drh.al', 'Dizajn UI/UX dhe brand në Shqipëri. Dizajn produkti i bazuar në kërkim, sisteme dizajni dhe ndërfaqe të ndërtuara për implementim dhe konvertim.', '00000002-0000-4000-8000-000000000006', 'sq', null, null, true),
+  ('SEO & Performance Marketing', 'SEO in Albania Focused on Qualified Traffic', 'SEO, Google Ads and Meta Ads focused on qualified traffic, leads, revenue and measurable growth.', 'Rankings are a means, not the goal. We work on the searches that indicate someone is ready to buy, then make sure your site deserves to win them — technically, structurally and in the quality of what it says.
+
+That means fixing crawl and speed problems first, building pages that answer real questions properly, earning relevance through content and internal links, and reporting on leads rather than vanity positions.', '[{"title":"Commercial intent first","body":"We prioritise the queries that produce enquiries, not the ones that produce screenshots."},{"title":"Technical foundations","body":"Crawlability, indexation, structured data, Core Web Vitals and internal linking, handled properly."},{"title":"Local visibility in Albania","body":"Google Business Profile, local landing pages and location signals for Tirana and beyond."},{"title":"Reporting you can act on","body":"Search Console and analytics tied back to leads, so you know which pages earn the business."}]'::jsonb, '["Technical SEO audits and fixes","Local SEO for Albania and Tirana","On-page SEO and content optimisation","Keyword and search intent research","Content strategy and editorial planning","Structured data and schema markup","Core Web Vitals and performance","Internal linking architecture","Google Search Console setup and monitoring","Monthly reporting tied to leads"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Technical audit, keyword and competitor research, and a priority list ranked by commercial value."},{"step":"02","title":"Design & UX","body":"Page structures and templates that satisfy search intent and convert the visitor once they arrive."},{"step":"03","title":"Development","body":"Technical fixes, schema, performance work and the content build."},{"step":"04","title":"Launch & Growth","body":"Continuous measurement, content expansion and iteration against real query data."}]'::jsonb, 'Want traffic that turns into enquiries?', 'Send us your domain and target market. We will come back with the highest-value opportunities we can see.', 'SEO Albania | Technical, Local & Content SEO | drh.al', 'SEO services in Albania focused on qualified traffic and leads: technical SEO, local SEO for Tirana, content strategy, schema and Core Web Vitals.', '00000002-0000-4000-8000-000000000007', 'en', null, null, true),
+  ('SEO & Marketing Performance', 'SEO në Shqipëri i Fokusuar te Trafiku i Kualifikuar', 'SEO, Google Ads dhe Meta Ads të fokusuara te trafiku i kualifikuar, kontaktet, të ardhurat dhe rritja e matshme.', 'Renditjet janë një mjet, jo qëllimi. Ne punojmë me kërkimet që tregojnë se dikush është gati të blejë, pastaj sigurohemi që faqja juaj e meriton t’i fitojë — teknikisht, strukturalisht dhe në cilësinë e asaj që thotë.
+
+Kjo do të thotë: fillimisht rregullojmë problemet e indeksimit dhe shpejtësisë, ndërtojmë faqe që u përgjigjen pyetjeve reale, fitojmë relevancë përmes përmbajtjes dhe lidhjeve të brendshme, dhe raportojmë për kontaktet, jo për pozicione dekorative.', '[{"title":"Së pari qëllimi tregtar","body":"Prioritet u japim kërkimeve që sjellin kërkesa reale, jo atyre që sjellin screenshot."},{"title":"Themele teknike","body":"Indeksueshmëria, të dhënat e strukturuara, Core Web Vitals dhe lidhjet e brendshme, të trajtuara si duhet."},{"title":"Dukshmëri lokale në Shqipëri","body":"Google Business Profile, faqe lokale dhe sinjale vendndodhjeje për Tiranën dhe më gjerë."},{"title":"Raportim mbi të cilin veproni","body":"Search Console dhe analitika të lidhura me kontaktet, që të dini cilat faqe sjellin biznes."}]'::jsonb, '["Auditime dhe rregullime SEO teknike","SEO lokal për Shqipërinë dhe Tiranën","SEO on-page dhe optimizim përmbajtjeje","Kërkim fjalësh kyçe dhe qëllimi kërkimor","Strategji përmbajtjeje dhe planifikim editorial","Të dhëna të strukturuara dhe schema markup","Core Web Vitals dhe performancë","Arkitekturë e lidhjeve të brendshme","Konfigurim dhe monitorim i Search Console","Raportim mujor i lidhur me kontaktet"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Audit teknik, kërkim fjalësh kyçe dhe konkurrentësh, dhe një listë prioritetesh sipas vlerës tregtare."},{"step":"02","title":"Dizajn & UX","body":"Struktura faqesh që plotësojnë qëllimin e kërkimit dhe konvertojnë vizitorin."},{"step":"03","title":"Zhvillim","body":"Rregullime teknike, schema, punë për performancën dhe ndërtimi i përmbajtjes."},{"step":"04","title":"Lansim & Rritje","body":"Matje e vazhdueshme, zgjerim i përmbajtjes dhe përmirësime mbi të dhëna reale kërkimi."}]'::jsonb, 'Doni trafik që kthehet në kërkesa?', 'Na dërgoni domain-in dhe tregun tuaj. Ju kthehemi me mundësitë me vlerën më të lartë që shohim.', 'SEO Shqipëri | SEO Teknik, Lokal dhe Përmbajtjeje | drh.al', 'Shërbime SEO në Shqipëri të fokusuara te trafiku i kualifikuar: SEO teknik, SEO lokal për Tiranën, strategji përmbajtjeje, schema dhe Core Web Vitals.', '00000002-0000-4000-8000-000000000007', 'sq', null, null, true),
+  ('Google Ads', 'Google Ads Management Built Around Profitable Growth', 'Search and Performance Max campaigns managed against conversion data, not impressions.', 'Paid search works when three things line up: the right queries, a landing page that answers them, and conversion tracking you can trust. Most underperforming accounts are missing at least one.
+
+We build campaigns around commercial intent, keep waste out with disciplined negative keyword work, and report on cost per qualified lead — the number that actually decides whether the channel is worth running.', '[{"title":"Tracking before spend","body":"We verify conversion tracking first. Optimising against bad data is worse than not optimising."},{"title":"Intent-led structure","body":"Campaigns and ad groups organised around how people search, so the ad matches the query."},{"title":"Waste control","body":"Continuous negative keyword work and placement exclusions to protect the budget."},{"title":"Landing pages that convert","body":"We build the page as well as the campaign, so traffic lands somewhere that earns the click."}]'::jsonb, '["Search campaign strategy and build","Performance Max campaigns","Conversion tracking implementation","Landing page design and development","Keyword research and match type strategy","Negative keyword management","Budget and bid optimisation","ROAS and cost-per-lead reporting"]'::jsonb, '[{"step":"01","title":"Discovery & Strategy","body":"Offer, margins, target market and what a qualified lead is actually worth to you."},{"step":"02","title":"Design & UX","body":"Landing pages built for the specific searches the campaign targets."},{"step":"03","title":"Development","body":"Campaign build, conversion tracking and analytics integration."},{"step":"04","title":"Launch & Growth","body":"Ongoing optimisation against cost per qualified lead and transparent reporting."}]'::jsonb, 'Want paid search to pay for itself?', 'Tell us your market and current spend. We will review the account structure and tracking before promising anything.', 'Google Ads Management Albania | Search & Performance Max | drh.al', 'Google Ads management in Albania. Search and Performance Max campaigns with proper conversion tracking, landing pages and cost-per-lead reporting.', '00000002-0000-4000-8000-000000000008', 'en', null, null, true),
+  ('Google Ads', 'Menaxhim Google Ads i Ndërtuar për Rritje Fitimprurëse', 'Fushata Search dhe Performance Max të menaxhuara mbi të dhëna konvertimi, jo mbi shfaqje.', 'Reklamimi në kërkim funksionon kur përputhen tre gjëra: kërkimet e duhura, një landing page që u përgjigjet, dhe gjurmim konvertimesh të besueshëm. Shumica e llogarive me performancë të dobët i mungon të paktën njëra.
+
+Ne ndërtojmë fushata rreth qëllimit tregtar, mbajmë jashtë shpenzimet e kota me punë disiplinuese mbi fjalët kyçe negative, dhe raportojmë koston për kontakt të kualifikuar — numri që vendos nëse kanali ia vlen.', '[{"title":"Gjurmimi para shpenzimit","body":"Së pari verifikojmë gjurmimin e konvertimeve. Optimizimi mbi të dhëna të gabuara është më keq se mosoptimizimi."},{"title":"Strukturë sipas qëllimit","body":"Fushata dhe grupe reklamash të organizuara sipas mënyrës si kërkojnë njerëzit."},{"title":"Kontroll i shpenzimeve të kota","body":"Punë e vazhdueshme me fjalë kyçe negative dhe përjashtime vendosjesh për të mbrojtur buxhetin."},{"title":"Landing page që konvertojnë","body":"Ndërtojmë edhe faqen, jo vetëm fushatën, që trafiku të zbresë diku që e meriton klikimin."}]'::jsonb, '["Strategji dhe ndërtim fushatash Search","Fushata Performance Max","Implementim i gjurmimit të konvertimeve","Dizajn dhe zhvillim landing page","Kërkim fjalësh kyçe dhe strategji përputhjeje","Menaxhim i fjalëve kyçe negative","Optimizim buxheti dhe ofertash","Raportim ROAS dhe kosto për kontakt"]'::jsonb, '[{"step":"01","title":"Zbulim & Strategji","body":"Oferta, marzhet, tregu i synuar dhe sa vlen vërtet një kontakt i kualifikuar për ju."},{"step":"02","title":"Dizajn & UX","body":"Landing page të ndërtuara për kërkimet specifike që synon fushata."},{"step":"03","title":"Zhvillim","body":"Ndërtimi i fushatave, gjurmimi i konvertimeve dhe integrimi i analitikës."},{"step":"04","title":"Lansim & Rritje","body":"Optimizim i vazhdueshëm ndaj kostos për kontakt të kualifikuar dhe raportim transparent."}]'::jsonb, 'Doni që reklamat të paguajnë veten?', 'Na tregoni tregun dhe shpenzimin aktual. Rishikojmë strukturën e llogarisë dhe gjurmimin para se të premtojmë asgjë.', 'Menaxhim Google Ads Shqipëri | Search & Performance Max | drh.al', 'Menaxhim Google Ads në Shqipëri. Fushata Search dhe Performance Max me gjurmim të saktë konvertimesh, landing page dhe raportim kosto-për-kontakt.', '00000002-0000-4000-8000-000000000008', 'sq', null, null, true)
+on conflict (service_id, language) do update set title = excluded.title, headline = excluded.headline, short_description = excluded.short_description, full_description = excluded.full_description, benefits = excluded.benefits, features = excluded.features, process = excluded.process, cta_title = excluded.cta_title, cta_body = excluded.cta_body, seo_title = excluded.seo_title, seo_description = excluded.seo_description, og_title = excluded.og_title, og_description = excluded.og_description, is_complete = excluded.is_complete;
+
+insert into public.service_technologies (service_id, technology_id) values
+  ('00000002-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000001'),
+  ('00000002-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000002'),
+  ('00000002-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000004'),
+  ('00000002-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000003'),
+  ('00000002-0000-4000-8000-000000000001', '00000004-0000-4000-8000-00000000000c'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000001'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000002'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000004'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000003'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000009'),
+  ('00000002-0000-4000-8000-000000000002', '00000004-0000-4000-8000-00000000000b'),
+  ('00000002-0000-4000-8000-000000000003', '00000004-0000-4000-8000-00000000000a'),
+  ('00000002-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000004'),
+  ('00000002-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000003'),
+  ('00000002-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000009'),
+  ('00000002-0000-4000-8000-000000000004', '00000004-0000-4000-8000-000000000006'),
+  ('00000002-0000-4000-8000-000000000004', '00000004-0000-4000-8000-000000000007'),
+  ('00000002-0000-4000-8000-000000000004', '00000004-0000-4000-8000-000000000008'),
+  ('00000002-0000-4000-8000-000000000004', '00000004-0000-4000-8000-000000000005'),
+  ('00000002-0000-4000-8000-000000000005', '00000004-0000-4000-8000-000000000007'),
+  ('00000002-0000-4000-8000-000000000005', '00000004-0000-4000-8000-000000000006'),
+  ('00000002-0000-4000-8000-000000000005', '00000004-0000-4000-8000-000000000002'),
+  ('00000002-0000-4000-8000-000000000005', '00000004-0000-4000-8000-000000000008'),
+  ('00000002-0000-4000-8000-000000000005', '00000004-0000-4000-8000-000000000004'),
+  ('00000002-0000-4000-8000-000000000006', '00000004-0000-4000-8000-000000000001'),
+  ('00000002-0000-4000-8000-000000000006', '00000004-0000-4000-8000-000000000002'),
+  ('00000002-0000-4000-8000-000000000006', '00000004-0000-4000-8000-00000000000c'),
+  ('00000002-0000-4000-8000-000000000007', '00000004-0000-4000-8000-000000000002'),
+  ('00000002-0000-4000-8000-000000000007', '00000004-0000-4000-8000-000000000006')
+on conflict (service_id, technology_id) do nothing;
+
+insert into public.projects (id, slug, client_name, client_logo, industry_id, country, project_date, cover_image, cover_image_mobile, og_image, canonical_url, website_url, featured, status, is_indexable, sort_order, testimonial_id, view_count, published_at) values
+  ('00000003-0000-4000-8000-000000000001', 'ersk-shpk', 'ERSK SHPK', null, '00000001-0000-4000-8000-000000000001', 'Albania', '2024-06-01', '/media/projects/ersk-shpk-cover.svg', null, null, null, null, true, 'published', true, 0, null, 0, '2024-06-01T09:00:00.000Z'),
+  ('00000003-0000-4000-8000-000000000002', 'bia', 'BIA', null, '00000001-0000-4000-8000-000000000009', 'Italy', '2024-11-01', '/media/projects/bia-cover.svg', null, null, null, null, true, 'published', true, 1, null, 0, '2024-11-01T09:00:00.000Z'),
+  ('00000003-0000-4000-8000-000000000003', 'techcamp-polimi', 'TECHCAMP POLIMI', null, '00000001-0000-4000-8000-00000000000a', 'Italy', '2025-03-01', '/media/projects/techcamp-polimi-cover.svg', null, null, null, null, true, 'published', true, 2, null, 0, '2025-03-01T09:00:00.000Z')
+on conflict (id) do update set slug = excluded.slug, client_name = excluded.client_name, client_logo = excluded.client_logo, industry_id = excluded.industry_id, country = excluded.country, project_date = excluded.project_date, cover_image = excluded.cover_image, cover_image_mobile = excluded.cover_image_mobile, og_image = excluded.og_image, canonical_url = excluded.canonical_url, website_url = excluded.website_url, featured = excluded.featured, status = excluded.status, is_indexable = excluded.is_indexable, sort_order = excluded.sort_order, testimonial_id = excluded.testimonial_id, view_count = excluded.view_count, published_at = excluded.published_at;
+
+insert into public.project_translations (title, short_description, overview, challenge, solution, development, results_text, seo_title, seo_description, project_id, language, og_title, og_description, is_complete) values
+  ('A corporate website for an Albanian construction company', 'A WordPress build for a construction firm, structured around completed projects, services and direct enquiries.', 'ERSK SHPK is a construction company operating in Albania. The brief was a corporate website that presents the company credibly to private clients and institutional buyers, keeps completed work visible, and makes it straightforward to get in touch.
+
+The site is built on WordPress so the team can maintain project entries, service descriptions and contact details themselves, without a developer in the loop for routine updates.', 'Construction is bought on evidence. A prospective client wants to see comparable work, understand the scope a company can handle, and reach a decision-maker quickly — usually from a phone.
+
+The site therefore had to do three things well: present completed projects in a consistent, scannable structure; explain services without construction jargon; and stay fast on mobile connections, where most first visits happen.', 'We designed a content structure around two core entities: services and projects. Every project uses the same fields — type of work, location, scope and photography — so entries stay consistent no matter who adds them.
+
+The interface keeps typography large and the layout uncluttered, with contact details reachable from any page. Enquiry forms capture project type and location up front so the first phone call starts with context rather than questions.', 'The build uses a custom WordPress theme rather than a marketplace template, which keeps the page weight low and the admin experience specific to how this team works. Project and service entries are custom post types with defined fields.
+
+Images are generated in modern formats at multiple sizes and lazy-loaded below the fold. Page structure uses semantic HTML with organisation and breadcrumb structured data, and the site is configured for indexing with a generated sitemap and canonical URLs.', 'Verified performance and business results for this project will be published here once measured. drh.al does not publish outcome figures it has not confirmed.', 'ERSK SHPK — Construction Company Website | drh.al Case Study', 'Case study: a WordPress corporate website for ERSK SHPK, an Albanian construction company — project portfolio structure, service pages and enquiry-focused design.', '00000003-0000-4000-8000-000000000001', 'en', null, null, true),
+  ('Një website korporativ për një kompani ndërtimi shqiptare', 'Një ndërtim WordPress për një kompani ndërtimi, i strukturuar rreth projekteve të përfunduara, shërbimeve dhe kërkesave direkte.', 'ERSK SHPK është një kompani ndërtimi që operon në Shqipëri. Kërkesa ishte një website korporativ që e paraqet kompaninë në mënyrë të besueshme para klientëve privatë dhe institucionalë, mban të dukshme punën e përfunduar dhe e bën kontaktin të thjeshtë.
+
+Faqja është ndërtuar mbi WordPress, që ekipi të mirëmbajë vetë projektet, përshkrimet e shërbimeve dhe të dhënat e kontaktit, pa pasur nevojë për zhvillues për përditësimet rutinë.', 'Ndërtimi blihet mbi prova. Një klient potencial dëshiron të shohë punë të krahasueshme, të kuptojë fushëveprimin që kompania mund të mbulojë dhe të arrijë shpejt te një vendimmarrës — zakonisht nga telefoni.
+
+Prandaj faqja duhej të bënte mirë tri gjëra: të paraqiste projektet e përfunduara në një strukturë të qëndrueshme; të shpjegonte shërbimet pa zhargon teknik; dhe të mbetej e shpejtë në lidhje celulare.', 'Dizajnuam një strukturë përmbajtjeje rreth dy entiteteve kryesore: shërbimeve dhe projekteve. Çdo projekt përdor të njëjtat fusha — lloji i punës, vendndodhja, fushëveprimi dhe fotografia — që hyrjet të mbeten të njëtrajtshme.
+
+Ndërfaqja mban tipografi të madhe dhe një layout të pastër, me kontaktet të arritshme nga çdo faqe. Formularët kapin llojin dhe vendndodhjen e projektit që në fillim.', 'Ndërtimi përdor një temë WordPress të personalizuar dhe jo një template të gatshme, gjë që mban peshën e faqes të ulët dhe përvojën e administrimit specifike për këtë ekip. Projektet dhe shërbimet janë custom post types me fusha të përcaktuara.
+
+Imazhet gjenerohen në formate moderne në disa përmasa dhe ngarkohen me vonesë. Struktura përdor HTML semantik me të dhëna të strukturuara dhe faqja është konfiguruar me sitemap dhe URL kanonike.', 'Rezultatet e verifikuara të performancës dhe biznesit për këtë projekt do të publikohen këtu pasi të maten. drh.al nuk publikon shifra të pakonfirmuara.', 'ERSK SHPK — Website për Kompani Ndërtimi | Rast Studimi drh.al', 'Rast studimi: një website korporativ WordPress për ERSK SHPK, kompani ndërtimi shqiptare — strukturë portofoli, faqe shërbimesh dhe dizajn i fokusuar te kërkesat.', '00000003-0000-4000-8000-000000000001', 'sq', null, null, true),
+  ('A Next.js digital platform for an Italian client', 'A React and Next.js platform built for speed, structured content and a clean, maintainable front end.', 'BIA is a digital platform delivered for a client in Italy. The engagement covered interface design and front-end engineering on a modern React stack, with a focus on load performance and a component structure the client can extend.
+
+Next.js was chosen for server rendering and routing, which keeps the platform fast on first load while leaving room for interactive, application-like sections.', 'Platforms tend to accumulate weight. Every new section adds components, scripts and images, and without discipline the experience degrades until the product feels slower each quarter.
+
+The goal was an architecture that stays fast as the platform grows: predictable rendering, a component library that is reused rather than duplicated, and a clear boundary between content and interface.', 'We built a component system first — typography, spacing, layout primitives and interface elements defined once and composed everywhere. Pages are assembled from those pieces, so a new section is a composition rather than a new set of styles.
+
+Server rendering handles the content-heavy views, while interactive areas load their JavaScript only where it is actually needed.', 'The front end is built with Next.js and React. Rendering strategy is chosen per route: static generation where content is stable, server rendering where it is not, and client interactivity isolated to the components that require it.
+
+Images are served in modern formats with explicit dimensions to avoid layout shift, fonts are self-hosted and preloaded, and the bundle is split so a visitor downloads only the code for the page they opened.', 'Verified performance and business results for this project will be published here once measured.', 'BIA — Next.js Digital Platform | drh.al Case Study', 'Case study: a Next.js and React digital platform built for an Italian client, with a reusable component system and performance-first rendering strategy.', '00000003-0000-4000-8000-000000000002', 'en', null, null, true),
+  ('Një platformë dixhitale me Next.js për një klient italian', 'Një platformë React dhe Next.js e ndërtuar për shpejtësi, përmbajtje të strukturuar dhe një front-end të mirëmbajtshëm.', 'BIA është një platformë dixhitale e dorëzuar për një klient në Itali. Angazhimi përfshiu dizajnin e ndërfaqes dhe inxhinierinë front-end mbi një stack modern React, me fokus te performanca e ngarkimit dhe një strukturë komponentësh që klienti mund ta zgjerojë.
+
+Next.js u zgjodh për renderim në server dhe routing, gjë që e mban platformën të shpejtë në ngarkimin e parë.', 'Platformat priren të grumbullojnë peshë. Çdo seksion i ri shton komponentë, skripte dhe imazhe, dhe pa disiplinë përvoja degradon derisa produkti ndihet më i ngadaltë çdo tremujor.
+
+Qëllimi ishte një arkitekturë që mbetet e shpejtë ndërsa platforma rritet: renderim i parashikueshëm, një bibliotekë komponentësh që ripërdoret, dhe një kufi i qartë mes përmbajtjes dhe ndërfaqes.', 'Fillimisht ndërtuam një sistem komponentësh — tipografia, hapësirat, elementët e layout-it dhe të ndërfaqes të përcaktuar një herë dhe të kompozuar kudo. Faqet montohen nga këto pjesë, ndaj një seksion i ri është kompozim dhe jo një grup i ri stilesh.
+
+Renderimi në server mbulon pamjet me shumë përmbajtje, ndërsa zonat interaktive ngarkojnë JavaScript vetëm aty ku nevojitet.', 'Front-end-i është ndërtuar me Next.js dhe React. Strategjia e renderimit zgjidhet për çdo route: gjenerim statik aty ku përmbajtja është e qëndrueshme, renderim në server aty ku nuk është, dhe interaktivitet i izoluar te komponentët që e kërkojnë.
+
+Imazhet shërbehen në formate moderne me përmasa eksplicite për të shmangur zhvendosjen e layout-it, fontet janë të vetëstrehuara dhe bundle-i ndahet sipas faqeve.', 'Rezultatet e verifikuara për këtë projekt do të publikohen këtu pasi të maten.', 'BIA — Platformë Dixhitale me Next.js | Rast Studimi drh.al', 'Rast studimi: një platformë dixhitale Next.js dhe React për një klient italian, me sistem komponentësh të ripërdorshëm dhe strategji renderimi për performancë.', '00000003-0000-4000-8000-000000000002', 'sq', null, null, true),
+  ('A programme website for an education provider in Milan', 'A WordPress site for an education programme, structured around courses, schedules and enrolment enquiries.', 'TECHCAMP POLIMI is an education programme based in Milan, Italy. The website presents the programme structure, sessions and practical information for prospective participants, and channels enquiries into a single, manageable flow.
+
+Because the content changes with each intake, the site is built so that dates, sessions and programme details are edited by the team rather than by a developer.', 'Education websites have a recurring problem: content that is correct in September and misleading by January. Session dates, availability and programme details change every cycle, and every change that requires a developer is a change that gets delayed.
+
+At the same time, prospective participants need very specific information quickly — what the programme covers, who it is for, when it runs, and how to apply.', 'We modelled the content around the programme cycle. Sessions, dates and details are structured entries, not paragraphs buried in a page, so updating an intake is a form, not a rebuild.
+
+The page structure answers enrolment questions in order of importance: what it is, who it is for, what it covers, when it runs, and how to apply — with the enquiry path visible throughout.', 'The site is a custom WordPress build with structured content types for programme information, so editing stays consistent between intakes. Templates are shared across sections to keep the visual language uniform.
+
+The front end is optimised for the mobile-first audience: compressed modern image formats, deferred non-critical scripts and semantic markup with structured data for the organisation and its programmes.', 'Verified performance and business results for this project will be published here once measured.', 'TECHCAMP POLIMI — Education Programme Website | drh.al Case Study', 'Case study: a WordPress website for TECHCAMP POLIMI, an education programme in Milan — structured programme content, editable intakes and enrolment-focused design.', '00000003-0000-4000-8000-000000000003', 'en', null, null, true),
+  ('Një website programi për një ofrues arsimi në Milano', 'Një faqe WordPress për një program arsimor, e strukturuar rreth kurseve, orareve dhe kërkesave për regjistrim.', 'TECHCAMP POLIMI është një program arsimor me bazë në Milano, Itali. Website-i paraqet strukturën e programit, sesionet dhe informacionin praktik për pjesëmarrësit potencialë, dhe i kanalizon kërkesat në një rrjedhë të vetme të menaxhueshme.
+
+Meqë përmbajtja ndryshon me çdo cikël, faqja është ndërtuar që datat, sesionet dhe detajet të redaktohen nga ekipi dhe jo nga një zhvillues.', 'Faqet arsimore kanë një problem të përsëritur: përmbajtje që është e saktë në shtator dhe e gabuar në janar. Datat, disponueshmëria dhe detajet ndryshojnë çdo cikël, dhe çdo ndryshim që kërkon zhvillues është një ndryshim që vonohet.
+
+Njëkohësisht, pjesëmarrësit potencialë kërkojnë shpejt informacion shumë specifik — çfarë mbulon programi, për kë është, kur zhvillohet dhe si aplikohet.', 'E modeluam përmbajtjen sipas ciklit të programit. Sesionet, datat dhe detajet janë hyrje të strukturuara, jo paragrafë të fshehur brenda një faqeje, ndaj përditësimi i një cikli është një formular, jo një rindërtim.
+
+Struktura e faqes u përgjigjet pyetjeve sipas rëndësisë: çfarë është, për kë është, çfarë mbulon, kur zhvillohet dhe si aplikohet.', 'Faqja është një ndërtim i personalizuar WordPress me tipe përmbajtjeje të strukturuara për informacionin e programit. Template-t ndahen mes seksioneve për ta mbajtur gjuhën vizuale uniforme.
+
+Front-end-i është optimizuar për audiencë mobile-first: formate moderne imazhesh, skripte jokritike të shtyra dhe markup semantik me të dhëna të strukturuara.', 'Rezultatet e verifikuara për këtë projekt do të publikohen këtu pasi të maten.', 'TECHCAMP POLIMI — Website Programi Arsimor | Rast Studimi drh.al', 'Rast studimi: një website WordPress për TECHCAMP POLIMI, program arsimor në Milano — përmbajtje e strukturuar, cikle të redaktueshme dhe dizajn i fokusuar te regjistrimi.', '00000003-0000-4000-8000-000000000003', 'sq', null, null, true)
+on conflict (project_id, language) do update set title = excluded.title, short_description = excluded.short_description, overview = excluded.overview, challenge = excluded.challenge, solution = excluded.solution, development = excluded.development, results_text = excluded.results_text, seo_title = excluded.seo_title, seo_description = excluded.seo_description, og_title = excluded.og_title, og_description = excluded.og_description, is_complete = excluded.is_complete;
+
+insert into public.project_media (id, project_id, media_id, url, alt_en, alt_sq, caption, width, height, sort_order) values
+  ('00000009-0000-4000-8000-000000000065', '00000003-0000-4000-8000-000000000001', null, '/media/projects/ersk-shpk-1.svg', 'ERSK SHPK — interface detail 1', 'ERSK SHPK — detaj i ndërfaqes 1', null, 1600, 1000, 0),
+  ('00000009-0000-4000-8000-000000000066', '00000003-0000-4000-8000-000000000001', null, '/media/projects/ersk-shpk-2.svg', 'ERSK SHPK — interface detail 2', 'ERSK SHPK — detaj i ndërfaqes 2', null, 1600, 1000, 1),
+  ('00000009-0000-4000-8000-000000000067', '00000003-0000-4000-8000-000000000001', null, '/media/projects/ersk-shpk-3.svg', 'ERSK SHPK — interface detail 3', 'ERSK SHPK — detaj i ndërfaqes 3', null, 1600, 1000, 2),
+  ('00000009-0000-4000-8000-0000000000c9', '00000003-0000-4000-8000-000000000002', null, '/media/projects/bia-1.svg', 'BIA — interface detail 1', 'BIA — detaj i ndërfaqes 1', null, 1600, 1000, 0),
+  ('00000009-0000-4000-8000-0000000000ca', '00000003-0000-4000-8000-000000000002', null, '/media/projects/bia-2.svg', 'BIA — interface detail 2', 'BIA — detaj i ndërfaqes 2', null, 1600, 1000, 1),
+  ('00000009-0000-4000-8000-0000000000cb', '00000003-0000-4000-8000-000000000002', null, '/media/projects/bia-3.svg', 'BIA — interface detail 3', 'BIA — detaj i ndërfaqes 3', null, 1600, 1000, 2),
+  ('00000009-0000-4000-8000-00000000012d', '00000003-0000-4000-8000-000000000003', null, '/media/projects/techcamp-polimi-1.svg', 'TECHCAMP POLIMI — interface detail 1', 'TECHCAMP POLIMI — detaj i ndërfaqes 1', null, 1600, 1000, 0),
+  ('00000009-0000-4000-8000-00000000012e', '00000003-0000-4000-8000-000000000003', null, '/media/projects/techcamp-polimi-2.svg', 'TECHCAMP POLIMI — interface detail 2', 'TECHCAMP POLIMI — detaj i ndërfaqes 2', null, 1600, 1000, 1),
+  ('00000009-0000-4000-8000-00000000012f', '00000003-0000-4000-8000-000000000003', null, '/media/projects/techcamp-polimi-3.svg', 'TECHCAMP POLIMI — interface detail 3', 'TECHCAMP POLIMI — detaj i ndërfaqes 3', null, 1600, 1000, 2)
+on conflict (id) do update set project_id = excluded.project_id, media_id = excluded.media_id, url = excluded.url, alt_en = excluded.alt_en, alt_sq = excluded.alt_sq, caption = excluded.caption, width = excluded.width, height = excluded.height, sort_order = excluded.sort_order;
+
+insert into public.project_technologies (project_id, technology_id) values
+  ('00000003-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000006'),
+  ('00000003-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000008'),
+  ('00000003-0000-4000-8000-000000000001', '00000004-0000-4000-8000-000000000005'),
+  ('00000003-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000002'),
+  ('00000003-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000005'),
+  ('00000003-0000-4000-8000-000000000002', '00000004-0000-4000-8000-000000000001'),
+  ('00000003-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000006'),
+  ('00000003-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000008'),
+  ('00000003-0000-4000-8000-000000000003', '00000004-0000-4000-8000-000000000005')
+on conflict (project_id, technology_id) do nothing;
+
+insert into public.project_services (project_id, service_id) values
+  ('00000003-0000-4000-8000-000000000001', '00000002-0000-4000-8000-000000000001'),
+  ('00000003-0000-4000-8000-000000000001', '00000002-0000-4000-8000-000000000006'),
+  ('00000003-0000-4000-8000-000000000001', '00000002-0000-4000-8000-000000000004'),
+  ('00000003-0000-4000-8000-000000000002', '00000002-0000-4000-8000-000000000002'),
+  ('00000003-0000-4000-8000-000000000002', '00000002-0000-4000-8000-000000000001'),
+  ('00000003-0000-4000-8000-000000000002', '00000002-0000-4000-8000-000000000006'),
+  ('00000003-0000-4000-8000-000000000003', '00000002-0000-4000-8000-000000000001'),
+  ('00000003-0000-4000-8000-000000000003', '00000002-0000-4000-8000-000000000004'),
+  ('00000003-0000-4000-8000-000000000003', '00000002-0000-4000-8000-000000000006')
+on conflict (project_id, service_id) do nothing;
+
+insert into public.blog_categories (id, sort_order, slug, name_en, name_sq) values
+  ('00000008-0000-4000-8000-000000000001', 0, 'web-development', 'Web Development', 'Zhvillim Web'),
+  ('00000008-0000-4000-8000-000000000002', 1, 'seo', 'SEO', 'SEO'),
+  ('00000008-0000-4000-8000-000000000003', 2, 'web-apps', 'Web Apps & Mobile Apps', 'Aplikacione Web & Mobile'),
+  ('00000008-0000-4000-8000-000000000004', 3, 'design', 'Design', 'Dizajn')
+on conflict (id) do update set sort_order = excluded.sort_order, slug = excluded.slug, name_en = excluded.name_en, name_sq = excluded.name_sq;
+
+insert into public.blog_posts (id, slug, category_id, author_id, author_name, featured_image, og_image, status, featured, is_indexable, published_at, reading_time, view_count, related_service_id) values
+  ('00000005-0000-4000-8000-000000000001', 'how-much-does-a-website-cost-in-albania-2026', '00000008-0000-4000-8000-000000000001', null, 'drh.al', '/media/blog/how-much-does-a-website-cost-in-albania-2026.svg', null, 'published', true, true, '2026-01-14T09:00:00.000Z', 3, 0, '00000002-0000-4000-8000-000000000001'),
+  ('00000005-0000-4000-8000-000000000002', 'local-seo-for-tirana-businesses-2026-playbook', '00000008-0000-4000-8000-000000000002', null, 'drh.al', '/media/blog/local-seo-for-tirana-businesses-2026-playbook.svg', null, 'published', true, true, '2026-02-04T09:00:00.000Z', 3, 0, '00000002-0000-4000-8000-000000000007'),
+  ('00000005-0000-4000-8000-000000000003', 'web-app-vs-mobile-app-which-should-you-build-first', '00000008-0000-4000-8000-000000000003', null, 'drh.al', '/media/blog/web-app-vs-mobile-app-which-should-you-build-first.svg', null, 'published', false, true, '2026-02-25T09:00:00.000Z', 2, 0, '00000002-0000-4000-8000-000000000002')
+on conflict (id) do update set slug = excluded.slug, category_id = excluded.category_id, author_id = excluded.author_id, author_name = excluded.author_name, featured_image = excluded.featured_image, og_image = excluded.og_image, status = excluded.status, featured = excluded.featured, is_indexable = excluded.is_indexable, published_at = excluded.published_at, reading_time = excluded.reading_time, view_count = excluded.view_count, related_service_id = excluded.related_service_id;
+
+insert into public.blog_translations (post_id, language, title, excerpt, content_html, seo_title, seo_description, og_title, og_description, is_complete) values
+  ('00000005-0000-4000-8000-000000000001', 'en', 'How Much Does a Website Cost in Albania in 2026?', 'Real price ranges for business websites, multilingual corporate sites, e-commerce and custom applications — and the five factors that actually move a quote from one band to the next.', '
+<p>It is the first question almost every business asks, and the honest answer is that price follows scope, not page count. A five-page site with custom functionality can cost more than a twenty-page brochure site. What follows is how we actually price work in 2026, and what moves a project from one band to the next.</p>
+
+<h2>The short answer</h2>
+<table>
+  <thead><tr><th>Type of project</th><th>Typical range</th></tr></thead>
+  <tbody>
+    <tr><td>Single landing page, one language</td><td>Under €2,000</td></tr>
+    <tr><td>Business website, custom design, CMS</td><td>€2,000 – €5,000</td></tr>
+    <tr><td>Multilingual corporate site, SEO groundwork</td><td>€5,000 – €15,000</td></tr>
+    <tr><td>E-commerce store or custom web application</td><td>€15,000 – €30,000</td></tr>
+    <tr><td>Platform, SaaS product, complex integrations</td><td>€30,000+</td></tr>
+  </tbody>
+</table>
+<p>These are ranges for work built to a professional standard: custom design, hand-written code or a purpose-built theme, a CMS your team can use, performance work and SEO fundamentals. They are not the price of a marketplace template with content pasted in.</p>
+
+<h2>What actually drives the price</h2>
+
+<h3>1. Design: template, adapted, or original</h3>
+<p>Using an existing template is the cheapest route and it shows — most of the cost saved is paid back later in performance problems and in looking like four competitors. An original design costs more up front because it starts from your audience and your content rather than from a demo layout.</p>
+
+<h3>2. Number of unique page templates</h3>
+<p>Twenty pages that share four templates cost far less than eight pages that each need their own layout. When you request a quote, count distinct <em>templates</em>, not pages.</p>
+
+<h3>3. Languages</h3>
+<p>A second language is not a translation plugin. It is a second set of content, metadata, URLs and navigation, plus correct <code>hreflang</code> so search engines serve the right version. Expect a genuinely bilingual site to add roughly 20–35% to a build, most of which is content work rather than code.</p>
+
+<h3>4. Custom functionality</h3>
+<p>Booking systems, calculators, member areas, dashboards, integrations with a CRM or ERP — anything with business logic behind it — move a project from a website budget into a software budget. This is where the €15,000 line usually gets crossed.</p>
+
+<h3>5. Content</h3>
+<p>The most common cause of delay in Albania and everywhere else. If copy, photography and product data are ready, the project moves. If they are not, someone has to produce them, and that is a real cost whether it appears on the invoice or in the timeline.</p>
+
+<h2>What should always be included</h2>
+<ul>
+  <li>Mobile-first responsive layouts, tested on real devices</li>
+  <li>Core Web Vitals addressed during the build, not after</li>
+  <li>A CMS for the content you change regularly</li>
+  <li>Basic on-page SEO: titles, descriptions, headings, structured data, sitemap</li>
+  <li>Analytics and conversion tracking that actually records enquiries</li>
+  <li>SSL, backups, and a documented handover</li>
+  <li>Ownership of the code, the design and every account</li>
+</ul>
+<p>If a quote does not include these, it is not cheaper — it is smaller.</p>
+
+<h2>Ongoing costs to plan for</h2>
+<p>Budget for hosting (roughly €10–€60 per month depending on stack and traffic), a domain (€10–€30 per year), and maintenance if you want updates, monitoring and backups handled for you. If you are running Google Ads or SEO, that is a separate monthly line — and it should be judged on cost per qualified lead, not on traffic.</p>
+
+<h2>How to compare two quotes properly</h2>
+<p>Put them side by side and ask four questions: What is the deliverable, exactly? Who owns the result? What happens after launch? And what is <em>not</em> included? A price is only comparable once those four answers are.</p>
+
+<h2>How we quote</h2>
+<p>We do not publish a rate card, because a number without a scope is meaningless. We ask what the site has to achieve, what exists today, and what constraints you are working within. Then we send a fixed price against a written scope, so you know what you are buying before you commit.</p>
+', 'How Much Does a Website Cost in Albania in 2026? | drh.al', 'Website costs in Albania in 2026: real price ranges for business sites, multilingual corporate websites, e-commerce and web applications, and what drives the price.', null, null, true),
+  ('00000005-0000-4000-8000-000000000001', 'sq', 'Sa Kushton një Website në Shqipëri në 2026?', 'Diapazone reale çmimesh për website biznesi, faqe korporative shumëgjuhëshe, e-commerce dhe aplikacione të personalizuara — dhe pesë faktorët që e zhvendosin ofertën.', '
+<p>Është pyetja e parë që bën pothuajse çdo biznes, dhe përgjigjja e ndershme është se çmimi ndjek fushëveprimin, jo numrin e faqeve. Një faqe me pesë seksione dhe funksionalitet të personalizuar mund të kushtojë më shumë se një faqe njëzet-faqëshe prezantuese. Ja si e vlerësojmë ne punën në 2026 dhe çfarë e zhvendos një projekt nga një nivel në tjetrin.</p>
+
+<h2>Përgjigjja e shkurtër</h2>
+<table>
+  <thead><tr><th>Lloji i projektit</th><th>Diapazoni tipik</th></tr></thead>
+  <tbody>
+    <tr><td>Një landing page, një gjuhë</td><td>Nën €2,000</td></tr>
+    <tr><td>Website biznesi, dizajn i personalizuar, CMS</td><td>€2,000 – €5,000</td></tr>
+    <tr><td>Faqe korporative shumëgjuhëshe, bazë SEO</td><td>€5,000 – €15,000</td></tr>
+    <tr><td>Dyqan e-commerce ose aplikacion web</td><td>€15,000 – €30,000</td></tr>
+    <tr><td>Platformë, produkt SaaS, integrime komplekse</td><td>€30,000+</td></tr>
+  </tbody>
+</table>
+<p>Këto janë diapazone për punë të ndërtuar me standard profesional: dizajn i personalizuar, kod i shkruar posaçërisht, një CMS që ekipi juaj mund ta përdorë, punë për performancën dhe bazat e SEO. Nuk janë çmimi i një template-i të gatshëm me përmbajtje të ngjitur brenda.</p>
+
+<h2>Çfarë e përcakton vërtet çmimin</h2>
+
+<h3>1. Dizajni: template, i përshtatur, apo origjinal</h3>
+<p>Përdorimi i një template-i ekzistues është rruga më e lirë dhe duket — pjesa më e madhe e kursimit paguhet më vonë me probleme performance dhe duke u dukur si katër konkurrentë të tjerë.</p>
+
+<h3>2. Numri i template-ve unike</h3>
+<p>Njëzet faqe që ndajnë katër template kushtojnë shumë më pak se tetë faqe që kërkojnë secila layout-in e vet. Kur kërkoni ofertë, numëroni <em>template</em>, jo faqe.</p>
+
+<h3>3. Gjuhët</h3>
+<p>Një gjuhë e dytë nuk është një plugin përkthimi. Është një grup i dytë përmbajtjeje, metadatash, URL-sh dhe navigimi, plus <code>hreflang</code> i saktë. Prisni që një faqe vërtet dygjuhëshe të shtojë rreth 20–35% mbi ndërtimin.</p>
+
+<h3>4. Funksionaliteti i personalizuar</h3>
+<p>Sisteme rezervimi, llogaritës, zona anëtarësh, dashboard, integrime me CRM ose ERP — çdo gjë me logjikë biznesi pas saj — e zhvendos projektin nga një buxhet website në një buxhet software.</p>
+
+<h3>5. Përmbajtja</h3>
+<p>Shkaku më i zakonshëm i vonesave. Nëse teksti, fotografia dhe të dhënat e produkteve janë gati, projekti ecën. Nëse jo, dikush duhet t’i prodhojë, dhe kjo është një kosto reale.</p>
+
+<h2>Çfarë duhet të përfshihet gjithmonë</h2>
+<ul>
+  <li>Layout responsiv mobile-first, i testuar në pajisje reale</li>
+  <li>Core Web Vitals të trajtuara gjatë ndërtimit</li>
+  <li>Një CMS për përmbajtjen që ndryshoni rregullisht</li>
+  <li>SEO bazë on-page: tituj, përshkrime, të dhëna të strukturuara, sitemap</li>
+  <li>Analitikë dhe gjurmim konvertimesh që regjistron vërtet kërkesat</li>
+  <li>SSL, backup dhe një dorëzim i dokumentuar</li>
+  <li>Pronësi mbi kodin, dizajnin dhe çdo llogari</li>
+</ul>
+
+<h2>Kosto të vazhdueshme për të planifikuar</h2>
+<p>Planifikoni hosting (rreth €10–€60 në muaj), domain (€10–€30 në vit) dhe mirëmbajtje nëse doni përditësime, monitorim dhe backup. Nëse zhvilloni Google Ads ose SEO, kjo është një zë i veçantë mujor — dhe duhet gjykuar mbi koston për kontakt të kualifikuar.</p>
+
+<h2>Si i krahasoni dy oferta si duhet</h2>
+<p>Vendosini krah për krah dhe bëni katër pyetje: Cili është saktësisht produkti i dorëzuar? Kush e zotëron rezultatin? Çfarë ndodh pas lansimit? Dhe çfarë <em>nuk</em> përfshihet?</p>
+
+<h2>Si e kuotojmë ne</h2>
+<p>Nuk publikojmë listë çmimesh, sepse një numër pa fushëveprim është i pakuptimtë. Pyesim çfarë duhet të arrijë faqja, çfarë ekziston sot dhe me çfarë kufizimesh punoni. Pastaj dërgojmë një çmim fiks mbi një fushëveprim me shkrim.</p>
+', 'Sa Kushton një Website në Shqipëri në 2026? | drh.al', 'Kostoja e një website në Shqipëri në 2026: diapazone reale çmimesh për faqe biznesi, korporative shumëgjuhëshe, e-commerce dhe aplikacione web.', null, null, true),
+  ('00000005-0000-4000-8000-000000000002', 'en', 'Local SEO for Tirana Businesses: A 2026 Playbook', 'A practical sequence for ranking in local search in Tirana: Business Profile, NAP consistency, real location pages, bilingual content, reviews and the technical basics.', '
+<p>If your customers are in Tirana, most of your search opportunity is local. Someone typing "dentist near me", "avokat Tiranë" or "roofing company Tirana" is close to a decision — and local results are decided by a different set of signals than national rankings. Here is the sequence we work through.</p>
+
+<h2>1. Google Business Profile is the foundation</h2>
+<p>For local queries, your Business Profile is frequently more important than your website. Complete every field, not the minimum:</p>
+<ul>
+  <li>Exact business name — resist the temptation to stuff keywords into it</li>
+  <li>Precise category, plus secondary categories that genuinely apply</li>
+  <li>Address and service area, consistent to the character with your website</li>
+  <li>Opening hours, including holiday hours</li>
+  <li>Real photographs of the premises, team and work</li>
+  <li>Services and products listed individually</li>
+</ul>
+<p>Then keep it alive. Profiles that post updates, answer questions and respond to reviews perform better than profiles that were completed once and abandoned.</p>
+
+<h2>2. Make NAP consistency boring</h2>
+<p>Name, address and phone number must match exactly everywhere they appear: your website footer, your Business Profile, directories, social profiles. "Rr. Myslym Shyri" in one place and "Rruga Myslym Shyri" in another is a small inconsistency that dilutes a signal you are otherwise working hard to build.</p>
+
+<h2>3. Build real location and service pages</h2>
+<p>A single "Services" page cannot rank for eight different services. Give each service its own page with genuine content: what it involves, who it is for, what it costs or how pricing works, and what happens next.</p>
+<p>The same applies to locations — but only where you genuinely operate. Generating a page for every city in Albania with the name swapped out is the fastest way to build a site full of near-duplicate pages that Google will ignore. Two strong location pages beat twenty thin ones.</p>
+
+<h2>4. Answer questions in Albanian and English</h2>
+<p>Tirana searches happen in both languages, often from the same person. If you serve international clients or the diaspora, publish both properly — separate URLs, independent metadata, and <code>hreflang</code> tags so Google knows which version to show whom. A machine-translated duplicate helps nobody.</p>
+
+<h2>5. Reviews: ask, respond, never fabricate</h2>
+<p>Review volume and recency both matter. Ask satisfied customers directly, at the moment the work is finished. Respond to every review, including the critical ones — a measured reply to a complaint reassures the next reader more than a wall of five stars.</p>
+<p>Do not buy reviews and do not write them yourself. Beyond the platform risk, marking up fake ratings in structured data is a policy violation that can cost you rich results entirely.</p>
+
+<h2>6. Get the technical basics right</h2>
+<ul>
+  <li><strong>LocalBusiness structured data</strong> with your real address, hours and contact details</li>
+  <li><strong>Mobile performance</strong> — local searches skew heavily to phones, often on mobile data</li>
+  <li><strong>Click-to-call</strong> phone numbers as real <code>tel:</code> links</li>
+  <li><strong>An embedded map</strong> and clear directions</li>
+  <li><strong>Fast LCP</strong> — the hero image is usually the culprit</li>
+</ul>
+
+<h2>7. Earn local relevance</h2>
+<p>Links and mentions from Albanian sources — local business associations, suppliers, partners, chambers of commerce, local press covering something you genuinely did — carry more weight for local visibility than generic international directories.</p>
+
+<h2>8. Measure enquiries, not positions</h2>
+<p>Connect Search Console and analytics, then track what matters: calls, form submissions, WhatsApp clicks and direction requests. A position that does not produce enquiries is a metric, not a result. Review your top queries monthly and write content against the questions people are actually asking.</p>
+
+<h2>A realistic timeline</h2>
+<p>Business Profile improvements can show within weeks. Content and technical work typically take two to four months to compound. Anyone promising page one in thirty days is either targeting queries nobody searches or is not being straight with you.</p>
+', 'Local SEO for Tirana Businesses: 2026 Playbook | drh.al', 'A practical local SEO playbook for businesses in Tirana: Google Business Profile, NAP consistency, service and location pages, bilingual content and reviews.', null, null, true),
+  ('00000005-0000-4000-8000-000000000003', 'en', 'Web App vs. Mobile App: Which Should You Build First?', 'How usage frequency, context and device capabilities decide the order — and why building web-first is usually the cheaper path to the same destination.', '
+<p>Founders ask this early, usually before there is enough information to answer it well. The right sequence depends on how people will use the product, not on which platform sounds more ambitious.</p>
+
+<h2>Start with the usage pattern</h2>
+<p>Three questions settle most of the decision:</p>
+<ol>
+  <li><strong>How often will someone use it?</strong> Daily, habitual use justifies an app. Occasional use rarely survives the install step.</li>
+  <li><strong>Where are they when they use it?</strong> On the move, one-handed, possibly offline — that is mobile. At a desk, alongside other tools — that is web.</li>
+  <li><strong>Do you need device capabilities?</strong> Camera, GPS, Bluetooth, background location, reliable push. If the core function depends on one of these, you need an app.</li>
+</ol>
+
+<h2>Why a web app is usually first</h2>
+<ul>
+  <li><strong>Nothing to install.</strong> A link is the entire onboarding step, which matters enormously before anyone trusts you.</li>
+  <li><strong>You ship when you want.</strong> No review queue between a fix and your users.</li>
+  <li><strong>One codebase, every device.</strong> Desktop and mobile browsers from the same build.</li>
+  <li><strong>Cheaper to validate.</strong> You find out whether people want it before paying for two platforms.</li>
+  <li><strong>Searchable.</strong> Web apps can be found on Google. App Store search is a far narrower door.</li>
+</ul>
+<p>For most B2B tools, dashboards, marketplaces, portals and booking systems, the web is the right first move — and often the only move you need.</p>
+
+<h2>When a mobile app genuinely wins</h2>
+<ul>
+  <li>Daily, habitual use where a home-screen icon changes behaviour</li>
+  <li>Push notifications that are core to the product, not a marketing add-on</li>
+  <li>Hardware access: camera, sensors, GPS, Bluetooth, offline storage</li>
+  <li>Consumer products where the store itself is a distribution channel</li>
+  <li>Field work with unreliable connectivity</li>
+</ul>
+
+<h2>The middle path: an installable web app</h2>
+<p>A progressive web app installs to the home screen, works offline and — on both Android and iOS — supports web push. For a large share of products, that closes most of the gap at a fraction of the cost. It is not a full substitute: deep hardware integration, background processing and store presence still require native. But as a step between "website" and "two native apps", it is frequently the right one.</p>
+
+<h2>A sequence that usually works</h2>
+<ol>
+  <li><strong>Web app first.</strong> Prove the core workflow with real users.</li>
+  <li><strong>Make it installable.</strong> Add offline support and push once usage justifies it.</li>
+  <li><strong>Go native when the data says so.</strong> When mobile usage dominates and users ask for an app, build it — with a validated product rather than a guess.</li>
+</ol>
+
+<h2>What it costs to be wrong</h2>
+<p>Building a mobile app first and discovering the product is really a desktop workflow is an expensive lesson: two store submissions, two review cycles and a codebase built around the wrong constraints. Building web-first and later adding an app is a much cheaper order of operations, because the API, the data model and the business logic carry over intact.</p>
+
+<h2>The one question worth asking</h2>
+<p>Would someone open this on their phone tomorrow morning without being reminded? If the honest answer is no, build the web app first.</p>
+', 'Web App vs Mobile App: Which to Build First? | drh.al', 'Web app or mobile app first? How usage frequency, context and device capabilities decide, plus the installable web app middle path and a sequence that works.', null, null, true)
+on conflict (post_id, language) do update set title = excluded.title, excerpt = excluded.excerpt, content_html = excluded.content_html, seo_title = excluded.seo_title, seo_description = excluded.seo_description, og_title = excluded.og_title, og_description = excluded.og_description, is_complete = excluded.is_complete;
+
+insert into public.faqs (id, category, question_en, answer_en, question_sq, answer_sq, service_id, industry_id, sort_order, is_active) values
+  ('00000006-0000-4000-8000-000000000001', 'general', 'How much does a website cost in Albania?', 'It depends on scope rather than page count. A focused business website or landing page typically sits in the €2,000–€5,000 range. A larger multilingual corporate site with a CMS, custom design and SEO groundwork usually falls between €5,000 and €15,000. Custom web applications, platforms and e-commerce builds start around €15,000 and are quoted against a defined specification. We give a fixed price once scope is clear, not a rate card before it.', 'Sa kushton një website në Shqipëri?', 'Varet nga fushëveprimi, jo nga numri i faqeve. Një website biznesi i fokusuar ose një landing page zakonisht kushton €2,000–€5,000. Një faqe korporative shumëgjuhëshe me CMS, dizajn të personalizuar dhe bazë SEO zakonisht bie mes €5,000 dhe €15,000. Aplikacionet web, platformat dhe ndërtimet e-commerce fillojnë rreth €15,000 dhe kuotohen mbi një specifikim të përcaktuar. Ne japim një çmim fiks pasi fushëveprimi është i qartë.', null, null, 0, true),
+  ('00000006-0000-4000-8000-000000000002', 'general', 'How long does a typical project take?', 'A business website usually takes four to eight weeks from kickoff to launch. A larger multilingual site with custom functionality takes eight to fourteen weeks. Web applications and mobile apps depend entirely on scope and are planned in phases so you see working software early rather than at the end. The largest variable is usually content and feedback turnaround on the client side, which we plan for explicitly.', 'Sa zgjat një projekt tipik?', 'Një website biznesi zakonisht zgjat katër deri në tetë javë nga fillimi deri në lansim. Një faqe më e madhe shumëgjuhëshe me funksionalitet të personalizuar zgjat tetë deri në katërmbëdhjetë javë. Aplikacionet web dhe mobile varen nga fushëveprimi dhe planifikohen në faza, që të shihni software funksional herët. Ndryshorja më e madhe është zakonisht koha e përmbajtjes dhe e feedback-ut nga ana e klientit.', null, null, 1, true),
+  ('00000006-0000-4000-8000-000000000003', 'general', 'Do you work with international clients?', 'Yes. We are based in Albania and work with clients across Europe and beyond — we have delivered projects for clients in Italy alongside our Albanian work. Collaboration is remote by default, with scheduled calls, written scope and shared access to progress. Time zone overlap with Europe is complete, and we work in English, Albanian and Italian.', 'Punoni me klientë ndërkombëtarë?', 'Po. Jemi me bazë në Shqipëri dhe punojmë me klientë në Evropë dhe më gjerë — kemi dorëzuar projekte për klientë në Itali krahas punës në Shqipëri. Bashkëpunimi është në distancë, me takime të planifikuara, fushëveprim me shkrim dhe akses të përbashkët mbi progresin. Punojmë në anglisht, shqip dhe italisht.', null, null, 2, true),
+  ('00000006-0000-4000-8000-000000000004', 'general', 'Who owns the website and source code?', 'You do. On final payment, ownership of the design, the source code and all content transfers to you, along with access to the repository, hosting, domain and every third-party account created for the project. We do not hold accounts hostage and we do not license our work back to clients.', 'Kush e zotëron website-in dhe kodin burimor?', 'Ju. Me pagesën përfundimtare, pronësia e dizajnit, e kodit burimor dhe e gjithë përmbajtjes kalon tek ju, së bashku me aksesin te repository, hosting, domain dhe çdo llogari e palës së tretë e krijuar për projektin. Ne nuk mbajmë peng llogaritë dhe nuk ua licencojmë punën klientëve.', null, null, 3, true),
+  ('00000006-0000-4000-8000-000000000005', 'general', 'Do you offer ongoing support?', 'Yes. After launch we offer maintenance covering updates, security patches, backups, monitoring and a defined amount of change work each month. Support is optional and month to month — it is not a condition of working with us. Many clients start with support for the first few months after launch and then move to ad-hoc work.', 'Ofroni mbështetje të vazhdueshme?', 'Po. Pas lansimit ofrojmë mirëmbajtje që mbulon përditësime, arna sigurie, backup, monitorim dhe një sasi të përcaktuar ndryshimesh çdo muaj. Mbështetja është opsionale dhe muaj pas muaji — nuk është kusht për të punuar me ne.', null, null, 4, true),
+  ('00000006-0000-4000-8000-000000000006', 'general', 'Can you work with an existing internal team?', 'Often, yes. We work alongside in-house marketing teams, internal developers and other agencies. That can mean taking one workstream (for example the front end, or SEO), reviewing architecture, or providing senior capacity on an existing codebase. We agree responsibilities and interfaces in writing before starting so nobody is guessing who owns what.', 'Mund të punoni me një ekip të brendshëm ekzistues?', 'Shpesh, po. Punojmë krahas ekipeve të marketingut, zhvilluesve të brendshëm dhe agjencive të tjera. Kjo mund të nënkuptojë marrjen e një rrjedhe pune (për shembull front-end ose SEO), rishikim arkitekture, ose kapacitet senior mbi një kod ekzistues. I dakordësojmë përgjegjësitë me shkrim para se të fillojmë.', null, null, 5, true),
+  ('00000006-0000-4000-8000-000000000007', 'general', 'Can you handle SEO after launch?', 'Yes, and we prefer to. A launch is where SEO starts, not where it ends. Post-launch work typically covers technical monitoring, Search Console analysis, content expansion against real query data, internal linking and monthly reporting tied to enquiries rather than rankings alone.', 'Mund të merreni me SEO pas lansimit?', 'Po, dhe e preferojmë. Lansimi është vendi ku fillon SEO, jo ku mbaron. Puna pas lansimit përfshin monitorim teknik, analizë të Search Console, zgjerim përmbajtjeje mbi të dhëna reale kërkimi, lidhje të brendshme dhe raportim mujor të lidhur me kërkesat, jo vetëm me renditjet.', null, null, 6, true),
+  ('00000006-0000-4000-8000-000000000008', 'general', 'Do you build mobile apps?', 'Yes — iOS and Android, usually with React Native so a single well-structured codebase serves both stores. That covers the app itself plus the parts around it: API, authentication, push notifications, payments and submission to the App Store and Google Play. Where a feature genuinely requires native code, we write native modules for it.', 'Ndërtoni aplikacione mobile?', 'Po — iOS dhe Android, zakonisht me React Native, që një kod i vetëm i strukturuar mirë t’u shërbejë të dyja dyqaneve. Kjo përfshin aplikacionin dhe pjesët rreth tij: API, autentikim, njoftime push, pagesa dhe dorëzimin në App Store dhe Google Play.', null, null, 7, true),
+  ('00000006-0000-4000-8000-000000000009', 'general', 'Can you rebuild an existing website?', 'Yes, and rebuilds are a large part of what we do. We start with an audit of the current site — performance, structure, content and search visibility — then decide honestly whether it needs improvement or replacement. If we rebuild, we plan URL mapping and redirects carefully so existing search rankings and traffic carry over rather than being lost at launch.', 'Mund të rindërtoni një website ekzistues?', 'Po, dhe rindërtimet janë një pjesë e madhe e punës sonë. Fillojmë me një audit të faqes aktuale — performanca, struktura, përmbajtja dhe dukshmëria në kërkim — pastaj vendosim ndershmërisht nëse duhet përmirësuar apo zëvendësuar. Nëse rindërtojmë, planifikojmë me kujdes hartën e URL-ve dhe ridrejtimet, që renditjet dhe trafiku ekzistues të mos humbasin.', null, null, 8, true)
+on conflict (id) do update set category = excluded.category, question_en = excluded.question_en, answer_en = excluded.answer_en, question_sq = excluded.question_sq, answer_sq = excluded.answer_sq, service_id = excluded.service_id, industry_id = excluded.industry_id, sort_order = excluded.sort_order, is_active = excluded.is_active;
+
+insert into public.pages (id, slug, kind, status, is_indexable, canonical_url, og_image, sort_order) values
+  ('00000007-0000-4000-8000-000000000001', 'home', 'system', 'published', true, null, null, 0),
+  ('00000007-0000-4000-8000-000000000002', 'about', 'system', 'published', true, null, null, 1),
+  ('00000007-0000-4000-8000-000000000003', 'contact', 'system', 'published', true, null, null, 2),
+  ('00000007-0000-4000-8000-000000000004', 'web-development-albania', 'landing', 'published', true, null, null, 3),
+  ('00000007-0000-4000-8000-000000000005', 'web-design-albania', 'landing', 'published', true, null, null, 4),
+  ('00000007-0000-4000-8000-000000000006', 'web-development-tirana', 'landing', 'published', true, null, null, 5),
+  ('00000007-0000-4000-8000-000000000007', 'wordpress-development-albania', 'landing', 'published', true, null, null, 6),
+  ('00000007-0000-4000-8000-000000000008', 'mobile-app-development-albania', 'landing', 'published', true, null, null, 7),
+  ('00000007-0000-4000-8000-000000000009', 'seo-albania', 'landing', 'published', true, null, null, 8)
+on conflict (id) do update set slug = excluded.slug, kind = excluded.kind, status = excluded.status, is_indexable = excluded.is_indexable, canonical_url = excluded.canonical_url, og_image = excluded.og_image, sort_order = excluded.sort_order;
+
+insert into public.page_translations (title, sections, seo_title, seo_description, og_title, og_description, page_id, language, is_complete) values
+  ('Home', '[{"type":"hero","eyebrow":"Digital agency · Albania","title":"Web Development, Mobile Apps & SEO in Albania","subtitle":"Digital products built to perform — in Albania and worldwide.","body":"drh.al is a digital agency specializing in high-performance websites, custom web applications, mobile apps, SEO and performance marketing.\n\nWe combine strategy, design and senior-level development to build digital experiences that are fast, scalable and focused on measurable business growth.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours · Albania & Worldwide"},{"type":"metrics","items":[{"value":"8+","label":"Years Experience"},{"value":"100+","label":"Projects Delivered"},{"value":"30+","label":"Global Clients"},{"value":"95+","label":"Target Lighthouse Performance"}]},{"type":"technologies","title":"The stack we build on"},{"type":"services","title":"Digital Services Built Around Your Business","subtitle":"From strategy and design to development and growth, our team handles the entire digital journey under one roof."},{"type":"projects","title":"Selected Work","subtitle":"Outcomes, not just deliverables.","limit":3},{"type":"featureGrid","title":"A Digital Partner That Thinks Like an Operator","subtitle":"Six things that shape how every drh.al project is run.","items":[{"title":"Strategy First","body":"We start with business goals and customer behavior — not visual trends."},{"title":"Senior-Level Execution","body":"Projects are handled by experienced developers and digital specialists."},{"title":"Performance by Default","body":"Speed, responsiveness and Core Web Vitals are part of the architecture from day one."},{"title":"Conversion Focused","body":"Every section should have a clear purpose and measurable business objective."},{"title":"Built to Scale","body":"Architecture and technology are selected for long-term maintainability and growth."},{"title":"Clear Communication","body":"Clear scope, milestones, timelines and transparent communication throughout the project."}]},{"type":"industries","title":"Built for the Industries We Know Best","subtitle":"Sector knowledge shortens the distance between brief and result."},{"type":"process","title":"A Clear Path From Idea to Results","subtitle":"Four stages, defined deliverables, no surprises.","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors, existing problems, technical requirements and the success metrics we will be judged on."},{"step":"02","title":"Design & UX","body":"Information architecture, user flows, wireframes and high-fidelity UI — designed to be built, not just presented."},{"step":"03","title":"Development","body":"Production-grade code optimized for speed, responsiveness, SEO, accessibility, scalability and security."},{"step":"04","title":"Launch & Growth","body":"After launch we measure, improve, optimize and scale through SEO and marketing."}]},{"type":"testimonials","title":"What Clients Say"},{"type":"blog","title":"Insights on Web, Apps & Growth","subtitle":"Practical writing on what we build and what it costs.","limit":3},{"type":"faq","title":"Questions We Are Asked Before Every Project","subtitle":"If something is missing here, ask us directly.","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you''re building, what isn''t working today and where you want to go.\n\nWe''ll review your requirements and reply within 24 hours with the recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'Web Development Albania | Websites, Apps & SEO | drh.al', 'drh.al is a web development agency in Albania building high-performance websites, web apps and mobile apps with SEO and digital marketing for businesses worldwide.', null, null, '00000007-0000-4000-8000-000000000001', 'en', true),
+  ('Kreu', '[{"type":"hero","eyebrow":"Agjenci dixhitale · Shqipëri","title":"Zhvillim Web, Aplikacione Mobile & SEO në Shqipëri","subtitle":"Produkte dixhitale të ndërtuara për të performuar — në Shqipëri dhe në botë.","body":"drh.al është një agjenci dixhitale e specializuar në website me performancë të lartë, aplikacione web të personalizuara, aplikacione mobile, SEO dhe marketing performance.\n\nKombinojmë strategjinë, dizajnin dhe zhvillimin e nivelit senior për të ndërtuar përvoja dixhitale të shpejta, të shkallëzueshme dhe të fokusuara te rritja e matshme e biznesit.","primaryCta":"Nis një Projekt","secondaryCta":"Shiko Punën Tonë","note":"Konsultë falas · Përgjigje brenda 24 orësh · Shqipëri & Botë"},{"type":"metrics","items":[{"value":"8+","label":"Vite Eksperiencë"},{"value":"100+","label":"Projekte të Dorëzuara"},{"value":"30+","label":"Klientë Globalë"},{"value":"95+","label":"Performancë Lighthouse e Synuar"}]},{"type":"technologies","title":"Teknologjitë mbi të cilat ndërtojmë"},{"type":"services","title":"Shërbime Dixhitale të Ndërtuara rreth Biznesit Tuaj","subtitle":"Nga strategjia dhe dizajni te zhvillimi dhe rritja, ekipi ynë mbulon të gjithë udhëtimin dixhital nën një çati."},{"type":"projects","title":"Punë të Përzgjedhura","subtitle":"Rezultate, jo thjesht dorëzime.","limit":3},{"type":"featureGrid","title":"Një Partner Dixhital që Mendon si Operator","subtitle":"Gjashtë parime që formësojnë çdo projekt të drh.al.","items":[{"title":"Strategjia e Para","body":"Nisim nga objektivat e biznesit dhe sjellja e klientit — jo nga trendet vizuale."},{"title":"Ekzekutim i Nivelit Senior","body":"Projektet trajtohen nga zhvillues dhe specialistë me eksperiencë."},{"title":"Performanca si Standard","body":"Shpejtësia, responsiviteti dhe Core Web Vitals janë pjesë e arkitekturës që nga dita e parë."},{"title":"Fokus te Konvertimi","body":"Çdo seksion duhet të ketë një qëllim të qartë dhe një objektiv të matshëm biznesi."},{"title":"E Ndërtuar për të Shkallëzuar","body":"Arkitektura dhe teknologjia zgjidhen për mirëmbajtje dhe rritje afatgjatë."},{"title":"Komunikim i Qartë","body":"Fushëveprim, faza dhe afate të qarta, me komunikim transparent gjatë gjithë projektit."}]},{"type":"industries","title":"Ndërtuar për Industritë që Njohim më Mirë","subtitle":"Njohja e sektorit e shkurton distancën nga kërkesa te rezultati."},{"type":"process","title":"Një Rrugë e Qartë nga Ideja te Rezultatet","subtitle":"Katër faza, dorëzime të përcaktuara, pa surpriza.","steps":[{"step":"01","title":"Zbulim & Strategji","body":"Objektivat, audienca, konkurrentët, problemet ekzistuese, kërkesat teknike dhe metrikat e suksesit."},{"step":"02","title":"Dizajn & UX","body":"Arkitektura e informacionit, rrjedhat e përdoruesit, wireframe dhe ndërfaqja finale."},{"step":"03","title":"Zhvillim","body":"Kod i nivelit produksion, i optimizuar për shpejtësi, responsivitet, SEO, aksesueshmëri, shkallëzim dhe siguri."},{"step":"04","title":"Lansim & Rritje","body":"Pas lansimit masim, përmirësojmë, optimizojmë dhe rrisim përmes SEO dhe marketingut."}]},{"type":"testimonials","title":"Çfarë Thonë Klientët"},{"type":"blog","title":"Njohuri mbi Web, Aplikacione & Rritje","subtitle":"Shkrime praktike mbi atë që ndërtojmë dhe sa kushton.","limit":3},{"type":"faq","title":"Pyetjet që na Bëhen para Çdo Projekti","subtitle":"Nëse mungon diçka këtu, na pyesni direkt.","category":"general"},{"type":"cta","title":"Le të Ndërtojmë Diçka që Njerëzit e Mbajnë Mend","body":"Na tregoni çfarë po ndërtoni, çfarë nuk po funksionon sot dhe ku doni të shkoni.\n\nDo t’i shqyrtojmë kërkesat tuaja dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar.","primaryCta":"Nis një Projekt"}]'::jsonb, 'Zhvillim Web Shqipëri | Website, Aplikacione & SEO | drh.al', 'drh.al është një agjenci zhvillimi web në Shqipëri që ndërton website me performancë të lartë, aplikacione web dhe mobile, me SEO dhe marketing dixhital.', null, null, '00000007-0000-4000-8000-000000000001', 'sq', true),
+  ('About', '[{"type":"hero","eyebrow":"About drh.al","title":"A Digital Agency From Albania, Building for the World","body":"drh.al is a web development and digital agency based in Albania, working with businesses locally and internationally.\n\nWe design and develop websites, web applications and mobile products — and help businesses grow through SEO and performance marketing.","primaryCta":"Start a Project","secondaryCta":"View Our Work"},{"type":"richText","title":"Our philosophy","body":"Technology should solve real business problems.\n\nThat sentence decides most of what we do. Before we discuss a layout or a framework, we want to know what the business needs to happen: more qualified enquiries, fewer manual steps, a faster path from interest to purchase, a system a team can actually operate.\n\nWe are not a design studio that also writes code. We are a technical and strategic partner that treats design as one part of a larger engineering and commercial decision."},{"type":"featureGrid","title":"What makes us different","items":[{"title":"We ask about the business first","body":"Goals, margins, sales process and constraints come before a single screen is designed."},{"title":"Senior people do the work","body":"The person who scopes your project is involved in delivering it."},{"title":"We build for handover","body":"Clear code, documented decisions and full ownership. You are never locked in."},{"title":"We measure what we build","body":"Analytics, Search Console and lead attribution connected, so results are visible rather than claimed."},{"title":"We say no","body":"If a feature will not earn its complexity, we will tell you before it is built."},{"title":"We stay after launch","body":"Launch is the start of the measurement period, not the end of the engagement."}]},{"type":"richText","title":"Experience","body":"Eight years of building digital products for businesses of very different sizes — from local companies that needed a credible first website to international clients with existing platforms and internal teams.\n\nThat range matters. Working with small businesses teaches you to be economical with scope; working with larger organisations teaches you to be rigorous about architecture, security and handover. We apply both to every project."},{"type":"technologies","title":"Technologies we work with"},{"type":"process","title":"How we work","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors, technical requirements and success metrics."},{"step":"02","title":"Design & UX","body":"Information architecture, user flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production-grade code optimized for speed, SEO, accessibility, scalability and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve, optimize and scale through SEO and marketing."}]},{"type":"richText","title":"Markets served","body":"We work with clients in Albania — mainly Tirana and the larger commercial centres — and internationally across Europe, with delivered work for clients in Italy.\n\nRemote delivery is our default and it works: written scope, scheduled calls, shared visibility on progress and a single point of contact. We work in English, Albanian and Italian, in a time zone that overlaps fully with the rest of Europe."},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you are building and where you want to go. We reply within 24 hours.","primaryCta":"Start a Project"}]'::jsonb, 'About drh.al | Digital Agency in Albania | drh.al', 'drh.al is a web development and digital agency based in Albania, building websites, web applications and mobile products for clients locally and internationally.', null, null, '00000007-0000-4000-8000-000000000002', 'en', true),
+  ('Rreth nesh', '[{"type":"hero","eyebrow":"Rreth drh.al","title":"Një Agjenci Dixhitale nga Shqipëria, që Ndërton për Botën","body":"drh.al është një agjenci zhvillimi web dhe dixhitale me bazë në Shqipëri, që punon me biznese vendase dhe ndërkombëtare.\n\nDizajnojmë dhe zhvillojmë website, aplikacione web dhe produkte mobile — dhe ndihmojmë bizneset të rriten përmes SEO dhe marketingut performance.","primaryCta":"Nis një Projekt","secondaryCta":"Shiko Punën Tonë"},{"type":"richText","title":"Filozofia jonë","body":"Teknologjia duhet të zgjidhë probleme reale biznesi.\n\nKjo fjali përcakton shumicën e asaj që bëjmë. Para se të flasim për një layout apo një framework, duam të dimë çfarë i duhet biznesit të ndodhë: më shumë kërkesa të kualifikuara, më pak hapa manualë, një rrugë më e shpejtë nga interesi te blerja.\n\nNuk jemi një studio dizajni që shkruan edhe kod. Jemi një partner teknik dhe strategjik që e trajton dizajnin si një pjesë të një vendimi më të gjerë inxhinierik dhe tregtar."},{"type":"featureGrid","title":"Çfarë na bën ndryshe","items":[{"title":"Pyesim së pari për biznesin","body":"Objektivat, marzhet, procesi i shitjes dhe kufizimet vijnë para çdo ekrani."},{"title":"Punën e bëjnë njerëz senior","body":"Personi që përcakton projektin tuaj është i përfshirë në dorëzimin e tij."},{"title":"Ndërtojmë për dorëzim","body":"Kod i qartë, vendime të dokumentuara dhe pronësi e plotë. Nuk mbeteni kurrë të varur."},{"title":"Masim atë që ndërtojmë","body":"Analitika, Search Console dhe atribuimi i kontakteve të lidhura, që rezultatet të shihen."},{"title":"Themi jo","body":"Nëse një funksion nuk e justifikon kompleksitetin, jua themi para se të ndërtohet."},{"title":"Qëndrojmë pas lansimit","body":"Lansimi është fillimi i periudhës së matjes, jo fundi i bashkëpunimit."}]},{"type":"richText","title":"Eksperienca","body":"Tetë vite duke ndërtuar produkte dixhitale për biznese me madhësi shumë të ndryshme — nga kompani vendase që kishin nevojë për një website të parë të besueshëm, te klientë ndërkombëtarë me platforma dhe ekipe të brendshme.\n\nKy diapazon ka rëndësi. Puna me biznese të vogla të mëson të jesh ekonomik me fushëveprimin; puna me organizata më të mëdha të mëson të jesh rigoroz me arkitekturën, sigurinë dhe dorëzimin."},{"type":"technologies","title":"Teknologjitë me të cilat punojmë"},{"type":"process","title":"Si punojmë","steps":[{"step":"01","title":"Zbulim & Strategji","body":"Objektivat, audienca, konkurrentët, kërkesat teknike dhe metrikat e suksesit."},{"step":"02","title":"Dizajn & UX","body":"Arkitektura e informacionit, rrjedhat, wireframe dhe ndërfaqja finale."},{"step":"03","title":"Zhvillim","body":"Kod produksioni i optimizuar për shpejtësi, SEO, aksesueshmëri, shkallëzim dhe siguri."},{"step":"04","title":"Lansim & Rritje","body":"Masim, përmirësojmë, optimizojmë dhe rrisim përmes SEO dhe marketingut."}]},{"type":"richText","title":"Tregjet ku shërbejmë","body":"Punojmë me klientë në Shqipëri — kryesisht në Tiranë dhe qendrat kryesore tregtare — dhe ndërkombëtarisht në Evropë, me punë të dorëzuar për klientë në Itali.\n\nDorëzimi në distancë është standardi ynë dhe funksionon: fushëveprim me shkrim, takime të planifikuara, dukshmëri e përbashkët mbi progresin dhe një pikë e vetme kontakti. Punojmë në anglisht, shqip dhe italisht."},{"type":"cta","title":"Le të Ndërtojmë Diçka që Njerëzit e Mbajnë Mend","body":"Na tregoni çfarë po ndërtoni dhe ku doni të shkoni. Përgjigjemi brenda 24 orësh.","primaryCta":"Nis një Projekt"}]'::jsonb, 'Rreth drh.al | Agjenci Dixhitale në Shqipëri | drh.al', 'drh.al është një agjenci zhvillimi web dhe dixhitale me bazë në Shqipëri, që ndërton website, aplikacione web dhe produkte mobile për klientë vendas dhe ndërkombëtarë.', null, null, '00000007-0000-4000-8000-000000000002', 'sq', true),
+  ('Contact', '[{"type":"hero","eyebrow":"Start a project","title":"Tell Us What You''re Building","body":"Have an idea, an existing website that needs improvement or a digital product ready for its next stage?\n\nTell us about your project. We’ll review your requirements and reply within 24 hours with the recommended next steps."}]'::jsonb, 'Start a Project | Contact drh.al', 'Tell us about your project. drh.al replies within 24 hours with recommended next steps for websites, web apps, mobile apps, SEO and digital marketing.', null, null, '00000007-0000-4000-8000-000000000003', 'en', true),
+  ('Kontakt', '[{"type":"hero","eyebrow":"Nis një projekt","title":"Na Tregoni Çfarë Po Ndërtoni","body":"Keni një ide, një website ekzistues që kërkon përmirësim, ose një produkt dixhital gati për fazën tjetër?\n\nNa tregoni për projektin tuaj. Do t’i shqyrtojmë kërkesat dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar."}]'::jsonb, 'Nis një Projekt | Kontakto drh.al', 'Na tregoni për projektin tuaj. drh.al përgjigjet brenda 24 orësh me hapat e rekomanduar për website, aplikacione web, aplikacione mobile dhe SEO.', null, null, '00000007-0000-4000-8000-000000000003', 'sq', true),
+  ('Web Development Albania', '[{"type":"hero","eyebrow":"Web development · Albania","title":"Web Development in Albania","body":"We build websites and web applications for Albanian businesses and for international companies that want senior development at European standards. Strategy, design and engineering handled by one team.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"What web development actually costs you when it is done badly","body":"Most businesses in Albania do not have a website problem. They have a lead problem, and the website is where it shows.\n\nA site built on a heavy template with no measurement in place cannot tell you which pages produce enquiries, why visitors leave, or whether last month was better than the one before it. Every marketing decision after that is a guess.\n\nWe build the opposite: sites with a clear conversion path, performance handled during the build, a CMS your team controls, and analytics wired to real business outcomes. That is the difference between a website that exists and one that earns."},{"type":"featureGrid","title":"What we build","items":[{"title":"Business & corporate websites","body":"Multi-page sites with a CMS, structured service pages and a clear enquiry path."},{"title":"Landing pages","body":"Single-purpose pages built for a specific campaign or search intent."},{"title":"Multilingual websites","body":"Albanian and English (or more) with correct hreflang and independent metadata."},{"title":"Next.js & React builds","body":"Modern rendering, excellent Core Web Vitals and a maintainable component system."},{"title":"WordPress builds","body":"Custom themes without marketplace bloat, built for editors who publish weekly."},{"title":"Custom functionality","body":"Calculators, booking, portals, integrations — the parts a template cannot do."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'Web Development Albania | Websites & Web Apps | drh.al', 'Web development in Albania for businesses that need results. Next.js, React and WordPress websites with performance, SEO and conversion tracking built in.', null, null, '00000007-0000-4000-8000-000000000004', 'en', true),
+  ('Web Design Albania', '[{"type":"hero","eyebrow":"Web design · Albania","title":"Web Design in Albania","body":"Design that starts from your customer and your commercial goal, not from a template gallery. We design interfaces that are clear, credible and built to be developed.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"Design is a business decision before it is a visual one","body":"A good-looking site that does not convert is an expensive brochure. Design decides what a visitor sees first, how much they have to read before they understand the offer, and how obvious the next step is.\n\nWe start with the audience and the decision they are trying to make. Then we design a structure around that decision — hierarchy, typography, spacing and imagery that make the important thing unmissable and the secondary things quiet.\n\nEverything we design is specified for development: states, breakpoints, edge cases and a component system, so what launches matches what was approved."},{"type":"featureGrid","title":"What design includes","items":[{"title":"UX research & architecture","body":"Audience, competitors, and a site structure that matches how people actually search."},{"title":"Wireframes & user flows","body":"Structure agreed before visual design, which is where most rework is avoided."},{"title":"High-fidelity interface design","body":"Complete screens across breakpoints, with real content rather than placeholders."},{"title":"Design systems","body":"Type scale, colour, spacing and components defined once and reused everywhere."},{"title":"Brand & visual identity","body":"A visual language that makes the company look like what it actually is."},{"title":"Accessible by default","body":"Contrast, focus states, tap targets and reduced motion treated as requirements."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'Web Design Albania | UI/UX & Website Design | drh.al', 'Web design in Albania focused on clarity and conversion. UX research, wireframes, high-fidelity interface design and design systems built for development.', null, null, '00000007-0000-4000-8000-000000000005', 'en', true),
+  ('Web Development Tirana', '[{"type":"hero","eyebrow":"Web development · Tirana","title":"Web Development in Tirana","body":"Working with businesses across Tirana — from professional practices and clinics to construction firms, retailers and hospitality groups — plus international clients who work with us remotely.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"What Tirana businesses usually need first","body":"The commercial market in Tirana is competitive and increasingly search-driven. Customers compare three or four options on their phone before contacting any of them, which puts a lot of weight on speed, clarity and credibility.\n\nIn practice, the first fixes are usually the same: a site that loads quickly on mobile data, service pages that answer real questions instead of listing adjectives, a Google Business Profile that is complete and active, and enquiry tracking so you know which channel produced the call.\n\nWe do that work in order of commercial impact, starting with whatever is losing you enquiries today."},{"type":"featureGrid","title":"How we work with Tirana clients","items":[{"title":"In-person or remote","body":"Meet in Tirana when it helps; work remotely when it is faster."},{"title":"Bilingual delivery","body":"Albanian and English content, correctly separated for search."},{"title":"Local search visibility","body":"Business Profile, local landing pages and location signals that hold up."},{"title":"Mobile-first performance","body":"Built for the mobile connections your customers actually browse on."},{"title":"Enquiry tracking","body":"Calls, forms and WhatsApp clicks measured so marketing can be judged fairly."},{"title":"Ongoing support","body":"Maintenance and iteration after launch, month to month."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'Web Development Tirana | Websites for Tirana Businesses | drh.al', 'Web development in Tirana: fast mobile-first websites, bilingual content, local SEO and enquiry tracking for businesses across the capital.', null, null, '00000007-0000-4000-8000-000000000006', 'en', true),
+  ('WordPress Development Albania', '[{"type":"hero","eyebrow":"WordPress · Albania","title":"WordPress Development in Albania","body":"Custom WordPress builds without the weight. Purpose-built themes, only the plugins that earn their place, and an editing experience your team will actually use.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"Why most WordPress sites get slow","body":"WordPress is not slow. Sites become slow because a multipurpose theme loads code for features you never use, and because twenty plugins each add their own scripts and database queries to every page.\n\nOur approach is the opposite: a custom theme containing only what your site needs, structured content types instead of page-builder soup, and a short, deliberate plugin list. Images are handled properly, scripts are loaded only where required, and caching is a strategy rather than a plugin you install at the end.\n\nThe result is a site that stays fast as it grows — and an admin that makes sense to whoever updates it on a Tuesday afternoon."},{"type":"featureGrid","title":"WordPress services","items":[{"title":"Custom theme development","body":"Built from scratch for your content, not adapted from a marketplace demo."},{"title":"WooCommerce stores","body":"Catalogue, checkout, payments, shipping and revenue tracking."},{"title":"Custom plugins","body":"Specific functionality built cleanly instead of forced through a generic plugin."},{"title":"Multilingual WordPress","body":"Albanian and English properly separated, with correct hreflang."},{"title":"Performance rescue","body":"Auditing and fixing existing sites that have become slow over time."},{"title":"Maintenance & security","body":"Updates, backups, monitoring and hardening on a monthly plan."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'WordPress Development Albania | Custom Themes & WooCommerce | drh.al', 'WordPress development in Albania: custom themes, WooCommerce, custom plugins, multilingual sites and performance work — without template bloat.', null, null, '00000007-0000-4000-8000-000000000007', 'en', true),
+  ('Mobile App Development Albania', '[{"type":"hero","eyebrow":"Mobile apps · Albania","title":"Mobile App Development in Albania","body":"iOS and Android applications built with React Native, including the API, authentication, notifications, payments and store deployment.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"Most app projects fail on scope, not on code","body":"The common failure is not technical. It is building version one as if it were version five: too many features, none of them finished well, and a release date that keeps moving.\n\nWe start by identifying the single job the app does that makes someone open it again tomorrow. That becomes version one. Everything else is sequenced behind it, informed by how the first release is actually used.\n\nOn the engineering side, we build the API and data model alongside the app, so authentication, sync, notifications and payments are designed together rather than retrofitted."},{"type":"featureGrid","title":"What is included","items":[{"title":"iOS & Android","body":"One React Native codebase serving both platforms, with native modules where needed."},{"title":"Backend & API","body":"The data model, authentication and business logic behind the app."},{"title":"Push notifications","body":"Designed as part of the product rather than bolted on afterwards."},{"title":"Payments & subscriptions","body":"In-app purchases and payment providers, integrated and tested."},{"title":"Store deployment","body":"App Store and Google Play submission, review requirements and releases."},{"title":"Post-launch iteration","body":"Usage measured, then the roadmap adjusted to what people actually do."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'Mobile App Development Albania | iOS & Android | drh.al', 'Mobile app development in Albania. React Native iOS and Android apps with backend, authentication, push notifications, payments and store deployment.', null, null, '00000007-0000-4000-8000-000000000008', 'en', true),
+  ('SEO Albania', '[{"type":"hero","eyebrow":"SEO · Albania","title":"SEO in Albania","body":"Technical, local and content SEO focused on the searches that produce enquiries — reported against leads rather than positions.","primaryCta":"Start a Project","secondaryCta":"View Our Work","note":"Free strategy call · Reply within 24 hours"},{"type":"richText","title":"Rankings are not the deliverable","body":"It is possible to rank well for terms that never produce a single enquiry. It happens constantly, because volume is easy to report and commercial intent is harder to work on.\n\nWe start from the opposite end: which searches indicate someone is ready to buy, what would have to be true for your site to deserve those positions, and what is blocking it today. Usually the answer involves technical problems first — indexation, speed, structure — then content that genuinely answers the query better than what currently ranks.\n\nReporting is tied to Search Console and to leads in the CRM, so you can see which pages and which queries produce business, not just traffic."},{"type":"featureGrid","title":"What SEO includes","items":[{"title":"Technical SEO","body":"Crawlability, indexation, structured data, Core Web Vitals and site architecture."},{"title":"Local SEO","body":"Google Business Profile, location pages and local signals for Tirana and beyond."},{"title":"Keyword & intent research","body":"Prioritised by commercial value, not by search volume alone."},{"title":"Content strategy","body":"Pages and articles that answer the questions buyers ask before they enquire."},{"title":"Internal linking","body":"Structure that distributes authority to the pages that earn revenue."},{"title":"Reporting on leads","body":"Search Console and analytics connected to actual enquiries every month."}]},{"type":"projects","title":"Selected Work","limit":3},{"type":"process","title":"How a project runs","steps":[{"step":"01","title":"Discovery & Strategy","body":"Goals, audience, competitors and success metrics."},{"step":"02","title":"Design & UX","body":"Architecture, flows, wireframes and high-fidelity UI."},{"step":"03","title":"Development","body":"Production code optimised for speed, SEO, accessibility and security."},{"step":"04","title":"Launch & Growth","body":"Measure, improve and scale through SEO and marketing."}]},{"type":"faq","title":"Common questions","category":"general"},{"type":"cta","title":"Let''s Build Something People Remember","body":"Tell us what you need and we will reply within 24 hours with recommended next steps.","primaryCta":"Start a Project"}]'::jsonb, 'SEO Albania | Technical, Local & Content SEO | drh.al', 'SEO in Albania focused on qualified traffic: technical SEO, local SEO for Tirana, keyword research, content strategy and reporting tied to leads.', null, null, '00000007-0000-4000-8000-000000000009', 'en', true)
+on conflict (page_id, language) do update set title = excluded.title, sections = excluded.sections, seo_title = excluded.seo_title, seo_description = excluded.seo_description, og_title = excluded.og_title, og_description = excluded.og_description, is_complete = excluded.is_complete;
+
+insert into public.site_settings (key, value) values
+  ('company', '{"companyName":"drh.al","tagline":"Digital products built in Albania for ambitious businesses worldwide.","email":"info@drh.al","phone":"+355682041518","phoneDisplay":"+355 68 204 1518","whatsapp":"355682041518","address":"Albania","mapsUrl":"","location":"Albania","serviceArea":"Worldwide","businessHours":"Monday – Friday, 09:00 – 18:00 (CET)","footerText":"Digital products built in Albania for ambitious businesses worldwide.","copyright":"© {year} drh.al. All rights reserved.","logo":"","logoDark":"","favicon":"","defaultOgImage":"/og/default.png","social":{"instagram":"","linkedin":"","facebook":"","github":""}}'::jsonb)
+on conflict (key) do update set value = excluded.value;
+
+insert into public.integrations (key, label, config) values
+  ('ga4', 'Google Analytics 4', '{"envKeys":["NEXT_PUBLIC_GA4_MEASUREMENT_ID","GA4_PROPERTY_ID"]}'::jsonb),
+  ('gsc', 'Google Search Console', '{"envKeys":["GSC_SITE_URL","GOOGLE_SERVICE_ACCOUNT_EMAIL"]}'::jsonb),
+  ('google_ads', 'Google Ads', '{"envKeys":["NEXT_PUBLIC_GOOGLE_ADS_ID"]}'::jsonb),
+  ('meta_pixel', 'Meta Pixel', '{"envKeys":["NEXT_PUBLIC_META_PIXEL_ID"]}'::jsonb),
+  ('clarity', 'Microsoft Clarity', '{"envKeys":["NEXT_PUBLIC_CLARITY_PROJECT_ID"]}'::jsonb),
+  ('resend', 'Resend', '{"envKeys":["RESEND_API_KEY"]}'::jsonb),
+  ('turnstile', 'Cloudflare Turnstile', '{"envKeys":["TURNSTILE_SECRET_KEY","NEXT_PUBLIC_TURNSTILE_SITE_KEY"]}'::jsonb),
+  ('calendly', 'Calendly', '{"envKeys":["NEXT_PUBLIC_CALENDLY_URL"]}'::jsonb)
+on conflict (key) do update set label = excluded.label, config = excluded.config;
+
+commit;
