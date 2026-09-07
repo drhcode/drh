@@ -59,6 +59,22 @@ npm run build
 # then restart the Node app from hPanel
 ```
 
+## Checking what the build can actually see
+
+Before guessing, ask the build. On the server, in the app root:
+
+```bash
+npm run check:env
+```
+
+It reads the same `.env` files Next reads, in the same precedence order, and
+prints exactly which variables are visible. This also runs automatically as a
+`prebuild` step, so a missing `NEXT_PUBLIC_SITE_URL` now stops the build rather
+than silently producing a site that points at localhost.
+
+If `check:env` says a variable is set but the deployed site disagrees, the build
+did not rerun — see the rebuild note at the top.
+
 ## Verifying a deploy actually took
 
 Do not trust the admin UI for this — check what the server sends:
