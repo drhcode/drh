@@ -194,6 +194,7 @@ export function mapIndustry(raw: RawIndustry, language: Language): IndustryView 
     id: i.id,
     slug: i.slug,
     iconKey: i.icon_key,
+    coverImage: i.cover_image,
     featured: i.featured,
     status: i.status,
     title: row?.title ?? i.slug,

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -18,7 +19,10 @@ import { ServicesSection } from '@/components/sections/services-section';
 import { TechStrip } from '@/components/sections/tech-strip';
 import { FaqSection } from '@/components/sections/faq-section';
 import { CtaSection } from '@/components/sections/cta-section';
+import { ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { IndustryGlyph } from '@/components/site/industry-glyph';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { breadcrumbSchema, faqSchema, jsonLdGraph } from '@/lib/seo/schema';
@@ -62,9 +66,10 @@ export default async function IndustryPage({ params }: Props) {
   const industry = await getIndustry(locale, slug);
   if (!industry) notFound();
 
-  const [t, tCta, projects, services, technologies, faqs, siblings] = await Promise.all([
+  const [t, tCta, tCommon, projects, services, technologies, faqs, siblings] = await Promise.all([
     getTranslations('industries'),
     getTranslations('cta'),
+    getTranslations('common'),
     getProjectsByIndustry(locale, slug, 3),
     getFeaturedServices(locale),
     getTechnologies(),
@@ -91,7 +96,7 @@ export default async function IndustryPage({ params }: Props) {
       />
 
       <section className="border-b border-border">
-        <div className="container-page pb-14 pt-14 md:pb-16 md:pt-20">
+        <div className="container-page pb-12 pt-10 md:pb-16 md:pt-14">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link href="/industries" className="transition-colors hover:text-accent">
               {t('title')}
@@ -100,21 +105,77 @@ export default async function IndustryPage({ params }: Props) {
             <span className="text-foreground">{industry.title}</span>
           </nav>
 
-          <h1 className="mt-7 max-w-4xl text-balance text-4xl leading-[1.1] md:text-5xl lg:text-[3.4rem]">
-            {industry.heroTitle ?? industry.title}
-          </h1>
+          <div className="mt-8 grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+            <div className="lg:col-span-7">
+              <p className="inline-flex items-center gap-2.5 rounded-full border border-border bg-surface py-1.5 pl-1.5 pr-4 text-xs font-medium text-muted-foreground">
+                <span className="flex size-7 items-center justify-center rounded-full bg-accent-subtle text-accent">
+                  <IndustryGlyph iconKey={industry.iconKey} className="size-4" strokeWidth={2.5} eager />
+                </span>
+                {industry.title}
+              </p>
 
-          {industry.heroSubtitle && (
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground">
-              {industry.heroSubtitle}
-            </p>
-          )}
+              <h1 className="mt-5 text-balance text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+                {industry.heroTitle ?? industry.title}
+              </h1>
 
-          {industry.description && (
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              {industry.description}
-            </p>
-          )}
+              {industry.heroSubtitle && (
+                <p className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-foreground md:text-lg">
+                  {industry.heroSubtitle}
+                </p>
+              )}
+
+              {industry.description && (
+                <p className="mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+                  {industry.description}
+                </p>
+              )}
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="group">
+                  <Link href="/contact">
+                    {tCta('button')}
+                    <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/work">{tCommon('viewAllProjects')}</Link>
+                </Button>
+              </div>
+            </div>
+
+            {/*
+              The cover is optional in the CMS and none are set yet, so the
+              fallback is a designed panel rather than a gap: the industry's own
+              glyph, oversized on the grid texture used across the site.
+            */}
+            <div className="lg:col-span-5">
+              {industry.coverImage ? (
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-surface-sunken">
+                  <Image
+                    src={industry.coverImage}
+                    alt={industry.title}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 40vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface-sunken">
+                  <div
+                    className="absolute inset-0 grid-lines opacity-[0.5] dark:opacity-[0.3]"
+                    aria-hidden="true"
+                  />
+                  <IndustryGlyph
+                    iconKey={industry.iconKey}
+                    className="relative size-28 text-accent sm:size-36"
+                    strokeWidth={1.1}
+                    eager
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 

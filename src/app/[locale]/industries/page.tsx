@@ -8,6 +8,7 @@ import { getIndustries } from '@/lib/data';
 import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { GlowGrid } from '@/components/ui/glow';
+import { IndustryGlyph } from '@/components/site/industry-glyph';
 import { CtaSection } from '@/components/sections/cta-section';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
@@ -82,7 +83,12 @@ export default async function IndustriesPage({ params }: Props) {
                 data-glow
                 className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
               >
-                <h2 className="text-lg font-medium text-foreground transition-colors group-hover:text-accent">
+                <IndustryGlyph
+                  iconKey={industry.iconKey}
+                  className="size-9 text-accent transition-transform duration-300 group-hover:scale-110"
+                />
+
+                <h2 className="mt-5 text-lg font-medium text-foreground transition-colors group-hover:text-accent">
                   {industry.title}
                 </h2>
                 {industry.description && (

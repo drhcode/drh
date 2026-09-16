@@ -110,6 +110,7 @@ export interface IndustryView {
   id: string;
   slug: string;
   iconKey: string | null;
+  coverImage: string | null;
   featured: boolean;
   status: ContentStatus;
   title: string;
