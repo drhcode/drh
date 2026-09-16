@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { assertCapability, getAdminDb, AuthorizationError } from '@/lib/auth/guard';
 import { logActivity } from '@/lib/admin/audit';
+import { translationIntent } from '@/lib/admin/translations';
 import { slugify } from '@/lib/utils';
 import type { PageSection } from '@/types/database';
 
@@ -98,9 +99,12 @@ export async function savePage(formData: FormData): Promise<SaveResult> {
     }
 
     for (const language of ['en', 'sq'] as const) {
-      const title = text(formData.get(`title_${language}`));
+      const intent = translationIntent(formData, language);
 
-      if (!title) {
+      // Not in this submission — leave whatever is stored alone.
+      if (intent === 'absent') continue;
+
+      if (intent === 'clear') {
         await supabase
           .from('page_translations')
           .delete()
@@ -108,6 +112,9 @@ export async function savePage(formData: FormData): Promise<SaveResult> {
           .eq('language', language);
         continue;
       }
+
+      const title = text(formData.get(`title_${language}`));
+      if (!title) continue;
 
       await supabase.from('page_translations').upsert(
         {

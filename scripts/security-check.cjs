@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const BASE = process.argv[2] || 'http://localhost:3400';
+const BASE = process.argv[2] || 'http://localhost:3000';
 
 function loadEnv() {
   const file = path.join(root, '.env.local');

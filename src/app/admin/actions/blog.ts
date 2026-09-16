@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { assertCapability, getAdminDb, AuthorizationError } from '@/lib/auth/guard';
+import { translationIntent } from '@/lib/admin/translations';
 import { logActivity, notifyAdmins } from '@/lib/admin/audit';
 import { estimateReadingTime } from '@/lib/content/html';
 import { slugify } from '@/lib/utils';
@@ -76,9 +77,12 @@ export async function saveBlogPost(formData: FormData): Promise<SaveResult> {
     }
 
     for (const language of ['en', 'sq'] as const) {
-      const title = text(formData.get(`title_${language}`));
+      const intent = translationIntent(formData, language);
 
-      if (!title) {
+      // Not in this submission — leave whatever is stored alone.
+      if (intent === 'absent') continue;
+
+      if (intent === 'clear') {
         await supabase
           .from('blog_translations')
           .delete()
@@ -86,6 +90,9 @@ export async function saveBlogPost(formData: FormData): Promise<SaveResult> {
           .eq('language', language);
         continue;
       }
+
+      const title = text(formData.get(`title_${language}`));
+      if (!title) continue;
 
       await supabase.from('blog_translations').upsert(
         {

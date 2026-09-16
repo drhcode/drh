@@ -2,32 +2,13 @@
 
 import * as React from 'react';
 import type { TocEntry } from '@/lib/content/html';
+import { useScrollSpy } from '@/lib/hooks/use-scroll-spy';
 import { cn } from '@/lib/utils';
 
 /** Sticky article table of contents with a scroll-spy highlight. */
 export function TableOfContents({ entries, label }: { entries: TocEntry[]; label: string }) {
-  const [activeId, setActiveId] = React.useState<string | null>(entries[0]?.id ?? null);
-
-  React.useEffect(() => {
-    const headings = entries
-      .map((entry) => document.getElementById(entry.id))
-      .filter((element): element is HTMLElement => element !== null);
-
-    if (headings.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (observed) => {
-        const visible = observed
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) setActiveId(visible[0].target.id);
-      },
-      { rootMargin: '-96px 0px -70% 0px', threshold: 0 },
-    );
-
-    headings.forEach((heading) => observer.observe(heading));
-    return () => observer.disconnect();
-  }, [entries]);
+  const ids = React.useMemo(() => entries.map((entry) => entry.id), [entries]);
+  const activeId = useScrollSpy(ids);
 
   return (
     <nav aria-label={label} className="lg:sticky lg:top-28">

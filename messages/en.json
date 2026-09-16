@@ -81,7 +81,8 @@
     "nextProject": "Next project",
     "ctaTitle": "Have a Similar Project?",
     "ctaBody": "Tell us what you are building. We reply within 24 hours with recommended next steps.",
-    "ctaButton": "Start a Project"
+    "ctaButton": "Start a Project",
+    "caseStudy": "Case study"
   },
   "services": {
     "title": "Services",

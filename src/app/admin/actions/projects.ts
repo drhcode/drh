@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertCapability, getAdminDb, AuthorizationError } from '@/lib/auth/guard';
 import { logActivity } from '@/lib/admin/audit';
+import { translationIntent } from '@/lib/admin/translations';
 import { slugify } from '@/lib/utils';
 
 /**
@@ -59,8 +60,8 @@ function translationPayload(formData: FormData, language: 'en' | 'sq') {
   const suffix = `_${language}`;
   const title = text(formData.get(`title${suffix}`));
 
-  // A translation exists only when it has a title; otherwise the language is
-  // genuinely missing and must be reported as such (spec §10).
+  // Callers check `translationIntent` first, so reaching here without a title
+  // would be a programming error rather than an editor clearing the field.
   if (!title) return null;
 
   return {
@@ -139,9 +140,12 @@ export async function saveProject(formData: FormData): Promise<SaveResult> {
 
     // ── Translations ────────────────────────────────────────────────────────
     for (const language of ['en', 'sq'] as const) {
-      const payload = translationPayload(formData, language);
+      const intent = translationIntent(formData, language);
 
-      if (!payload) {
+      // Not in this submission — leave whatever is stored alone.
+      if (intent === 'absent') continue;
+
+      if (intent === 'clear') {
         await supabase
           .from('project_translations')
           .delete()
@@ -149,6 +153,9 @@ export async function saveProject(formData: FormData): Promise<SaveResult> {
           .eq('language', language);
         continue;
       }
+
+      const payload = translationPayload(formData, language);
+      if (!payload) continue;
 
       await supabase
         .from('project_translations')

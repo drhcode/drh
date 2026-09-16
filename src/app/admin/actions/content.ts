@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { assertCapability, getAdminDb, AuthorizationError } from '@/lib/auth/guard';
 import { logActivity } from '@/lib/admin/audit';
+import { translationIntent } from '@/lib/admin/translations';
 import { slugify } from '@/lib/utils';
 import type { AdminResource } from '@/lib/auth/permissions';
 
@@ -89,9 +90,12 @@ export async function saveService(formData: FormData): Promise<SaveResult> {
     }
 
     for (const language of ['en', 'sq'] as const) {
-      const title = text(formData.get(`title_${language}`));
+      const intent = translationIntent(formData, language);
 
-      if (!title) {
+      // Not in this submission — leave whatever is stored alone.
+      if (intent === 'absent') continue;
+
+      if (intent === 'clear') {
         await supabase
           .from('service_translations')
           .delete()
@@ -99,6 +103,9 @@ export async function saveService(formData: FormData): Promise<SaveResult> {
           .eq('language', language);
         continue;
       }
+
+      const title = text(formData.get(`title_${language}`));
+      if (!title) continue;
 
       await supabase.from('service_translations').upsert(
         {
@@ -191,9 +198,12 @@ export async function saveIndustry(formData: FormData): Promise<SaveResult> {
     }
 
     for (const language of ['en', 'sq'] as const) {
-      const title = text(formData.get(`title_${language}`));
+      const intent = translationIntent(formData, language);
 
-      if (!title) {
+      // Not in this submission — leave whatever is stored alone.
+      if (intent === 'absent') continue;
+
+      if (intent === 'clear') {
         await supabase
           .from('industry_translations')
           .delete()
@@ -201,6 +211,9 @@ export async function saveIndustry(formData: FormData): Promise<SaveResult> {
           .eq('language', language);
         continue;
       }
+
+      const title = text(formData.get(`title_${language}`));
+      if (!title) continue;
 
       await supabase.from('industry_translations').upsert(
         {

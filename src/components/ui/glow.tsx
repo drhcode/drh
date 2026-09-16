@@ -20,7 +20,7 @@ export function GlowGrid({
 }: {
   children: React.ReactNode;
   className?: string;
-  as?: 'div' | 'ul' | 'ol';
+  as?: 'div' | 'ul' | 'ol' | 'dl';
 }) {
   const ref = React.useRef<HTMLElement>(null);
 
@@ -94,7 +94,10 @@ export function GlowGrid({
   }, []);
 
   return (
-    <Tag ref={ref as React.Ref<HTMLDivElement & HTMLUListElement & HTMLOListElement>} className={className}>
+    <Tag
+      ref={ref as React.Ref<HTMLDivElement & HTMLUListElement & HTMLOListElement & HTMLDListElement>}
+      className={className}
+    >
       {children}
     </Tag>
   );

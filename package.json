@@ -15,7 +15,8 @@
     "gen:placeholders": "node scripts/gen-placeholders.cjs && node scripts/gen-service-covers.cjs",
     "verify:db": "node scripts/verify-db.cjs",
     "build:setup-sql": "node scripts/build-setup-sql.cjs",
-    "security:check": "node scripts/security-check.cjs"
+    "security:check": "node scripts/security-check.cjs",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

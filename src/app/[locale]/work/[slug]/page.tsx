@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { JsonLd } from '@/components/seo/json-ld';
+import { CaseStudyNav } from '@/components/site/case-study-nav';
+import { GlowGrid } from '@/components/ui/glow';
 import {
   CaseStudyCtaButton,
   OutboundProjectLink,
@@ -207,25 +209,56 @@ export default async function ProjectPage({ params }: Props) {
         </div>
       )}
 
-      {/* Case study body */}
+      {/* Case study body — Overview, Challenge, Solution, Development */}
       {body.length > 0 && (
         <Section bordered className="py-16 md:py-20">
-          <div className="grid gap-12 lg:grid-cols-12">
-            <div className="lg:col-span-8 lg:col-start-3">
-              <div className="space-y-14">
-                {body.map((block) => (
+          <div className="grid gap-x-12 lg:grid-cols-12">
+            {/*
+              The index is a sibling of the story rather than part of it, so the
+              rail can stick alongside on desktop while the chip row stays
+              pinned under the header on mobile.
+            */}
+            <div className="lg:col-span-3">
+              <CaseStudyNav
+                sections={body.map((block) => ({ id: block.key, label: block.label }))}
+                label={t('caseStudy')}
+              />
+            </div>
+
+            <div className="mt-10 lg:col-span-8 lg:col-start-5 lg:mt-0">
+              <div className="space-y-16 md:space-y-20">
+                {body.map((block, blockIndex) => (
                   <Reveal key={block.key}>
-                    <h2 className="text-2xl md:text-3xl">{block.label}</h2>
-                    <div className="mt-5 space-y-4">
-                      {block.text!.split(/\n{2,}/).map((paragraph, index) => (
-                        <p
-                          key={index}
-                          className="text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]"
-                        >
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
+                    {/* scroll-mt clears the sticky header when jumping here. */}
+                    <section id={block.key} className="scroll-mt-32 lg:scroll-mt-28">
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono text-xs font-medium text-accent">
+                          {String(blockIndex + 1).padStart(2, '0')}
+                        </span>
+                        <span className="h-px flex-1 bg-border" aria-hidden="true" />
+                      </div>
+
+                      <h2 className="mt-5 text-balance text-2xl leading-tight md:text-[2rem]">
+                        {block.label}
+                      </h2>
+
+                      <div className="mt-5 space-y-4">
+                        {block.text!.split(/\n{2,}/).map((paragraph, index) => (
+                          <p
+                            key={index}
+                            className={
+                              // The opening paragraph carries the case study —
+                              // it should read as a lead, not as body copy.
+                              blockIndex === 0 && index === 0
+                                ? 'text-[1.0625rem] leading-relaxed text-foreground md:text-lg'
+                                : 'text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]'
+                            }
+                          >
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
+                    </section>
                   </Reveal>
                 ))}
               </div>
@@ -262,9 +295,12 @@ export default async function ProjectPage({ params }: Props) {
           <h2 className="text-2xl md:text-3xl">{t('results')}</h2>
 
           {project.results.length > 0 && (
-            <dl className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+            <GlowGrid
+              as="dl"
+              className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4"
+            >
               {project.results.map((result) => (
-                <div key={result.label} className="bg-surface p-7">
+                <div key={result.label} data-glow className="glow-cell bg-surface p-7">
                   <dt className="sr-only">{result.label}</dt>
                   <dd>
                     <span className="block text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
@@ -274,7 +310,7 @@ export default async function ProjectPage({ params }: Props) {
                   </dd>
                 </div>
               ))}
-            </dl>
+            </GlowGrid>
           )}
 
           {project.resultsText && (

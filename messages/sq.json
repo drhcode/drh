@@ -81,7 +81,8 @@
     "nextProject": "Projekti tjetër",
     "ctaTitle": "Keni një Projekt të Ngjashëm?",
     "ctaBody": "Na tregoni çfarë po ndërtoni. Përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
-    "ctaButton": "Nis një Projekt"
+    "ctaButton": "Nis një Projekt",
+    "caseStudy": "Studim rasti"
   },
   "services": {
     "title": "Shërbimet",

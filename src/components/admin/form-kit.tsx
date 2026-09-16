@@ -271,10 +271,29 @@ export function BilingualTabs({
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="en" className="mt-5 space-y-5">
+      {/*
+        Both panels stay mounted. Radix unmounts an inactive tab by default,
+        which removed the other language's inputs from the form — so saving from
+        one tab submitted no title for the other, and the action read that as
+        "this translation was deleted".
+
+        `forceMount` alone is not enough: Radix derives its `hidden` attribute
+        from the same condition, so with forceMount set it renders both panels
+        visible. Hiding the inactive one in CSS keeps it in the DOM, and fields
+        hidden by `display: none` are still submitted.
+      */}
+      <TabsContent
+        value="en"
+        forceMount
+        className="mt-5 space-y-5 data-[state=inactive]:hidden"
+      >
         {english}
       </TabsContent>
-      <TabsContent value="sq" className="mt-5 space-y-5">
+      <TabsContent
+        value="sq"
+        forceMount
+        className="mt-5 space-y-5 data-[state=inactive]:hidden"
+      >
         {albanian}
         {!albanianComplete && (
           <p className="rounded-lg border border-warning/30 bg-warning/8 px-3 py-2 text-xs text-foreground">
