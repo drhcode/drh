@@ -16,7 +16,7 @@ import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { JsonLd } from '@/components/seo/json-ld';
 import { CaseStudyNav } from '@/components/site/case-study-nav';
-import { GlowGrid } from '@/components/ui/glow';
+import { ProjectResults } from '@/components/site/project-results';
 import {
   CaseStudyCtaButton,
   OutboundProjectLink,
@@ -292,32 +292,11 @@ export default async function ProjectPage({ params }: Props) {
       {/* Results — only rendered when the team has entered verified metrics */}
       {(project.results.length > 0 || project.resultsText) && (
         <Section bordered className="py-16 md:py-20">
-          <h2 className="text-2xl md:text-3xl">{t('results')}</h2>
-
-          {project.results.length > 0 && (
-            <GlowGrid
-              as="dl"
-              className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4"
-            >
-              {project.results.map((result) => (
-                <div key={result.label} data-glow className="glow-cell bg-surface p-7">
-                  <dt className="sr-only">{result.label}</dt>
-                  <dd>
-                    <span className="block text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                      {result.value}
-                    </span>
-                    <span className="mt-2 block text-sm text-muted-foreground">{result.label}</span>
-                  </dd>
-                </div>
-              ))}
-            </GlowGrid>
-          )}
-
-          {project.resultsText && (
-            <p className="mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              {project.resultsText}
-            </p>
-          )}
+          <ProjectResults
+            title={t('results')}
+            results={project.results}
+            resultsText={project.resultsText}
+          />
         </Section>
       )}
 
