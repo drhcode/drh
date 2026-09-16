@@ -75,14 +75,9 @@ export interface ProjectView {
   title: string;
   shortDescription: string | null;
   overview: string | null;
-  challenge: string | null;
-  solution: string | null;
-  development: string | null;
-  resultsText: string | null;
   technologies: TechnologyView[];
   services: TaxonomyRef[];
   gallery: GalleryItem[];
-  results: ResultMetric[];
   testimonial: TestimonialView | null;
   seo: SeoView;
   translations: TranslationStatus;

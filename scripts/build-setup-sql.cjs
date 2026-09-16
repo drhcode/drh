@@ -11,6 +11,7 @@ const root = path.resolve(__dirname, '..');
 const files = [
   ['supabase/migrations/0001_schema.sql', 'Migration 0001 — schema'],
   ['supabase/migrations/0002_rls.sql', 'Migration 0002 — row level security'],
+  ['supabase/migrations/0003_simplify_case_studies.sql', 'Migration 0003 — simplify case studies'],
   ['supabase/seed.sql', 'Seed — initial content'],
 ];
 

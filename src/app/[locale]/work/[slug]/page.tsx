@@ -2,21 +2,14 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
-import {
-  getAdjacentProject,
-  getProject,
-  getProjects,
-  type ProjectView,
-} from '@/lib/data';
+import { getAdjacentProject, getProject, getProjects, type ProjectView } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { JsonLd } from '@/components/seo/json-ld';
-import { CaseStudyNav } from '@/components/site/case-study-nav';
-import { ProjectResults } from '@/components/site/project-results';
 import {
   CaseStudyCtaButton,
   OutboundProjectLink,
@@ -89,14 +82,9 @@ export default async function ProjectPage({ params }: Props) {
         ? formatDate(project.projectDate, locale, { year: 'numeric', month: 'long' })
         : null,
     },
-  ].filter((fact) => Boolean(fact.value));
+  ].filter((fact): fact is { label: string; value: string } => Boolean(fact.value));
 
-  const body = [
-    { key: 'overview', label: t('overview'), text: project.overview },
-    { key: 'challenge', label: t('challenge'), text: project.challenge },
-    { key: 'solution', label: t('solution'), text: project.solution },
-    { key: 'development', label: t('development'), text: project.development },
-  ].filter((block) => Boolean(block.text));
+  const paragraphs = project.overview?.split(/\n{2,}/).filter(Boolean) ?? [];
 
   return (
     <>
@@ -115,194 +103,216 @@ export default async function ProjectPage({ params }: Props) {
       />
       <ProjectViewTracker projectId={project.id} slug={project.slug} />
 
-      {/* Hero */}
-      <section className="border-b border-border">
-        <div className="container-page pb-12 pt-14 md:pb-16 md:pt-20">
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section>
+        <div className="container-page pb-10 pt-8 md:pb-14 md:pt-12">
           <Link
             href="/work"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-accent"
+            className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-accent"
           >
-            ← {tCommon('backTo', { target: tWork('title') })}
+            <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            {tCommon('backTo', { target: tWork('title') })}
           </Link>
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-12">
-            <div className="lg:col-span-7">
-              <p className="text-sm font-medium uppercase tracking-[0.14em] text-accent">
-                {project.clientName}
+          <div className="mt-8 max-w-4xl md:mt-10">
+            <p className="text-sm font-medium uppercase tracking-[0.14em] text-accent">
+              {project.clientName}
+            </p>
+            <h1 className="mt-4 text-balance text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+              {project.title}
+            </h1>
+            {project.shortDescription && (
+              <p className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
+                {project.shortDescription}
               </p>
-              <h1 className="mt-4 text-balance text-3xl leading-[1.12] md:text-4xl lg:text-[3rem]">
-                {project.title}
-              </h1>
-              {project.shortDescription && (
-                <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                  {project.shortDescription}
-                </p>
-              )}
-
-              {project.websiteUrl && (
-                <OutboundProjectLink
-                  href={project.websiteUrl}
-                  projectId={project.id}
-                  slug={project.slug}
-                  label={t('visitWebsite')}
-                />
-              )}
-            </div>
-
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-6 self-start lg:col-span-4 lg:col-start-9">
-              {facts.map((fact) => (
-                <div key={fact.label}>
-                  <dt className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
-                    {fact.label}
-                  </dt>
-                  <dd className="mt-1.5 text-sm text-foreground">{fact.value}</dd>
-                </div>
-              ))}
-
-              {project.services.length > 0 && (
-                <div className="col-span-2">
-                  <dt className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
-                    {t('services')}
-                  </dt>
-                  <dd className="mt-2 flex flex-wrap gap-1.5">
-                    {project.services.map((service) => (
-                      <Link key={service.slug} href={`/services/${service.slug}`}>
-                        <Badge variant="outline" className="transition-colors hover:border-accent-border hover:text-accent">
-                          {service.title}
-                        </Badge>
-                      </Link>
-                    ))}
-                  </dd>
-                </div>
-              )}
-
-              {project.technologies.length > 0 && (
-                <div className="col-span-2">
-                  <dt className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
-                    {t('technologies')}
-                  </dt>
-                  <dd className="mt-2 flex flex-wrap gap-1.5">
-                    {project.technologies.map((tech) => (
-                      <Badge key={tech.slug}>{tech.name}</Badge>
-                    ))}
-                  </dd>
-                </div>
-              )}
-            </dl>
+            )}
+            {project.websiteUrl && (
+              <OutboundProjectLink
+                href={project.websiteUrl}
+                projectId={project.id}
+                slug={project.slug}
+                label={t('visitWebsite')}
+              />
+            )}
           </div>
         </div>
       </section>
 
-      {/* Cover */}
+      {/* ── Cover ──────────────────────────────────────────────────────────── */}
       {project.coverImage && (
-        <div className="container-page -mt-px py-10 md:py-14">
-          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-surface-sunken">
-            <Image
-              src={project.coverImage}
-              alt={`${project.clientName} — ${project.title}`}
-              fill
-              priority
-              sizes="(min-width: 1280px) 1200px, 100vw"
-              className="object-cover"
-            />
-          </div>
+        <div className="container-page">
+          {/*
+            Art direction rather than one crop stretched everywhere: a 16:9
+            frame that would letterbox a phone becomes a 4:5 frame when a mobile
+            cover has been supplied. Only one of the two is ever rendered.
+          */}
+          {project.coverImageMobile ? (
+            <>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-border bg-surface-sunken sm:hidden">
+                <Image
+                  src={project.coverImageMobile}
+                  alt={`${project.clientName} — ${project.title}`}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="relative hidden aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-surface-sunken sm:block">
+                <Image
+                  src={project.coverImage}
+                  alt={`${project.clientName} — ${project.title}`}
+                  fill
+                  priority
+                  sizes="(min-width: 1280px) 1200px, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-sunken sm:aspect-[16/9] sm:rounded-2xl">
+              <Image
+                src={project.coverImage}
+                alt={`${project.clientName} — ${project.title}`}
+                fill
+                priority
+                sizes="(min-width: 1280px) 1200px, 100vw"
+                className="object-cover"
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Case study body — Overview, Challenge, Solution, Development */}
-      {body.length > 0 && (
-        <Section bordered className="py-16 md:py-20">
-          <div className="grid gap-x-12 lg:grid-cols-12">
-            {/*
-              The index is a sibling of the story rather than part of it, so the
-              rail can stick alongside on desktop while the chip row stays
-              pinned under the header on mobile.
-            */}
-            <div className="lg:col-span-3">
-              <CaseStudyNav
-                sections={body.map((block) => ({ id: block.key, label: block.label }))}
-                label={t('caseStudy')}
-              />
-            </div>
-
-            <div className="mt-10 lg:col-span-8 lg:col-start-5 lg:mt-0">
-              <div className="space-y-16 md:space-y-20">
-                {body.map((block, blockIndex) => (
-                  <Reveal key={block.key}>
-                    {/* scroll-mt clears the sticky header when jumping here. */}
-                    <section id={block.key} className="scroll-mt-32 lg:scroll-mt-28">
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono text-xs font-medium text-accent">
-                          {String(blockIndex + 1).padStart(2, '0')}
-                        </span>
-                        <span className="h-px flex-1 bg-border" aria-hidden="true" />
-                      </div>
-
-                      <h2 className="mt-5 text-balance text-2xl leading-tight md:text-[2rem]">
-                        {block.label}
-                      </h2>
-
-                      <div className="mt-5 space-y-4">
-                        {block.text!.split(/\n{2,}/).map((paragraph, index) => (
-                          <p
-                            key={index}
-                            className={
-                              // The opening paragraph carries the case study —
-                              // it should read as a lead, not as body copy.
-                              blockIndex === 0 && index === 0
-                                ? 'text-[1.0625rem] leading-relaxed text-foreground md:text-lg'
-                                : 'text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]'
-                            }
-                          >
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
-                    </section>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Section>
-      )}
-
-      {/* Gallery */}
-      {project.gallery.length > 0 && (
-        <Section bordered className="py-16 md:py-20">
-          <h2 className="sr-only">{t('gallery')}</h2>
-          <div className="grid gap-6 md:gap-8">
-            {project.gallery.map((item, index) => (
-              <Reveal key={item.url} delay={index * 0.05}>
-                <figure className="relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken">
-                  <Image
-                    src={item.url}
-                    alt={item.alt}
-                    fill
-                    sizes="(min-width: 1280px) 1200px, 100vw"
-                    className="object-cover"
-                  />
-                </figure>
+      {/* ── Overview + project detail ───────────────────────────────────────── */}
+      <Section className="pt-14 md:pt-20">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-7 xl:col-span-8">
+            {paragraphs.length > 0 && (
+              <Reveal>
+                <h2 className="text-2xl leading-tight md:text-[1.75rem]">{t('overview')}</h2>
+                <div className="mt-6 space-y-5">
+                  {paragraphs.map((paragraph, index) => (
+                    <p
+                      key={index}
+                      className={
+                        // The opening paragraph carries the case study, so it
+                        // reads as a lead rather than as body copy.
+                        index === 0
+                          ? 'text-pretty text-[1.0625rem] leading-relaxed text-foreground md:text-lg'
+                          : 'text-pretty text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]'
+                      }
+                    >
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               </Reveal>
-            ))}
+            )}
+          </div>
+
+          {/*
+            The detail card follows the narrative on a phone, where a sidebar
+            would push the story below the fold, and sticks beside it once there
+            is room for two columns.
+          */}
+          <aside className="lg:col-span-5 xl:col-span-4">
+            <div className="rounded-xl border border-border bg-surface p-6 sm:p-7 lg:sticky lg:top-28">
+              <dl className="grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-4 lg:grid-cols-2">
+                {facts.map((fact) => (
+                  <div key={fact.label} className="min-w-0">
+                    <dt className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
+                      {fact.label}
+                    </dt>
+                    <dd className="mt-1.5 text-sm text-foreground">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {project.services.length > 0 && (
+                <div className="mt-6 border-t border-border pt-6">
+                  <p className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
+                    {t('services')}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {project.services.map((service) => (
+                      <Link key={service.slug} href={`/services/${service.slug}`}>
+                        <Badge
+                          variant="outline"
+                          className="transition-colors hover:border-accent-border hover:text-accent"
+                        >
+                          {service.title}
+                        </Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.technologies.length > 0 && (
+                <div className="mt-6 border-t border-border pt-6">
+                  <p className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
+                    {t('technologies')}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {project.technologies.map((tech) => (
+                      <Badge key={tech.slug}>{tech.name}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      </Section>
+
+      {/* ── Gallery ────────────────────────────────────────────────────────── */}
+      {project.gallery.length > 0 && (
+        <Section bordered className="py-14 md:py-20">
+          <h2 className="sr-only">{t('gallery')}</h2>
+          {/*
+            The first image leads at full width; the rest pair up from `sm`. An
+            odd one out spans both columns rather than leaving a hole.
+          */}
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+            {project.gallery.map((item, index) => {
+              const isLead = index === 0;
+              const isOrphan =
+                index === project.gallery.length - 1 && (project.gallery.length - 1) % 2 === 1;
+
+              return (
+                <Reveal
+                  key={item.url}
+                  delay={Math.min(index, 4) * 0.05}
+                  className={isLead || isOrphan ? 'sm:col-span-2' : undefined}
+                >
+                  <figure
+                    className={`relative overflow-hidden rounded-xl border border-border bg-surface-sunken ${
+                      isLead || isOrphan ? 'aspect-[16/10]' : 'aspect-[4/3]'
+                    }`}
+                  >
+                    <Image
+                      src={item.url}
+                      alt={item.alt}
+                      fill
+                      sizes={
+                        isLead || isOrphan
+                          ? '(min-width: 1280px) 1200px, 100vw'
+                          : '(min-width: 640px) 50vw, 100vw'
+                      }
+                      className="object-cover"
+                    />
+                  </figure>
+                </Reveal>
+              );
+            })}
           </div>
         </Section>
       )}
 
-      {/* Results — only rendered when the team has entered verified metrics */}
-      {(project.results.length > 0 || project.resultsText) && (
-        <Section bordered className="py-16 md:py-20">
-          <ProjectResults
-            title={t('results')}
-            results={project.results}
-            resultsText={project.resultsText}
-          />
-        </Section>
-      )}
-
-      {/* Client testimonial, when one exists for this project */}
+      {/* ── Client testimonial, when one exists for this project ────────────── */}
       {project.testimonial && (
-        <Section bordered className="py-16 md:py-20">
+        <Section bordered className="py-14 md:py-20">
           <figure className="mx-auto max-w-3xl text-center">
             {project.testimonial.rating != null && (
               <div className="mb-5 flex justify-center gap-0.5">
@@ -319,18 +329,18 @@ export default async function ProjectPage({ params }: Props) {
                 ))}
               </div>
             )}
-            <blockquote className="text-balance text-xl leading-relaxed text-foreground md:text-2xl">
+            <blockquote className="text-balance text-lg leading-relaxed text-foreground sm:text-xl md:text-2xl">
               &ldquo;{project.testimonial.quote}&rdquo;
             </blockquote>
             <figcaption className="mt-7 flex items-center justify-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-full bg-accent-subtle text-xs font-medium text-accent">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-xs font-medium text-accent">
                 {initials(project.testimonial.clientName)}
               </span>
-              <span className="text-left">
-                <span className="block text-sm font-medium text-foreground">
+              <span className="min-w-0 text-left">
+                <span className="block truncate text-sm font-medium text-foreground">
                   {project.testimonial.clientName}
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block truncate text-xs text-muted-foreground">
                   {[project.testimonial.position, project.testimonial.company]
                     .filter(Boolean)
                     .join(' · ')}
@@ -345,10 +355,12 @@ export default async function ProjectPage({ params }: Props) {
 
       {/* A dedicated CTA so this project's conversion signal is attributable. */}
       <section className="border-t border-border bg-surface-sunken">
-        <div className="container-page py-20 md:py-24">
+        <div className="container-page py-16 md:py-24">
           <Reveal className="mx-auto max-w-3xl text-center">
-            <h2 className="text-balance text-3xl leading-[1.12] md:text-4xl">{t('ctaTitle')}</h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            <h2 className="text-balance text-2xl leading-[1.12] sm:text-3xl md:text-4xl">
+              {t('ctaTitle')}
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
               {t('ctaBody')}
             </p>
             <div className="mt-8 flex justify-center">
@@ -369,18 +381,18 @@ function NextProject({ project, label }: { project: ProjectView; label: string }
   return (
     <section className="border-t border-border">
       <Link href={`/work/${project.slug}`} className="group block">
-        <div className="container-page py-14 md:py-16">
+        <div className="container-page py-12 md:py-16">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-subtle-foreground">
             {label}
           </p>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <h2 className="text-2xl transition-colors group-hover:text-accent md:text-3xl">
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+            <div className="min-w-0">
+              <h2 className="text-balance text-xl transition-colors group-hover:text-accent sm:text-2xl md:text-3xl">
                 {project.clientName}
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">{project.title}</p>
+              <p className="mt-2 text-pretty text-sm text-muted-foreground">{project.title}</p>
             </div>
-            <ArrowRight className="size-6 text-subtle-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent" />
+            <ArrowRight className="size-6 shrink-0 text-subtle-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent" />
           </div>
         </div>
       </Link>

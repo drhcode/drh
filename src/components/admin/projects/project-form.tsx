@@ -6,7 +6,6 @@ import { Loader2, Save } from 'lucide-react';
 import type {
   IndustryRow,
   ProjectMediaRow,
-  ProjectResultRow,
   ProjectRow,
   ProjectTranslationRow,
   ServiceRow,
@@ -18,7 +17,6 @@ import {
   BilingualTabs,
   ChipMultiSelect,
   FormSection,
-  RepeatableFields,
   SelectField,
   SlugField,
   SwitchField,
@@ -34,7 +32,6 @@ interface Props {
   project?: ProjectRow;
   translations?: ProjectTranslationRow[];
   media?: ProjectMediaRow[];
-  results?: ProjectResultRow[];
   technologySlugs?: string[];
   serviceSlugs?: string[];
   references: {
@@ -56,7 +53,6 @@ export function ProjectForm({
   project,
   translations = [],
   media = [],
-  results = [],
   technologySlugs = [],
   serviceSlugs = [],
   references,
@@ -154,27 +150,6 @@ export function ProjectForm({
               aspect="aspect-[4/5]"
             />
             <GalleryEditor name="gallery" defaultValue={media} />
-          </FormSection>
-
-          <FormSection
-            title="Result metrics"
-            description="Optional. Only add figures drh.al has actually verified — the section is hidden when empty."
-          >
-            <RepeatableFields
-              name="results"
-              label="Metrics"
-              addLabel="Add metric"
-              fields={[
-                { key: 'value', label: 'Value', placeholder: '70%' },
-                { key: 'label_en', label: 'Label (EN)', placeholder: 'Faster load time' },
-                { key: 'label_sq', label: 'Label (SQ)', placeholder: 'Ngarkim më i shpejtë' },
-              ]}
-              defaultValue={results.map((result) => ({
-                value: result.value,
-                label_en: result.label_en,
-                label_sq: result.label_sq ?? '',
-              }))}
-            />
           </FormSection>
         </div>
 
@@ -310,32 +285,8 @@ function CaseStudyFields({
         label="Overview"
         name={`overview${suffix}`}
         defaultValue={translation?.overview ?? ''}
-        rows={5}
-      />
-      <TextAreaField
-        label="Challenge"
-        name={`challenge${suffix}`}
-        defaultValue={translation?.challenge ?? ''}
-        rows={5}
-      />
-      <TextAreaField
-        label="Solution"
-        name={`solution${suffix}`}
-        defaultValue={translation?.solution ?? ''}
-        rows={5}
-      />
-      <TextAreaField
-        label="Development"
-        name={`development${suffix}`}
-        defaultValue={translation?.development ?? ''}
-        rows={5}
-      />
-      <TextAreaField
-        label="Results (narrative)"
-        name={`results_text${suffix}`}
-        defaultValue={translation?.results_text ?? ''}
-        rows={3}
-        hint="Optional prose to accompany the metrics above."
+        rows={10}
+        hint="The case study narrative. Separate paragraphs with a blank line."
       />
       <TextField
         label="SEO title"

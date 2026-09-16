@@ -54,7 +54,6 @@ export default async function EditProjectPage({ params, searchParams }: Props) {
         project={record.project}
         translations={record.translations}
         media={record.media}
-        results={record.results}
         technologySlugs={record.technologySlugs}
         serviceSlugs={record.serviceSlugs}
         references={references}

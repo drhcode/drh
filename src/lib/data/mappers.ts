@@ -8,7 +8,6 @@ import type {
   PageRow,
   PageTranslationRow,
   ProjectMediaRow,
-  ProjectResultRow,
   ProjectRow,
   ProjectTranslationRow,
   ServiceRow,
@@ -81,7 +80,6 @@ export interface RawProject {
   project: ProjectRow;
   translations: ProjectTranslationRow[];
   media: ProjectMediaRow[];
-  results: ProjectResultRow[];
   technologies: TechnologyRow[];
   services: { slug: string; titles: Partial<Record<Language, string>> }[];
   industry: { slug: string; titles: Partial<Record<Language, string>> } | null;
@@ -124,19 +122,9 @@ export function mapProject(raw: RawProject, language: Language): ProjectView {
     title: row?.title ?? p.client_name,
     shortDescription: row?.short_description ?? null,
     overview: row?.overview ?? null,
-    challenge: row?.challenge ?? null,
-    solution: row?.solution ?? null,
-    development: row?.development ?? null,
-    resultsText: row?.results_text ?? null,
     technologies: raw.technologies.map(mapTechnology),
     services: raw.services.map((s) => resolveRef(s, language)),
     gallery,
-    results: [...raw.results]
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((r) => ({
-        value: r.value,
-        label: (language === 'sq' ? r.label_sq : r.label_en) || r.label_en,
-      })),
     testimonial: raw.testimonial ? mapTestimonial(raw.testimonial, language) : null,
     seo: {
       title: row?.seo_title ?? null,

@@ -59,7 +59,6 @@ const PROJECT_SELECT = `
   *,
   project_translations(*),
   project_media(*),
-  project_results(*),
   project_technologies(technologies(*)),
   project_services(services(slug, service_translations(language, title))),
   industry:industries(slug, industry_translations(language, title)),
@@ -71,7 +70,6 @@ function rowToRawProject(row: any): RawProject {
   const {
     project_translations,
     project_media,
-    project_results,
     project_technologies,
     project_services,
     industry,
@@ -83,7 +81,6 @@ function rowToRawProject(row: any): RawProject {
     project,
     translations: project_translations ?? [],
     media: project_media ?? [],
-    results: project_results ?? [],
     technologies: (project_technologies ?? [])
       .map((pt: any) => pt.technologies)
       .filter(Boolean),
@@ -104,7 +101,6 @@ function seedRawProjects(): RawProject[] {
     project,
     translations: seed.projectTranslations.filter((t) => t.project_id === project.id),
     media: seed.projectMedia.filter((m) => m.project_id === project.id),
-    results: [],
     technologies: seed.projectTechnologies
       .filter((t) => t.project_id === project.id)
       .map((t) => seed.techBySlug(t.technology_slug)),

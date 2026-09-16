@@ -147,10 +147,6 @@ export interface ProjectTranslationRow {
   title: string;
   short_description: string | null;
   overview: string | null;
-  challenge: string | null;
-  solution: string | null;
-  development: string | null;
-  results_text: string | null;
   seo_title: string | null;
   seo_description: string | null;
   og_title?: string | null;
@@ -168,15 +164,6 @@ export interface ProjectMediaRow {
   caption: string | null;
   width: number | null;
   height: number | null;
-  sort_order: number;
-}
-
-export interface ProjectResultRow {
-  id: string;
-  project_id: string;
-  value: string;
-  label_en: string;
-  label_sq: string | null;
   sort_order: number;
 }
 

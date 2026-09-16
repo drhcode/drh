@@ -11,9 +11,9 @@ import { slugify } from '@/lib/utils';
 /**
  * Project CMS mutations (spec §54, §55).
  *
- * The whole project — row, both translations, gallery, results and the two join
- * tables — is written in one action so an editor never ends up with a project
- * whose translations belong to a different revision.
+ * The whole project — row, both translations, gallery and the two join tables —
+ * is written in one action so an editor never ends up with a project whose
+ * translations belong to a different revision.
  */
 
 export interface SaveResult {
@@ -50,11 +50,6 @@ interface GalleryItem {
   alt_sq?: string;
 }
 
-interface ResultItem {
-  value: string;
-  label_en: string;
-  label_sq?: string;
-}
 
 function translationPayload(formData: FormData, language: 'en' | 'sq') {
   const suffix = `_${language}`;
@@ -69,10 +64,6 @@ function translationPayload(formData: FormData, language: 'en' | 'sq') {
     title,
     short_description: text(formData.get(`short_description${suffix}`)),
     overview: text(formData.get(`overview${suffix}`)),
-    challenge: text(formData.get(`challenge${suffix}`)),
-    solution: text(formData.get(`solution${suffix}`)),
-    development: text(formData.get(`development${suffix}`)),
-    results_text: text(formData.get(`results_text${suffix}`)),
     seo_title: text(formData.get(`seo_title${suffix}`)),
     seo_description: text(formData.get(`seo_description${suffix}`)),
     og_title: null,
@@ -177,23 +168,6 @@ export async function saveProject(formData: FormData): Promise<SaveResult> {
             url: item.url,
             alt_en: item.alt_en || null,
             alt_sq: item.alt_sq || null,
-            sort_order: index,
-          })),
-      );
-    }
-
-    // ── Result metrics (optional — never required, spec §55) ────────────────
-    const results = jsonArray<ResultItem>(formData.get('results'), []);
-    await supabase.from('project_results').delete().eq('project_id', projectId!);
-    if (results.length > 0) {
-      await supabase.from('project_results').insert(
-        results
-          .filter((item) => item.value && item.label_en)
-          .map((item, index) => ({
-            project_id: projectId!,
-            value: item.value,
-            label_en: item.label_en,
-            label_sq: item.label_sq || null,
             sort_order: index,
           })),
       );
@@ -314,7 +288,7 @@ export async function duplicateProject(id: string): Promise<SaveResult> {
 
     const { data: original } = await supabase
       .from('projects')
-      .select('*, project_translations(*), project_media(*), project_results(*)')
+      .select('*, project_translations(*), project_media(*)')
       .eq('id', id)
       .maybeSingle();
 
@@ -328,7 +302,6 @@ export async function duplicateProject(id: string): Promise<SaveResult> {
       updated_at: _updated,
       project_translations,
       project_media,
-      project_results,
       ...rest
     } = source;
     /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -363,15 +336,6 @@ export async function duplicateProject(id: string): Promise<SaveResult> {
       await supabase.from('project_media').insert(
         (project_media as any[]).map(({ id: _mid, project_id: _pid, ...media }) => ({
           ...media,
-          project_id: newId,
-        })),
-      );
-    }
-
-    if (project_results?.length) {
-      await supabase.from('project_results').insert(
-        (project_results as any[]).map(({ id: _rid, project_id: _pid, ...result }) => ({
-          ...result,
           project_id: newId,
         })),
       );

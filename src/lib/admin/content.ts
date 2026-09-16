@@ -10,7 +10,6 @@ import type {
   PageRow,
   PageTranslationRow,
   ProjectMediaRow,
-  ProjectResultRow,
   ProjectRow,
   ProjectTranslationRow,
   ServiceRow,
@@ -31,7 +30,6 @@ export interface AdminProject {
   project: ProjectRow;
   translations: ProjectTranslationRow[];
   media: ProjectMediaRow[];
-  results: ProjectResultRow[];
   technologySlugs: string[];
   serviceSlugs: string[];
 }
@@ -40,7 +38,6 @@ const PROJECT_SELECT = `
   *,
   project_translations(*),
   project_media(*),
-  project_results(*),
   project_technologies(technologies(slug)),
   project_services(services(slug))
 `;
@@ -82,9 +79,6 @@ export async function getAdminProject(id: string): Promise<AdminProject | null> 
     project: row as ProjectRow,
     translations: (row.project_translations ?? []) as ProjectTranslationRow[],
     media: ((row.project_media ?? []) as ProjectMediaRow[]).sort(
-      (a, b) => a.sort_order - b.sort_order,
-    ),
-    results: ((row.project_results ?? []) as ProjectResultRow[]).sort(
       (a, b) => a.sort_order - b.sort_order,
     ),
     technologySlugs: (row.project_technologies ?? [])

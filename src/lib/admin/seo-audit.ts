@@ -157,7 +157,7 @@ export async function runSeoAudit(): Promise<SeoAuditRow[]> {
         hasTranslation: project.hasTranslation,
         translations: project.translations,
         image: project.seo.ogImage,
-        bodyLength: (project.overview ?? '').length + (project.solution ?? '').length,
+        bodyLength: (project.overview ?? '').length,
         updatedAt: null,
         editHref: `/admin/projects/${project.id}`,
       });

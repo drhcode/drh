@@ -73,16 +73,11 @@
     "website": "Website",
     "visitWebsite": "Vizito website-in",
     "overview": "Përmbledhje",
-    "challenge": "Sfida",
-    "solution": "Zgjidhja",
-    "development": "Zhvillimi",
     "gallery": "Galeria",
-    "results": "Rezultatet",
     "nextProject": "Projekti tjetër",
     "ctaTitle": "Keni një Projekt të Ngjashëm?",
     "ctaBody": "Na tregoni çfarë po ndërtoni. Përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
-    "ctaButton": "Nis një Projekt",
-    "caseStudy": "Studim rasti"
+    "ctaButton": "Nis një Projekt"
   },
   "services": {
     "title": "Shërbimet",

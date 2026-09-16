@@ -73,16 +73,11 @@
     "website": "Website",
     "visitWebsite": "Visit website",
     "overview": "Overview",
-    "challenge": "Challenge",
-    "solution": "Solution",
-    "development": "Development",
     "gallery": "Gallery",
-    "results": "Results",
     "nextProject": "Next project",
     "ctaTitle": "Have a Similar Project?",
     "ctaBody": "Tell us what you are building. We reply within 24 hours with recommended next steps.",
-    "ctaButton": "Start a Project",
-    "caseStudy": "Case study"
+    "ctaButton": "Start a Project"
   },
   "services": {
     "title": "Services",
