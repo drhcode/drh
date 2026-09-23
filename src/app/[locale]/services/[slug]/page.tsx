@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowRight, Check, ChevronRight } from 'lucide-react';
@@ -23,6 +24,7 @@ import { CtaSection } from '@/components/sections/cta-section';
 import { TechStrip } from '@/components/sections/tech-strip';
 import { ServiceIcon } from '@/components/site/service-icon';
 import { JsonLd } from '@/components/seo/json-ld';
+import { DraftBanner } from '@/components/site/draft-banner';
 import { ServiceViewTracker } from '@/components/site/project-view-tracker';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { breadcrumbSchema, faqSchema, jsonLdGraph, serviceSchema } from '@/lib/seo/schema';
@@ -69,7 +71,10 @@ export default async function ServicePage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const service = await getService(locale, slug);
+  // Draft mode is enabled only by the admin preview route, which checks
+  // authorisation first, so unpublished content stays private.
+  const preview = (await draftMode()).isEnabled;
+  const service = await getService(locale, slug, { includeUnpublished: preview });
   if (!service) notFound();
 
   const [t, tNav, tCta, projects, faqs, settings, allServices] = await Promise.all([
@@ -86,6 +91,7 @@ export default async function ServicePage({ params }: Props) {
 
   return (
     <>
+      <DraftBanner path={`/services/${slug}`} />
       <JsonLd
         json={jsonLdGraph(
           serviceSchema(service, locale as AppLocale, settings),

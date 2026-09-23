@@ -42,14 +42,23 @@ export function TestimonialManager({
   testimonials,
   projects,
   canManage,
+  autoCreate = false,
 }: {
   testimonials: TestimonialRow[];
   projects: Pick<ProjectRow, 'id' | 'client_name'>[];
   canManage: boolean;
+  /**
+   * Opens the create dialog immediately. Testimonials have no /new route —
+   * they are edited in place — so the admin's "Add testimonial" quick action
+   * arrives here with ?new=1 instead of at a page that does not exist.
+   */
+  autoCreate?: boolean;
 }) {
   const router = useRouter();
   const [editing, setEditing] = React.useState<TestimonialRow | null>(null);
-  const [creating, setCreating] = React.useState(false);
+  // Seeded rather than set from an effect: the dialog should be open on the
+  // first paint, not flash closed and then open.
+  const [creating, setCreating] = React.useState(autoCreate && canManage);
   const [confirmId, setConfirmId] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
 

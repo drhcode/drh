@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { JsonLd } from '@/components/seo/json-ld';
+import { DraftBanner } from '@/components/site/draft-banner';
 import {
   CaseStudyCtaButton,
   OutboundProjectLink,
@@ -62,7 +64,10 @@ export default async function ProjectPage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const project = await getProject(locale, slug);
+  // Draft mode is enabled only by the admin preview route, which checks
+  // authorisation first, so unpublished content stays private.
+  const preview = (await draftMode()).isEnabled;
+  const project = await getProject(locale, slug, { includeUnpublished: preview });
   if (!project) notFound();
 
   const [t, tCommon, tWork, next] = await Promise.all([
@@ -88,6 +93,7 @@ export default async function ProjectPage({ params }: Props) {
 
   return (
     <>
+      <DraftBanner path={`/work/${slug}`} />
       <JsonLd
         json={jsonLdGraph(
           projectSchema(project, locale as AppLocale),

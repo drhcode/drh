@@ -33,7 +33,11 @@ export default async function EditProjectPage({ params, searchParams }: Props) {
           <>
             <ContentStatusBadge status={record.project.status} />
             <Button asChild variant="outline" size="sm">
-              <a href={`/work/${record.project.slug}`} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/admin/api/preview?path=${encodeURIComponent(`/work/${record.project.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Preview
               </a>
             </Button>

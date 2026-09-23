@@ -52,7 +52,11 @@ export default async function EditServicePage({ params, searchParams }: Props) {
           <>
             <ContentStatusBadge status={service.status} />
             <Button asChild variant="outline" size="sm">
-              <a href={`/services/${service.slug}`} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/admin/api/preview?path=${encodeURIComponent(`/services/${service.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Preview
               </a>
             </Button>

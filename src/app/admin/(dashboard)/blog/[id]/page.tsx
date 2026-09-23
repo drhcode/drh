@@ -32,7 +32,11 @@ export default async function EditBlogPostPage({ params, searchParams }: Props) 
           <>
             <ContentStatusBadge status={record.post.status} />
             <Button asChild variant="outline" size="sm">
-              <a href={`/blog/${record.post.slug}`} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/admin/api/preview?path=${encodeURIComponent(`/blog/${record.post.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Preview
               </a>
             </Button>

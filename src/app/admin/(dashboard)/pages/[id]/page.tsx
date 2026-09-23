@@ -33,7 +33,11 @@ export default async function EditPagePage({ params, searchParams }: Props) {
           <>
             <ContentStatusBadge status={page.status} />
             <Button asChild variant="outline" size="sm">
-              <a href={path} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/admin/api/preview?path=${encodeURIComponent(path)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Preview
               </a>
             </Button>

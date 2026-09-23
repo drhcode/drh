@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -24,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { IndustryGlyph } from '@/components/site/industry-glyph';
 import { JsonLd } from '@/components/seo/json-ld';
+import { DraftBanner } from '@/components/site/draft-banner';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { breadcrumbSchema, faqSchema, jsonLdGraph } from '@/lib/seo/schema';
 
@@ -63,7 +65,10 @@ export default async function IndustryPage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const industry = await getIndustry(locale, slug);
+  // Draft mode is enabled only by the admin preview route, which checks
+  // authorisation first, so unpublished content stays private.
+  const preview = (await draftMode()).isEnabled;
+  const industry = await getIndustry(locale, slug, { includeUnpublished: preview });
   if (!industry) notFound();
 
   const [t, tCta, tCommon, projects, services, technologies, faqs, siblings] = await Promise.all([
@@ -81,6 +86,7 @@ export default async function IndustryPage({ params }: Props) {
 
   return (
     <>
+      <DraftBanner path={`/industries/${slug}`} />
       <JsonLd
         json={jsonLdGraph(
           breadcrumbSchema(

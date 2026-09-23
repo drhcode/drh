@@ -73,7 +73,7 @@ export const QUICK_COMMANDS: {
 }[] = [
   { label: 'Create project', href: '/admin/projects/new', icon: 'plus', resource: 'projects', capability: 'manage' },
   { label: 'Create blog post', href: '/admin/blog/new', icon: 'plus', resource: 'blog', capability: 'manage' },
-  { label: 'Add testimonial', href: '/admin/testimonials/new', icon: 'plus', resource: 'testimonials', capability: 'manage' },
+  { label: 'Add testimonial', href: '/admin/testimonials?new=1', icon: 'plus', resource: 'testimonials', capability: 'manage' },
   { label: 'Add redirect', href: '/admin/redirects', icon: 'plus', resource: 'redirects', capability: 'manage' },
   { label: 'Open analytics', href: '/admin/analytics', icon: 'bar-chart', resource: 'analytics' },
   { label: 'Open leads', href: '/admin/leads', icon: 'inbox', resource: 'leads' },

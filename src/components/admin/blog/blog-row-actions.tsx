@@ -68,7 +68,7 @@ export function BlogRowActions({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer">
+            <a href={`/admin/api/preview?path=${encodeURIComponent(`/blog/${slug}`)}`} target="_blank" rel="noopener noreferrer">
               <Eye className="size-4" />
               Preview
             </a>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
@@ -14,6 +15,7 @@ import { GlowGrid } from '@/components/ui/glow';
 import { CtaSection } from '@/components/sections/cta-section';
 import { TableOfContents } from '@/components/site/table-of-contents';
 import { JsonLd } from '@/components/seo/json-ld';
+import { DraftBanner } from '@/components/site/draft-banner';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { articleSchema, breadcrumbSchema, jsonLdGraph } from '@/lib/seo/schema';
 import { formatDate, plainText, truncate } from '@/lib/utils';
@@ -60,7 +62,10 @@ export default async function BlogPostPage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const post = await getBlogPost(locale, slug);
+  // Draft mode is enabled only by the admin preview route, which checks
+  // authorisation first, so unpublished content stays private.
+  const preview = (await draftMode()).isEnabled;
+  const post = await getBlogPost(locale, slug, { includeUnpublished: preview });
   if (!post) notFound();
 
   const [t, tCommon, related] = await Promise.all([
@@ -73,6 +78,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <DraftBanner path={`/blog/${slug}`} />
       <JsonLd
         json={jsonLdGraph(
           articleSchema(post, locale as AppLocale),

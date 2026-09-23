@@ -88,7 +88,7 @@ export function ProjectRowActions({
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <a href={`/work/${slug}`} target="_blank" rel="noopener noreferrer">
+            <a href={`/admin/api/preview?path=${encodeURIComponent(`/work/${slug}`)}`} target="_blank" rel="noopener noreferrer">
               <Eye className="size-4" />
               Preview
             </a>

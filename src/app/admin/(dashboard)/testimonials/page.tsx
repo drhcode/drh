@@ -15,9 +15,17 @@ async function listProjectOptions(): Promise<Pick<ProjectRow, 'id' | 'client_nam
   return (data as Pick<ProjectRow, 'id' | 'client_name'>[] | null) ?? [];
 }
 
-export default async function AdminTestimonialsPage() {
+export default async function AdminTestimonialsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ new?: string }>;
+}) {
   const admin = await requireCapability('testimonials');
-  const [testimonials, projects] = await Promise.all([listTestimonials(), listProjectOptions()]);
+  const [{ new: create }, testimonials, projects] = await Promise.all([
+    searchParams,
+    listTestimonials(),
+    listProjectOptions(),
+  ]);
 
   return (
     <>
@@ -29,6 +37,7 @@ export default async function AdminTestimonialsPage() {
         testimonials={testimonials}
         projects={projects}
         canManage={can(admin.role, 'testimonials', 'manage')}
+        autoCreate={create === '1'}
       />
     </>
   );

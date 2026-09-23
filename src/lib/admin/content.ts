@@ -48,11 +48,12 @@ export async function listAdminProjects(): Promise<
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('projects')
     .select('*, project_translations(language, title, is_complete), industries(slug)')
     .order('sort_order')
     .order('created_at', { ascending: false });
+  if (error) console.error('[admin/content] query failed', error);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   return (data ?? []).map((row: any) => {
@@ -70,7 +71,8 @@ export async function getAdminProject(id: string): Promise<AdminProject | null> 
   const supabase = getSupabaseAdminClient();
   if (!supabase) return null;
 
-  const { data } = await supabase.from('projects').select(PROJECT_SELECT).eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('projects').select(PROJECT_SELECT).eq('id', id).maybeSingle();
+  if (error) throw error;
   if (!data) return null;
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -147,11 +149,12 @@ export async function listAdminBlogPosts(): Promise<
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('blog_posts')
     .select('*, blog_translations(language, title, is_complete), blog_categories(slug, name_en)')
     .order('published_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false });
+  if (error) console.error('[admin/content] query failed', error);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   return (data ?? []).map((row: any) => {
@@ -169,11 +172,12 @@ export async function getAdminBlogPost(id: string): Promise<AdminBlogPost | null
   const supabase = getSupabaseAdminClient();
   if (!supabase) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('blog_posts')
     .select('*, blog_translations(*)')
     .eq('id', id)
     .maybeSingle();
+  if (error) throw error;
 
   if (!data) return null;
 
@@ -191,10 +195,11 @@ export async function listAdminServices(): Promise<
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('services')
     .select('*, service_translations(*)')
     .order('sort_order');
+  if (error) console.error('[admin/content] query failed', error);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   return (data ?? []).map((row: any) => {
@@ -215,10 +220,11 @@ export async function listAdminIndustries(): Promise<
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('industries')
     .select('*, industry_translations(*)')
     .order('sort_order');
+  if (error) console.error('[admin/content] query failed', error);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   return (data ?? []).map((row: any) => {
@@ -240,21 +246,24 @@ export async function getAdminIndustry(id: string) {
 export async function listTestimonials(): Promise<TestimonialRow[]> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
-  const { data } = await supabase.from('testimonials').select('*').order('sort_order');
+  const { data, error } = await supabase.from('testimonials').select('*').order('sort_order');
+  if (error) console.error('[admin/content] query failed', error);
   return (data as TestimonialRow[] | null) ?? [];
 }
 
 export async function getTestimonial(id: string): Promise<TestimonialRow | null> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return null;
-  const { data } = await supabase.from('testimonials').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('testimonials').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
   return (data as TestimonialRow | null) ?? null;
 }
 
 export async function listFaqs(): Promise<FaqRow[]> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
-  const { data } = await supabase.from('faqs').select('*').order('category').order('sort_order');
+  const { data, error } = await supabase.from('faqs').select('*').order('category').order('sort_order');
+  if (error) console.error('[admin/content] query failed', error);
   return (data as FaqRow[] | null) ?? [];
 }
 
@@ -276,11 +285,12 @@ export async function listAdminPages(): Promise<
   const supabase = getSupabaseAdminClient();
   if (!supabase) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('pages')
     .select('*, page_translations(*)')
     .order('kind')
     .order('sort_order');
+  if (error) console.error('[admin/content] query failed', error);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   return (data ?? []).map((row: any) => {

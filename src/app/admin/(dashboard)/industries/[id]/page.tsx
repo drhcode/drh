@@ -32,7 +32,11 @@ export default async function EditIndustryPage({ params, searchParams }: Props) 
           <>
             <ContentStatusBadge status={industry.status} />
             <Button asChild variant="outline" size="sm">
-              <a href={`/industries/${industry.slug}`} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/admin/api/preview?path=${encodeURIComponent(`/industries/${industry.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Preview
               </a>
             </Button>
