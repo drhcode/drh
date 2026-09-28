@@ -12,6 +12,7 @@ import { Section } from '@/components/sections/section';
 import { Reveal } from '@/components/sections/reveal';
 import { JsonLd } from '@/components/seo/json-ld';
 import { DraftBanner } from '@/components/site/draft-banner';
+import { ProjectCover } from '@/components/site/project-cover';
 import {
   CaseStudyCtaButton,
   OutboundProjectLink,
@@ -147,46 +148,12 @@ export default async function ProjectPage({ params }: Props) {
       {/* ── Cover ──────────────────────────────────────────────────────────── */}
       {project.coverImage && (
         <div className="container-page">
-          {/*
-            Art direction rather than one crop stretched everywhere: a 16:9
-            frame that would letterbox a phone becomes a 4:5 frame when a mobile
-            cover has been supplied. Only one of the two is ever rendered.
-          */}
-          {project.coverImageMobile ? (
-            <>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-border bg-surface-sunken sm:hidden">
-                <Image
-                  src={project.coverImageMobile}
-                  alt={`${project.clientName} — ${project.title}`}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="relative hidden aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-surface-sunken sm:block">
-                <Image
-                  src={project.coverImage}
-                  alt={`${project.clientName} — ${project.title}`}
-                  fill
-                  priority
-                  sizes="(min-width: 1280px) 1200px, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            </>
-          ) : (
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-sunken sm:aspect-[16/9] sm:rounded-2xl">
-              <Image
-                src={project.coverImage}
-                alt={`${project.clientName} — ${project.title}`}
-                fill
-                priority
-                sizes="(min-width: 1280px) 1200px, 100vw"
-                className="object-cover"
-              />
-            </div>
-          )}
+          <ProjectCover
+            cover={project.coverImage}
+            coverMobile={project.coverImageMobile}
+            alt={`${project.clientName} — ${project.title}`}
+            priority
+          />
         </div>
       )}
 
