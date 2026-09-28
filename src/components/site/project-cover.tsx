@@ -1,27 +1,24 @@
-import { getImageProps } from 'next/image';
+import Image from 'next/image';
 
 /**
- * Case-study cover, art-directed between phone and desktop.
+ * Case-study cover: the desktop screenshot and the phone screenshot together.
  *
- * A project can carry two crops: a landscape cover and an optional portrait one
- * for phones. The obvious implementation — two `<Image>` elements, one hidden
- * per breakpoint — renders correctly but downloads *both* files, because
- * `display: none` does not reliably stop an `<img>` from fetching. With
- * `priority` on each it also emits two preloads, so a phone paid for a desktop
- * JPEG it could never see.
+ * Both crops are shown rather than swapped by breakpoint. The point of the pair
+ * is to demonstrate that the same site was built for both, which is only
+ * visible if both are on screen at once — so they sit side by side, bottom
+ * aligned, at every width.
  *
- * `<picture>` makes the choice in the browser before any request: exactly one
- * source is ever fetched. `getImageProps` is what keeps Next's optimiser in the
- * loop, since a bare `<source>` would otherwise bypass it and serve the
- * original file at full size.
+ * The proportions come from the files themselves, not from habit. Uploaded
+ * desktop captures run about 1700x1300 (≈4:3) and phone captures about 442x955
+ * (≈9:19.5); framing the desktop shot at 16:9, as this previously did, cropped
+ * roughly a quarter of its height away.
  *
- * The frame itself is one element whose aspect ratio changes at the same
- * breakpoint as the source, so the portrait crop is never letterboxed into a
- * landscape box.
+ * Both images anchor to the top. A website screenshot loses its header and hero
+ * first if it is cropped from the centre, which is the part worth keeping.
  */
 
-/** Where the portrait crop gives way to the landscape one. */
-const SWITCH = 768;
+/** Matches the phone captures the CMS receives, so nothing is letterboxed. */
+const PHONE_ASPECT = '442/955';
 
 export function ProjectCover({
   cover,
@@ -34,53 +31,55 @@ export function ProjectCover({
   alt: string;
   priority?: boolean;
 }) {
-  const shared = { alt, quality: 82, priority } as const;
-
-  const {
-    props: { srcSet: desktopSrcSet },
-  } = getImageProps({
-    ...shared,
-    src: cover,
-    width: 1600,
-    height: 900,
-    sizes: '(min-width: 1280px) 1200px, 100vw',
-  });
-
-  // The `<img>` fallback is the phone crop when there is one, so a browser
-  // without <picture> support still gets something sensibly proportioned.
-  const {
-    props: { srcSet: mobileSrcSet, ...imgProps },
-  } = getImageProps({
-    ...shared,
-    src: coverMobile || cover,
-    width: coverMobile ? 900 : 1600,
-    height: coverMobile ? 1125 : 900,
-    sizes: '100vw',
-  });
+  // Without a phone capture there is no pair to show, so the desktop shot takes
+  // the full width instead of leaving a gap where the phone would have been.
+  if (!coverMobile) {
+    return (
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-sunken shadow-sm md:rounded-2xl">
+        <Image
+          src={cover}
+          alt={alt}
+          fill
+          priority={priority}
+          sizes="(min-width: 1280px) 1200px, 100vw"
+          className="object-cover object-top"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={
-        'relative overflow-hidden rounded-xl border border-border bg-surface-sunken shadow-sm md:rounded-2xl ' +
-        (coverMobile ? 'aspect-[4/5] md:aspect-[16/9]' : 'aspect-[4/3] md:aspect-[16/9]')
-      }
-    >
-      {/*
-        A bare <img> rather than next/image: the optimiser cannot render a
-        <source>, so getImageProps is the supported way to art-direct. The src
-        and srcSet still come from Next, so the files served are optimised.
-      */}
-      <picture>
-        <source media={`(min-width: ${SWITCH}px)`} srcSet={desktopSrcSet} />
-        {coverMobile && <source media={`(max-width: ${SWITCH - 1}px)`} srcSet={mobileSrcSet} />}
-        <img
-          {...imgProps}
+    <div className="flex items-end gap-3 sm:gap-5 lg:gap-8">
+      {/* Desktop capture — takes whatever width the phone leaves. */}
+      <div className="relative aspect-[4/3] min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-surface-sunken shadow-sm md:rounded-2xl">
+        <Image
+          src={cover}
           alt={alt}
-          className="absolute inset-0 size-full object-cover"
-          decoding={priority ? 'sync' : 'async'}
-          fetchPriority={priority ? 'high' : undefined}
+          fill
+          priority={priority}
+          sizes="(min-width: 1024px) 70vw, (min-width: 640px) 72vw, 74vw"
+          className="object-cover object-top"
         />
-      </picture>
+      </div>
+
+      {/*
+        Phone capture. Sized as a percentage rather than fixed pixels so the
+        pair keeps its proportions from a 360px phone to a 1440px desktop, and
+        capped so it cannot grow into a second hero on a very wide screen.
+      */}
+      <div
+        className="relative w-[26%] max-w-[230px] shrink-0 overflow-hidden rounded-2xl border border-border bg-surface-sunken shadow-md sm:w-[24%] lg:rounded-[1.5rem]"
+        style={{ aspectRatio: PHONE_ASPECT }}
+      >
+        <Image
+          src={coverMobile}
+          alt=""
+          fill
+          priority={priority}
+          sizes="(min-width: 1280px) 230px, 26vw"
+          className="object-cover object-top"
+        />
+      </div>
     </div>
   );
 }
