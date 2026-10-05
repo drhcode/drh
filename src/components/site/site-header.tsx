@@ -67,16 +67,21 @@ export function SiteHeader({
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 w-full transition-[background-color,border-color,backdrop-filter] duration-200',
-        scrolled
-          ? 'border-b border-border bg-background/80 backdrop-blur-xl'
-          : 'border-b border-transparent',
-      )}
-    >
+    /*
+      Fixed rather than sticky, so the hero runs underneath it and its particle
+      field shows through. The outer height never changes between states — only
+      the surface does — so nothing on the page shifts when it frosts over.
+    */
+    <header className="fixed inset-x-0 top-0 z-50">
       <div className="container-page">
-        <div className="flex h-16 items-center justify-between gap-4 md:h-18">
+        <div
+          className={cn(
+            'mt-3 flex h-14 items-center justify-between gap-4 rounded-full border px-3 pl-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 md:h-16 md:px-4 md:pl-5',
+            scrolled
+              ? 'border-border/70 bg-background/70 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/60'
+              : 'border-transparent bg-transparent',
+          )}
+        >
           <Link href="/" className="shrink-0 rounded-md" aria-label={branding.companyName}>
             <Logo
               src={branding.logo}
@@ -116,7 +121,12 @@ export function SiteHeader({
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('openMenu')}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full border border-border/70 bg-surface/60 backdrop-blur-sm lg:hidden"
+                  aria-label={t('openMenu')}
+                >
                   <Menu className="size-5" />
                 </Button>
               </SheetTrigger>

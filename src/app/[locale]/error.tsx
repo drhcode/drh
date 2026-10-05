@@ -21,7 +21,7 @@ export default function LocaleError({
   }, [error]);
 
   return (
-    <div className="container-page flex min-h-[60vh] flex-col justify-center py-20">
+    <div className="hero-top container-page flex min-h-[60vh] flex-col justify-center py-20">
       <div className="max-w-xl">
         <h1 className="text-3xl md:text-4xl">{t('title')}</h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">{t('body')}</p>

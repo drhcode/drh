@@ -56,7 +56,7 @@ export function HeroSection({
         };
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="hero-top relative overflow-hidden">
       {/* Structural grid that responds to the pointer — texture, not decoration */}
       <HeroField particles={particles} />
 

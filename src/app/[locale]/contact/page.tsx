@@ -70,7 +70,7 @@ export default async function ContactPage({ params }: Props) {
         )}
       />
 
-      <div className="relative overflow-hidden">
+      <div className="hero-top relative overflow-hidden">
         <HeroField />
         <div className="container-page relative py-14 md:py-20">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">

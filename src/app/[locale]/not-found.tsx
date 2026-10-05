@@ -8,7 +8,7 @@ export default async function NotFound() {
   const t = await getTranslations('notFound');
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="hero-top relative overflow-hidden">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 grid-lines opacity-[0.35] dark:opacity-[0.2]"

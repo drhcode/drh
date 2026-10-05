@@ -63,6 +63,9 @@
   --shadow-lg: 0 18px 40px -12px oklch(0.2 0.01 70 / 0.16);
 
   --radius: 0.625rem;
+
+  /* Outer height of the floating header, including its top margin. */
+  --header-height: 4.25rem;
 }
 
 .dark {
@@ -526,6 +529,25 @@
     .hero-glow {
       width: 620px;
       height: 620px;
+    }
+  }
+}
+
+/* ==========================================================================
+   Hero offset
+   The header floats over the hero rather than sitting above it, so the hero
+   carries the clearance itself. Padding rather than margin: the padding is
+   inside the section, so the hero's background and particle field still run the
+   full height and continue behind the header.
+   ========================================================================== */
+@layer components {
+  .hero-top {
+    padding-top: var(--header-height);
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --header-height: 4.75rem;
     }
   }
 }

@@ -65,7 +65,7 @@ export default async function ServicesPage({ params }: Props) {
         )}
       />
 
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="hero-top relative overflow-hidden border-b border-border">
         <HeroField />
         <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24 relative">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">

@@ -110,7 +110,7 @@ export default async function ServicePage({ params }: Props) {
       <ServiceViewTracker serviceId={service.id} slug={service.slug} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="hero-top relative overflow-hidden border-b border-border">
         <HeroField />
         <div className="container-page relative">
           <div className="grid items-center gap-10 py-10 md:py-14 lg:grid-cols-12 lg:gap-14 lg:py-20">

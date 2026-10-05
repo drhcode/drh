@@ -95,7 +95,7 @@ export default async function BlogPostPage({ params }: Props) {
       />
 
       <article>
-        <header className="relative overflow-hidden border-b border-border">
+        <header className="hero-top relative overflow-hidden border-b border-border">
           <HeroField />
           <div className="container-page relative pb-12 pt-14 md:pt-20">
             <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">

@@ -102,7 +102,7 @@ export default async function IndustryPage({ params }: Props) {
         )}
       />
 
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="hero-top relative overflow-hidden border-b border-border">
         <HeroField />
         <div className="container-page pb-12 pt-10 md:pb-16 md:pt-14 relative">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">

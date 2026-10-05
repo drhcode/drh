@@ -112,7 +112,7 @@ export default async function ProjectPage({ params }: Props) {
       <ProjectViewTracker projectId={project.id} slug={project.slug} />
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
+      <section className="hero-top relative overflow-hidden">
         <HeroField />
         <div className="container-page pb-10 pt-8 md:pb-14 md:pt-12 relative">
           <Link

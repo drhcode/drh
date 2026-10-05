@@ -16,18 +16,18 @@ export const SheetContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { closeLabel?: string }
 >(({ className, children, closeLabel = 'Close', ...props }, ref) => (
   <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="anim-overlay fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
+    <DialogPrimitive.Overlay className="anim-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'anim-sheet fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-lg',
+        'anim-sheet fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-border bg-background/95 shadow-2xl backdrop-blur-xl sm:rounded-l-3xl',
         className,
       )}
       {...props}
     >
       {children}
       <DialogPrimitive.Close
-        className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-sunken hover:text-foreground"
+        className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:bg-surface-sunken hover:text-foreground"
         aria-label={closeLabel}
       >
         <X className="size-5" />
