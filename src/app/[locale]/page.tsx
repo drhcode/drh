@@ -66,7 +66,7 @@ export default async function HomePage({ params }: Props) {
         section type, so the page editor keeps working against the fixed set of
         blocks it already knows how to render and save.
       */}
-      <PageSections sections={page.sections.slice(0, 1)} locale={locale} signature />
+      <PageSections sections={page.sections.slice(0, 1)} locale={locale} />
       <AiSection />
       <PageSections sections={page.sections.slice(1)} locale={locale} />
     </>

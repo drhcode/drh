@@ -35,25 +35,17 @@ import { RichTextSection } from './rich-text-section';
 export async function PageSections({
   sections,
   locale,
-  signature = false,
 }: {
   sections: PageSection[];
   locale: Language;
-  /** Enables the homepage-only ambient hero field. */
-  signature?: boolean;
 }) {
   const rendered = await Promise.all(
-    sections.map((section, index) => renderSection(section, index, locale, signature)),
+    sections.map((section, index) => renderSection(section, index, locale)),
   );
   return <>{rendered}</>;
 }
 
-async function renderSection(
-  section: PageSection,
-  index: number,
-  locale: Language,
-  signature = false,
-) {
+async function renderSection(section: PageSection, index: number, locale: Language) {
   const key = `${section.type}-${index}`;
   // Only the first section on a page carries the h1.
   const isFirst = index === 0;
@@ -70,7 +62,6 @@ async function renderSection(
           primaryCta={section.primaryCta}
           secondaryCta={section.secondaryCta}
           note={section.note}
-          particles={signature && isFirst}
           as={isFirst ? 'h1' : 'h2'}
         />
       );

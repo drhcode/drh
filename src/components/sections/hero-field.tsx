@@ -36,8 +36,12 @@ const EASE = 0.12;
  */
 const DENSITY = 64;
 const MAX_PARTICLES = 130;
-/** Ambient drift is imperceptible above this rate, and capping it halves the work. */
-const AMBIENT_FPS = 30;
+/**
+ * Frame cap for the ambient layer. Raised alongside the drift speed: at 30fps
+ * a faster particle visibly steps between positions instead of gliding, so the
+ * saving stops being free the moment the motion is quick enough to notice.
+ */
+const AMBIENT_FPS = 48;
 /** Lit particles closer than this to each other get a connecting line. */
 const LINK_DISTANCE = 118;
 /** Share of particles drawn as ring nodes instead of plain dots. */
@@ -185,9 +189,13 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          // Slow enough to read as drift rather than as movement.
-          vx: (Math.random() - 0.5) * 0.16,
-          vy: (Math.random() - 0.5) * 0.16,
+          /*
+           * Speeds vary per particle rather than sharing one constant — a field
+           * where everything moves at exactly the same rate reads as a texture
+           * being panned, not as individual things drifting.
+           */
+          vx: (Math.random() - 0.5) * 0.62,
+          vy: (Math.random() - 0.5) * 0.62,
           radius: 0.7 + Math.random() * 1.3,
           alpha: 0.3 + Math.random() * 0.32,
           node: Math.random() < NODE_FRACTION,

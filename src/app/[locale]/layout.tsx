@@ -43,7 +43,13 @@ export default async function LocaleLayout({
           {t('skipToContent')}
         </a>
 
-        <div className="flex min-h-dvh flex-col">
+        {/*
+          Fixed, so it stays put while the page scrolls past it. Decorative, so
+          it is hidden from assistive technology and takes no pointer events.
+        */}
+        <div className="page-glow" aria-hidden="true" />
+
+        <div className="relative z-10 flex min-h-dvh flex-col">
           <SiteHeader
             featuredServices={services.map((s) => ({
               slug: s.slug,

@@ -531,6 +531,34 @@
 }
 
 /* ==========================================================================
+   Ambient page glow
+   A single accent wash fixed to the viewport, sitting above the page
+   background and below everything else. It is deliberately static: the point is
+   depth behind the content as it scrolls past, and anything that moved here
+   would compete with the hero field rather than support it.
+   ========================================================================== */
+@layer components {
+  .page-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Two offset pools rather than one centred disc — a single circle in the
+       middle of the screen reads as a spotlight, which is the cheap version of
+       this effect. */
+    background:
+      radial-gradient(60rem 40rem at 18% 28%, var(--accent-glow), transparent 70%),
+      radial-gradient(55rem 38rem at 82% 72%, var(--accent-glow), transparent 72%);
+    opacity: 0.35;
+  }
+
+  /* The dark theme carries it better, so it can afford a little more. */
+  .dark .page-glow {
+    opacity: 0.5;
+  }
+}
+
+/* ==========================================================================
    Route progress
    Width is driven by scaleX so the bar animates on the compositor and never
    triggers layout. The leading highlight is what makes it read as motion
