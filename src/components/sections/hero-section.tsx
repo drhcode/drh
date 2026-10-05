@@ -19,11 +19,7 @@ interface HeroSectionProps {
   note?: string;
   /** Compact variant for inner pages. */
   size?: 'lg' | 'md';
-  /**
-   * Adds the drifting particle layer behind the grid. Reserved for the
-   * homepage: ambient motion on every hero would be exactly the constant
-   * animation this design system avoids.
-   */
+  /** Drifting particle layer behind the grid. On by default. */
   particles?: boolean;
   as?: 'h1' | 'h2';
 }
@@ -45,7 +41,7 @@ export function HeroSection({
   secondaryHref = '/work',
   note,
   size = 'lg',
-  particles = false,
+  particles = true,
   as: Heading = 'h1',
 }: HeroSectionProps) {
   const reduced = useReducedMotion();

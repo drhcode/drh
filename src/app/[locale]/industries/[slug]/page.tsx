@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
@@ -101,8 +102,9 @@ export default async function IndustryPage({ params }: Props) {
         )}
       />
 
-      <section className="border-b border-border">
-        <div className="container-page pb-12 pt-10 md:pb-16 md:pt-14">
+      <section className="relative overflow-hidden border-b border-border">
+        <HeroField />
+        <div className="container-page pb-12 pt-10 md:pb-16 md:pt-14 relative">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link href="/industries" className="transition-colors hover:text-accent">
               {t('title')}

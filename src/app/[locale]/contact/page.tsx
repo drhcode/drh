@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Clock, Globe2, Mail, MessageCircle, Phone } from 'lucide-react';
 import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
@@ -69,7 +70,9 @@ export default async function ContactPage({ params }: Props) {
         )}
       />
 
-      <div className="container-page py-14 md:py-20">
+      <div className="relative overflow-hidden">
+        <HeroField />
+        <div className="container-page relative py-14 md:py-20">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
           {/* Intro + contact details */}
           <div className="lg:col-span-5">
@@ -134,6 +137,7 @@ export default async function ContactPage({ params }: Props) {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <FaqSection title={tFaq('faq')} faqs={faqs} />

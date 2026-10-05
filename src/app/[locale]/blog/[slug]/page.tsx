@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
@@ -94,8 +95,9 @@ export default async function BlogPostPage({ params }: Props) {
       />
 
       <article>
-        <header className="border-b border-border">
-          <div className="container-page pb-12 pt-14 md:pt-20">
+        <header className="relative overflow-hidden border-b border-border">
+          <HeroField />
+          <div className="container-page relative pb-12 pt-14 md:pt-20">
             <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
               <Link href="/blog" className="transition-colors hover:text-accent">
                 {t('title')}

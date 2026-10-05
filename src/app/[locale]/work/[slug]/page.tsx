@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
@@ -111,8 +112,9 @@ export default async function ProjectPage({ params }: Props) {
       <ProjectViewTracker projectId={project.id} slug={project.slug} />
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
-      <section>
-        <div className="container-page pb-10 pt-8 md:pb-14 md:pt-12">
+      <section className="relative overflow-hidden">
+        <HeroField />
+        <div className="container-page pb-10 pt-8 md:pb-14 md:pt-12 relative">
           <Link
             href="/work"
             className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-accent"

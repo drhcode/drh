@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowRight, Check, ChevronRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
@@ -109,8 +110,9 @@ export default async function ServicePage({ params }: Props) {
       <ServiceViewTracker serviceId={service.id} slug={service.slug} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border">
-        <div className="container-page">
+      <section className="relative overflow-hidden border-b border-border">
+        <HeroField />
+        <div className="container-page relative">
           <div className="grid items-center gap-10 py-10 md:py-14 lg:grid-cols-12 lg:gap-14 lg:py-20">
             <div className="lg:col-span-6">
               {/* Wraps rather than overflowing when a service title is long */}

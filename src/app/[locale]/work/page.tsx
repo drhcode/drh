@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
 import { getIndustries, getProjects } from '@/lib/data';
@@ -58,8 +59,9 @@ export default async function WorkPage({ params }: Props) {
         )}
       />
 
-      <section className="border-b border-border">
-        <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24">
+      <section className="relative overflow-hidden border-b border-border">
+        <HeroField />
+        <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24 relative">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
             {t('title')}
           </p>

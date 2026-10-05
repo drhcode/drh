@@ -34,16 +34,24 @@ const EASE = 0.12;
  * Particles per million square pixels. Density rather than a fixed count, so
  * the field has the same visual weight on a phone and on an ultrawide.
  */
-const DENSITY = 45;
-const MAX_PARTICLES = 90;
+const DENSITY = 64;
+const MAX_PARTICLES = 130;
 /** Ambient drift is imperceptible above this rate, and capping it halves the work. */
 const AMBIENT_FPS = 30;
 /** Lit particles closer than this to each other get a connecting line. */
 const LINK_DISTANCE = 118;
 /** Share of particles drawn as ring nodes instead of plain dots. */
-const NODE_FRACTION = 0.14;
+const NODE_FRACTION = 0.2;
 /** Seconds for one full breath of a ring node. */
 const NODE_PERIOD = 4200;
+/**
+ * Nodes are joined to each other whether or not the pointer is near, which is
+ * what makes the field read as a network rather than as scattered dust. Only
+ * nodes take part — linking every particle would be both slower and noisier.
+ */
+const NODE_LINK_DISTANCE = 210;
+/** Share of particles tinted with the accent rather than the neutral line colour. */
+const ACCENT_FRACTION = 0.45;
 
 interface Pointer {
   /** Where the pointer actually is. */
@@ -73,9 +81,11 @@ interface Particle {
   node: boolean;
   /** Phase offset so the rings do not breathe in unison. */
   phase: number;
+  /** Drawn in the accent rather than the neutral line colour. */
+  accent: boolean;
 }
 
-export function HeroField({ particles: ambient = false }: { particles?: boolean }) {
+export function HeroField({ particles: ambient = true }: { particles?: boolean }) {
   const reduced = useReducedMotion();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -179,9 +189,10 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
           vx: (Math.random() - 0.5) * 0.16,
           vy: (Math.random() - 0.5) * 0.16,
           radius: 0.7 + Math.random() * 1.3,
-          alpha: 0.18 + Math.random() * 0.22,
+          alpha: 0.3 + Math.random() * 0.32,
           node: Math.random() < NODE_FRACTION,
           phase: Math.random() * Math.PI * 2,
+          accent: Math.random() < ACCENT_FRACTION,
         });
       }
     }
@@ -212,6 +223,7 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
 
     function drawParticles(now: number) {
       const lit: Particle[] = [];
+      const nodes: Particle[] = [];
 
       for (const particle of particles) {
         particle.x += particle.vx;
@@ -228,8 +240,9 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
           distance < RADIUS ? (1 - distance / RADIUS) ** 2 * pointer.strength : 0;
 
         if (influence > 0.05) lit.push(particle);
+        if (particle.node) nodes.push(particle);
 
-        const colour = influence > 0.02 ? accent : nodeColor;
+        const colour = particle.accent || influence > 0.02 ? accent : nodeColor;
 
         if (particle.node) {
           /*
@@ -262,6 +275,28 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
           context!.beginPath();
           context!.arc(particle.x, particle.y, particle.radius + influence * 1.4, 0, Math.PI * 2);
           context!.fill();
+        }
+      }
+
+      /*
+       * Always-on links between node particles. There are only a handful of
+       * nodes, so this stays cheap, and it is what turns a drifting dust field
+       * into something that reads as a network.
+       */
+      context!.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i += 1) {
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const a = nodes[i];
+          const b = nodes[j];
+          const distance = Math.hypot(a.x - b.x, a.y - b.y);
+          if (distance > NODE_LINK_DISTANCE) continue;
+
+          context!.globalAlpha = (1 - distance / NODE_LINK_DISTANCE) * 0.16;
+          context!.strokeStyle = a.accent || b.accent ? accent : nodeColor;
+          context!.beginPath();
+          context!.moveTo(a.x, a.y);
+          context!.lineTo(b.x, b.y);
+          context!.stroke();
         }
       }
 
@@ -476,7 +511,7 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       {/* Static structural grid — unchanged, and all that renders without JS. */}
-      <div className="absolute inset-0 grid-lines opacity-[0.35] dark:opacity-[0.22]" />
+      <div className="absolute inset-0 grid-lines opacity-[0.45] dark:opacity-[0.3]" />
 
       {!reduced && (
         <div className="hero-field-mask absolute inset-0">

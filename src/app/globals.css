@@ -507,7 +507,7 @@
    ========================================================================== */
 @layer components {
   .hero-field-mask {
-    mask-image: radial-gradient(ellipse 100% 85% at 50% 35%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(ellipse 120% 100% at 50% 40%, #000 72%, transparent 100%);
   }
 
   /*
