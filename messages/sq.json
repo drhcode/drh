@@ -292,5 +292,56 @@
     "title": "Le të Ndërtojmë Diçka që Njerëzit e Mbajnë Mend",
     "body": "Na tregoni çfarë po ndërtoni, çfarë nuk po funksionon sot dhe ku doni të shkoni.\n\nDo t’i shqyrtojmë kërkesat tuaja dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
     "button": "Nis një Projekt"
+  },
+  "ai": {
+    "eyebrow": "Inxhinieri AI",
+    "title": "AI që bën punën, jo premtime",
+    "body": "Ndërtojmë AI në produkte aty ku ka vlerë reale — rrjedha agjentësh që e çojnë një detyrë nga fillimi në fund, kërkim mbi përmbajtjen tuaj, dhe integrime që vendosin një model pas sistemeve që biznesi juaj përdor tashmë. Çdo ndërtim vjen me vlerësime, që ta shihni çfarë bën përpara se të prekë një klient.",
+    "cta": "Diskuto një projekt AI",
+    "secondaryCta": "Shiko të gjitha shërbimet",
+    "capabilities": {
+      "agents": {
+        "title": "Rrjedha agjentësh",
+        "body": "Detyra shumëhapëshe të ndara mes agjentësh të specializuar, me miratim njerëzor aty ku ka rëndësi."
+      },
+      "retrieval": {
+        "title": "Kërkim mbi të dhënat tuaja",
+        "body": "Përgjigje të bazuara në dokumentet dhe të dhënat tuaja, me referenca te burimi."
+      },
+      "integration": {
+        "title": "Integrim sistemesh",
+        "body": "Modele të lidhura me ERP, CRM ose dyqanin që keni, jo të vendosura veçmas."
+      },
+      "evaluation": {
+        "title": "Vlerësimi i pari",
+        "body": "Teste dhe vlerësim përpara nisjes, që cilësia të matet e të mos supozohet."
+      }
+    },
+    "studio": {
+      "teamLabel": "Ekipi i agjentëve AI",
+      "active": "{count} agjentë aktivë",
+      "lead": "Agjenti kryesor",
+      "roles": {
+        "architect": "Arkitekt",
+        "coder": "Zhvillues",
+        "tester": "Testues",
+        "reviewer": "Rishikues"
+      },
+      "status": {
+        "architect": "Arkitekti po planifikon integrimin…",
+        "coder": "Zhvilluesi po shkruan syncOrders()…",
+        "tester": "Testuesi po ekzekuton testet…",
+        "reviewer": "Rishikuesi po kontrollon ndryshimet…"
+      },
+      "log": {
+        "planning": "Arkitekt: harta dyqan → magazinë",
+        "planned": "Arkitekt: struktura e integrimit u miratua",
+        "writing": "Zhvillues: po implementohet syncOrders()",
+        "written": "Zhvillues: syncOrders() u përfundua",
+        "testing": "Testues: po ekzekutohen testet e integrimit",
+        "tested": "Testues: 24 kaluan, 0 dështuan",
+        "reviewing": "Rishikues: po lexohen ndryshimet"
+      }
+    }
   }
 }

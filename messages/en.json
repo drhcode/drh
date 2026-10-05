@@ -292,5 +292,56 @@
     "title": "Let's Build Something People Remember",
     "body": "Tell us what you're building, what isn't working today and where you want to go.\n\nWe'll review your requirements and reply within 24 hours with the recommended next steps.",
     "button": "Start a Project"
+  },
+  "ai": {
+    "eyebrow": "AI Engineering",
+    "title": "AI that does the work, not the talking",
+    "body": "We build AI into products where it earns its place — agent workflows that carry a task end to end, retrieval over your own content, and integrations that put a model behind the systems your business already runs on. Every build ships with evaluations, so you can see what it does before it touches a customer.",
+    "cta": "Discuss an AI build",
+    "secondaryCta": "See all services",
+    "capabilities": {
+      "agents": {
+        "title": "Agent workflows",
+        "body": "Multi-step tasks split across specialised agents, with a human approving the steps that matter."
+      },
+      "retrieval": {
+        "title": "Retrieval over your data",
+        "body": "Answers grounded in your own documents and records, with citations back to the source."
+      },
+      "integration": {
+        "title": "System integration",
+        "body": "Models wired into the ERP, CRM or storefront you already run, not bolted on beside it."
+      },
+      "evaluation": {
+        "title": "Evaluation first",
+        "body": "Test sets and scoring before launch, so quality is measured rather than assumed."
+      }
+    },
+    "studio": {
+      "teamLabel": "AI agent team",
+      "active": "{count} agents active",
+      "lead": "Lead agent",
+      "roles": {
+        "architect": "Architect",
+        "coder": "Coder",
+        "tester": "Tester",
+        "reviewer": "Reviewer"
+      },
+      "status": {
+        "architect": "Architect is planning the integration…",
+        "coder": "Coder is writing syncOrders()…",
+        "tester": "Tester is running the test suite…",
+        "reviewer": "Reviewer is checking the diff…"
+      },
+      "log": {
+        "planning": "Architect: mapping storefront → warehouse",
+        "planned": "Architect: integration shape agreed",
+        "writing": "Coder: implementing syncOrders()",
+        "written": "Coder: syncOrders() complete",
+        "testing": "Tester: running integration tests",
+        "tested": "Tester: 24 passed, 0 failed",
+        "reviewing": "Reviewer: reading the diff"
+      }
+    }
   }
 }

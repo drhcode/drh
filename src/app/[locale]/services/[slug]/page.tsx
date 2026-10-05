@@ -22,7 +22,7 @@ import { ProjectsSection } from '@/components/sections/projects-section';
 import { FaqSection } from '@/components/sections/faq-section';
 import { CtaSection } from '@/components/sections/cta-section';
 import { TechStrip } from '@/components/sections/tech-strip';
-import { ServiceIcon } from '@/components/site/service-icon';
+import { ServiceGlyph } from '@/components/site/service-glyph';
 import { JsonLd } from '@/components/seo/json-ld';
 import { DraftBanner } from '@/components/site/draft-banner';
 import { ServiceViewTracker } from '@/components/site/project-view-tracker';
@@ -130,7 +130,7 @@ export default async function ServicePage({ params }: Props) {
 
               <div className="mt-6 flex items-center gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
-                  <ServiceIcon iconKey={service.iconKey} className="size-5" />
+                  <ServiceGlyph iconKey={service.iconKey} className="size-5" />
                 </span>
                 <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
                   {service.title}
@@ -187,7 +187,7 @@ export default async function ServicePage({ params }: Props) {
                     />
                   ) : (
                     <span className="flex size-full items-center justify-center text-accent">
-                      <ServiceIcon iconKey={service.iconKey} className="size-16 opacity-30" />
+                      <ServiceGlyph iconKey={service.iconKey} className="size-16 opacity-30" />
                     </span>
                   )}
                 </div>
@@ -273,7 +273,7 @@ export default async function ServicePage({ params }: Props) {
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-sunken text-accent transition-colors group-hover:border-accent-border group-hover:bg-accent-subtle">
-                      <ServiceIcon iconKey={item.iconKey} className="size-4" />
+                      <ServiceGlyph iconKey={item.iconKey} className="size-4" />
                     </span>
                     <span className="truncate text-sm font-medium text-foreground">
                       {item.title}

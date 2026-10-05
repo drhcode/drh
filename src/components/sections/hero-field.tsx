@@ -40,6 +40,10 @@ const MAX_PARTICLES = 90;
 const AMBIENT_FPS = 30;
 /** Lit particles closer than this to each other get a connecting line. */
 const LINK_DISTANCE = 118;
+/** Share of particles drawn as ring nodes instead of plain dots. */
+const NODE_FRACTION = 0.14;
+/** Seconds for one full breath of a ring node. */
+const NODE_PERIOD = 4200;
 
 interface Pointer {
   /** Where the pointer actually is. */
@@ -61,6 +65,14 @@ interface Particle {
   radius: number;
   /** Baseline opacity, before any pointer influence. */
   alpha: number;
+  /**
+   * A few particles are drawn as concentric rings rather than dots — the
+   * anchor points of the field. Kept rare on purpose: the effect depends on
+   * most of the field being quiet, and a sky full of rings is just noise.
+   */
+  node: boolean;
+  /** Phase offset so the rings do not breathe in unison. */
+  phase: number;
 }
 
 export function HeroField({ particles: ambient = false }: { particles?: boolean }) {
@@ -168,6 +180,8 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
           vy: (Math.random() - 0.5) * 0.16,
           radius: 0.7 + Math.random() * 1.3,
           alpha: 0.18 + Math.random() * 0.22,
+          node: Math.random() < NODE_FRACTION,
+          phase: Math.random() * Math.PI * 2,
         });
       }
     }
@@ -196,7 +210,7 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
       seedParticles();
     }
 
-    function drawParticles() {
+    function drawParticles(now: number) {
       const lit: Particle[] = [];
 
       for (const particle of particles) {
@@ -215,11 +229,40 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
 
         if (influence > 0.05) lit.push(particle);
 
-        context!.globalAlpha = Math.min(1, particle.alpha + influence * 0.7);
-        context!.fillStyle = influence > 0.02 ? accent : nodeColor;
-        context!.beginPath();
-        context!.arc(particle.x, particle.y, particle.radius + influence * 1.4, 0, Math.PI * 2);
-        context!.fill();
+        const colour = influence > 0.02 ? accent : nodeColor;
+
+        if (particle.node) {
+          /*
+           * A ring node: a filled core with two rings breathing outward around
+           * it. The rings carry only a fraction of the core's alpha, so they
+           * read as a halo rather than as more dots.
+           */
+          const breath = (Math.sin(now / NODE_PERIOD + particle.phase) + 1) / 2;
+          const core = particle.radius + 0.5 + influence * 1.4;
+
+          context!.globalAlpha = Math.min(1, particle.alpha + influence * 0.7);
+          context!.fillStyle = colour;
+          context!.beginPath();
+          context!.arc(particle.x, particle.y, core, 0, Math.PI * 2);
+          context!.fill();
+
+          context!.strokeStyle = colour;
+          context!.lineWidth = 1;
+          for (const [index, scale] of [3.2, 5.4].entries()) {
+            const radius = core + scale + breath * (1.6 + index * 1.4);
+            context!.globalAlpha =
+              Math.min(1, particle.alpha + influence * 0.7) * (0.5 - index * 0.18) * (0.55 + breath * 0.45);
+            context!.beginPath();
+            context!.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
+            context!.stroke();
+          }
+        } else {
+          context!.globalAlpha = Math.min(1, particle.alpha + influence * 0.7);
+          context!.fillStyle = colour;
+          context!.beginPath();
+          context!.arc(particle.x, particle.y, particle.radius + influence * 1.4, 0, Math.PI * 2);
+          context!.fill();
+        }
       }
 
       // Link only the particles the pointer has lit. A full O(n²) web would be
@@ -305,7 +348,7 @@ export function HeroField({ particles: ambient = false }: { particles?: boolean 
       if (engaged || (ambient && now - lastAmbient >= 1000 / AMBIENT_FPS)) {
         lastAmbient = now;
         context!.clearRect(0, 0, width, height);
-        if (ambient) drawParticles();
+        if (ambient) drawParticles(now);
         drawGridNodes();
         context!.globalAlpha = 1;
       }

@@ -2,7 +2,7 @@ import { ArrowRight } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import type { ServiceView } from '@/lib/data/types';
-import { ServiceIcon } from '@/components/site/service-icon';
+import { ServiceGlyph } from '@/components/site/service-glyph';
 import { Section, SectionHeading } from './section';
 import { Reveal } from './reveal';
 import { GlowGrid } from '@/components/ui/glow';
@@ -35,7 +35,7 @@ export async function ServicesSection({
               className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
             >
               <span className="flex size-11 items-center justify-center rounded-lg border border-border bg-surface-sunken text-accent transition-colors group-hover:border-accent-border group-hover:bg-accent-subtle">
-                <ServiceIcon iconKey={service.iconKey} className="size-5" />
+                <ServiceGlyph iconKey={service.iconKey} className="size-5" />
               </span>
 
               <h3 className="mt-6 text-lg font-medium text-foreground">{service.title}</h3>

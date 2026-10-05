@@ -1,8 +1,6 @@
 'use client';
 
-import * as React from 'react';
-import { useInView, useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { AnimatedGlyph } from './animated-glyph';
 
 /**
  * Line-art glyph for an industry, drawn on when it first scrolls into view.
@@ -96,7 +94,6 @@ export function IndustryGlyph({
   iconKey,
   className,
   strokeWidth = 1.75,
-  /** Renders immediately instead of waiting to be scrolled into view. */
   eager = false,
 }: {
   iconKey: string | null;
@@ -104,45 +101,12 @@ export function IndustryGlyph({
   strokeWidth?: number;
   eager?: boolean;
 }) {
-  const reduced = useReducedMotion();
-  const ref = React.useRef<SVGSVGElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-10% 0px -10% 0px' });
-
-  // Under reduced motion the glyph is simply already drawn.
-  const play = reduced || eager || inView;
-
-  const paths = (iconKey && GLYPHS[iconKey]) || FALLBACK;
-
   return (
-    <svg
-      ref={ref}
-      viewBox="0 0 48 48"
-      fill="none"
-      stroke="currentColor"
+    <AnimatedGlyph
+      paths={(iconKey && GLYPHS[iconKey]) || FALLBACK}
+      className={className}
       strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn('size-10', className)}
-      aria-hidden="true"
-      role="presentation"
-    >
-      {paths.map((d, index) => (
-        <path
-          key={d}
-          d={d}
-          // Normalised length: every path draws over the same distance, so the
-          // stagger reads as one considered sequence rather than a race.
-          pathLength={1}
-          strokeDasharray={1}
-          strokeDashoffset={play ? 0 : 1}
-          style={{
-            transition: reduced
-              ? undefined
-              : 'stroke-dashoffset 620ms cubic-bezier(0.16, 1, 0.3, 1)',
-            transitionDelay: reduced ? undefined : `${index * 110}ms`,
-          }}
-        />
-      ))}
-    </svg>
+      eager={eager}
+    />
   );
 }

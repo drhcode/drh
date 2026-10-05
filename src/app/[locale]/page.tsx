@@ -4,6 +4,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { isAppLocale, type AppLocale } from '@/i18n/routing';
 import { getCompanySettings, getFaqs, getPage } from '@/lib/data';
 import { PageSections } from '@/components/sections/page-sections';
+import { AiSection } from '@/components/sections/ai-section';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { faqSchema, jsonLdGraph, organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -60,7 +61,14 @@ export default async function HomePage({ params }: Props) {
           faqSchema(faqs),
         )}
       />
-      <PageSections sections={page.sections} locale={locale} signature />
+      {/*
+        The AI section is placed after the hero rather than added as a CMS
+        section type, so the page editor keeps working against the fixed set of
+        blocks it already knows how to render and save.
+      */}
+      <PageSections sections={page.sections.slice(0, 1)} locale={locale} signature />
+      <AiSection />
+      <PageSections sections={page.sections.slice(1)} locale={locale} />
     </>
   );
 }
