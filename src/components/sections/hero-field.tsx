@@ -6,20 +6,22 @@ import { useReducedMotion } from 'framer-motion';
 /**
  * Interactive hero backdrop.
  *
- * One canvas draws three layers that share a coordinate system, so the whole
- * thing reads as a single field rather than stacked decorations:
+ * Sits over the site-wide particle field (`DimensionField`) and adds what is
+ * specific to a hero:
  *
- *   1. drifting particles — slow ambient motion, the "alive" layer
- *   2. grid nodes at the 72px intersections, lit by pointer proximity
- *   3. links between lit particles that are also near each other
+ *   1. the structural grid, with nodes at the 72px intersections lit by
+ *      pointer proximity
+ *   2. a perspective "horizon" grid receding towards a vanishing line
+ *   3. a soft accent glow following the pointer, moved by GPU transform only
  *
- * Plus a soft accent glow following the pointer, moved by GPU transform only.
+ * The particles themselves live in the global field so they run continuously
+ * across the whole page instead of stopping at the hero's edge.
  *
- * Restraint is structural, not just a matter of taste:
- *   • The loop stops when the hero leaves the viewport or the tab is hidden.
- *   • Ambient drift is capped at ~30fps; only pointer response runs full rate.
- *   • Under prefers-reduced-motion nothing is created at all — no canvas, no
- *     glow, no listeners — and the static CSS grid stands alone.
+ * Restraint is structural:
+ *   • The loop only runs while the pointer is engaged, and shuts down
+ *     completely once the effect has faded out.
+ *   • Under prefers-reduced-motion no canvas, glow or listeners are created,
+ *     and the static grids stand alone.
  *   • It is decoration behind text, so it is aria-hidden and pointer-events-none;
  *     scrolling and touch gestures pass straight through.
  */
@@ -30,32 +32,6 @@ const GRID = 72;
 const RADIUS = 210;
 /** Smoothing on the pointer follow. Lower is lazier. */
 const EASE = 0.12;
-/**
- * Particles per million square pixels. Density rather than a fixed count, so
- * the field has the same visual weight on a phone and on an ultrawide.
- */
-const DENSITY = 64;
-const MAX_PARTICLES = 130;
-/**
- * Frame cap for the ambient layer. Raised alongside the drift speed: at 30fps
- * a faster particle visibly steps between positions instead of gliding, so the
- * saving stops being free the moment the motion is quick enough to notice.
- */
-const AMBIENT_FPS = 48;
-/** Lit particles closer than this to each other get a connecting line. */
-const LINK_DISTANCE = 118;
-/** Share of particles drawn as ring nodes instead of plain dots. */
-const NODE_FRACTION = 0.2;
-/** Seconds for one full breath of a ring node. */
-const NODE_PERIOD = 4200;
-/**
- * Nodes are joined to each other whether or not the pointer is near, which is
- * what makes the field read as a network rather than as scattered dust. Only
- * nodes take part — linking every particle would be both slower and noisier.
- */
-const NODE_LINK_DISTANCE = 210;
-/** Share of particles tinted with the accent rather than the neutral line colour. */
-const ACCENT_FRACTION = 0.45;
 
 interface Pointer {
   /** Where the pointer actually is. */
@@ -69,27 +45,7 @@ interface Pointer {
   targetStrength: number;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  /** Baseline opacity, before any pointer influence. */
-  alpha: number;
-  /**
-   * A few particles are drawn as concentric rings rather than dots — the
-   * anchor points of the field. Kept rare on purpose: the effect depends on
-   * most of the field being quiet, and a sky full of rings is just noise.
-   */
-  node: boolean;
-  /** Phase offset so the rings do not breathe in unison. */
-  phase: number;
-  /** Drawn in the accent rather than the neutral line colour. */
-  accent: boolean;
-}
-
-export function HeroField({ particles: ambient = true }: { particles?: boolean }) {
+export function HeroField() {
   const reduced = useReducedMotion();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -136,13 +92,13 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       return context.fillStyle === sentinel ? fallback : raw;
     };
 
-    let accent = resolveColor('--accent', '#2f5fe0');
-    let nodeColor = resolveColor('--border-strong', '#d5d1cb');
+    let accent = resolveColor('--accent', '#7c5cff');
+    let nodeColor = resolveColor('--border-strong', '#c9c3e6');
 
     // The theme toggle swaps tokens on <html>, so re-read when it changes.
     const themeObserver = new MutationObserver(() => {
-      accent = resolveColor('--accent', '#2f5fe0');
-      nodeColor = resolveColor('--border-strong', '#d5d1cb');
+      accent = resolveColor('--accent', '#7c5cff');
+      nodeColor = resolveColor('--border-strong', '#c9c3e6');
     });
     themeObserver.observe(document.documentElement, {
       attributes: true,
@@ -163,47 +119,8 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
     let height = 0;
     let columns = 0;
     let rows = 0;
-    let particles: Particle[] = [];
     let frame = 0;
     let running = false;
-    let onScreen = true;
-    let lastAmbient = 0;
-
-    function seedParticles() {
-      if (!ambient) {
-        particles.length = 0;
-        return;
-      }
-      const target = Math.min(
-        MAX_PARTICLES,
-        Math.round(((width * height) / 1_000_000) * DENSITY),
-      );
-
-      // Keep existing particles across a resize so the field does not visibly
-      // reshuffle when the window changes.
-      if (particles.length > target) {
-        particles.length = target;
-        return;
-      }
-      while (particles.length < target) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          /*
-           * Speeds vary per particle rather than sharing one constant — a field
-           * where everything moves at exactly the same rate reads as a texture
-           * being panned, not as individual things drifting.
-           */
-          vx: (Math.random() - 0.5) * 0.62,
-          vy: (Math.random() - 0.5) * 0.62,
-          radius: 0.7 + Math.random() * 1.3,
-          alpha: 0.3 + Math.random() * 0.32,
-          node: Math.random() < NODE_FRACTION,
-          phase: Math.random() * Math.PI * 2,
-          accent: Math.random() < ACCENT_FRACTION,
-        });
-      }
-    }
 
     function measure() {
       const rect = container!.getBoundingClientRect();
@@ -225,108 +142,6 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       canvas!.style.width = `${width}px`;
       canvas!.style.height = `${height}px`;
       context!.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      seedParticles();
-    }
-
-    function drawParticles(now: number) {
-      const lit: Particle[] = [];
-      const nodes: Particle[] = [];
-
-      for (const particle of particles) {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        // Wrap rather than bounce — bouncing clusters them along the edges.
-        if (particle.x < -10) particle.x = width + 10;
-        if (particle.x > width + 10) particle.x = -10;
-        if (particle.y < -10) particle.y = height + 10;
-        if (particle.y > height + 10) particle.y = -10;
-
-        const distance = Math.hypot(particle.x - pointer.x, particle.y - pointer.y);
-        const influence =
-          distance < RADIUS ? (1 - distance / RADIUS) ** 2 * pointer.strength : 0;
-
-        if (influence > 0.05) lit.push(particle);
-        if (particle.node) nodes.push(particle);
-
-        const colour = particle.accent || influence > 0.02 ? accent : nodeColor;
-
-        if (particle.node) {
-          /*
-           * A ring node: a filled core with two rings breathing outward around
-           * it. The rings carry only a fraction of the core's alpha, so they
-           * read as a halo rather than as more dots.
-           */
-          const breath = (Math.sin(now / NODE_PERIOD + particle.phase) + 1) / 2;
-          const core = particle.radius + 0.5 + influence * 1.4;
-
-          context!.globalAlpha = Math.min(1, particle.alpha + influence * 0.7);
-          context!.fillStyle = colour;
-          context!.beginPath();
-          context!.arc(particle.x, particle.y, core, 0, Math.PI * 2);
-          context!.fill();
-
-          context!.strokeStyle = colour;
-          context!.lineWidth = 1;
-          for (const [index, scale] of [3.2, 5.4].entries()) {
-            const radius = core + scale + breath * (1.6 + index * 1.4);
-            context!.globalAlpha =
-              Math.min(1, particle.alpha + influence * 0.7) * (0.5 - index * 0.18) * (0.55 + breath * 0.45);
-            context!.beginPath();
-            context!.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
-            context!.stroke();
-          }
-        } else {
-          context!.globalAlpha = Math.min(1, particle.alpha + influence * 0.7);
-          context!.fillStyle = colour;
-          context!.beginPath();
-          context!.arc(particle.x, particle.y, particle.radius + influence * 1.4, 0, Math.PI * 2);
-          context!.fill();
-        }
-      }
-
-      /*
-       * Always-on links between node particles. There are only a handful of
-       * nodes, so this stays cheap, and it is what turns a drifting dust field
-       * into something that reads as a network.
-       */
-      context!.lineWidth = 1;
-      for (let i = 0; i < nodes.length; i += 1) {
-        for (let j = i + 1; j < nodes.length; j += 1) {
-          const a = nodes[i];
-          const b = nodes[j];
-          const distance = Math.hypot(a.x - b.x, a.y - b.y);
-          if (distance > NODE_LINK_DISTANCE) continue;
-
-          context!.globalAlpha = (1 - distance / NODE_LINK_DISTANCE) * 0.16;
-          context!.strokeStyle = a.accent || b.accent ? accent : nodeColor;
-          context!.beginPath();
-          context!.moveTo(a.x, a.y);
-          context!.lineTo(b.x, b.y);
-          context!.stroke();
-        }
-      }
-
-      // Link only the particles the pointer has lit. A full O(n²) web would be
-      // both slower and visually much noisier.
-      context!.strokeStyle = accent;
-      context!.lineWidth = 1;
-
-      for (let i = 0; i < lit.length; i += 1) {
-        for (let j = i + 1; j < lit.length; j += 1) {
-          const a = lit[i];
-          const b = lit[j];
-          const distance = Math.hypot(a.x - b.x, a.y - b.y);
-          if (distance > LINK_DISTANCE) continue;
-
-          context!.globalAlpha = (1 - distance / LINK_DISTANCE) * 0.2 * pointer.strength;
-          context!.beginPath();
-          context!.moveTo(a.x, a.y);
-          context!.lineTo(b.x, b.y);
-          context!.stroke();
-        }
-      }
     }
 
     function drawGridNodes() {
@@ -368,7 +183,7 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       }
     }
 
-    function tick(now: number) {
+    function tick() {
       if (!running) return;
 
       pointer.x += (pointer.targetX - pointer.x) * EASE;
@@ -382,27 +197,13 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
           `translate3d(${pointer.x}px, ${pointer.y}px, 0) translate(-50%, -50%)`;
       }
 
-      /*
-       * Two rates in one loop: while the pointer is engaged everything redraws
-       * every frame so the response feels immediate; once it leaves, only the
-       * ambient drift continues, and that is throttled.
-       */
-      const engaged = pointer.strength > 0.01;
-      if (engaged || (ambient && now - lastAmbient >= 1000 / AMBIENT_FPS)) {
-        lastAmbient = now;
-        context!.clearRect(0, 0, width, height);
-        if (ambient) drawParticles(now);
-        drawGridNodes();
-        context!.globalAlpha = 1;
-      }
+      context!.clearRect(0, 0, width, height);
+      drawGridNodes();
+      context!.globalAlpha = 1;
 
-      /*
-       * Without drift there is nothing to animate once the pointer has gone, so
-       * the loop shuts down completely and the hero costs nothing at rest. With
-       * drift it keeps running — but only while on screen and foregrounded.
-       */
-      if (!ambient && !engaged && pointer.targetStrength === 0) {
-        context!.clearRect(0, 0, width, height);
+      // Nothing to animate once the pointer has gone, so the loop shuts down
+      // completely and the hero costs nothing at rest.
+      if (pointer.targetStrength === 0 && pointer.strength === 0) {
         glow!.style.opacity = '0';
         running = false;
         return;
@@ -412,9 +213,8 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
     }
 
     function start() {
-      if (running || !onScreen || document.visibilityState === 'hidden') return;
+      if (running || document.visibilityState === 'hidden') return;
       running = true;
-      lastAmbient = 0;
       frame = requestAnimationFrame(tick);
     }
 
@@ -456,36 +256,13 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       }, 600);
     }
 
-    // A backgrounded tab should cost nothing. rAF already throttles hard there,
-    // but stopping outright also prevents a burst of catch-up drift on return.
     function onVisibilityChange() {
-      if (document.visibilityState === 'visible') {
-        if (ambient) start();
-      } else {
-        stop();
-      }
+      if (document.visibilityState === 'hidden') stop();
     }
-
-    const viewportObserver = new IntersectionObserver(
-      ([entry]) => {
-        onScreen = entry.isIntersecting;
-        if (onScreen) {
-          if (ambient) start();
-        } else {
-          pointer.targetStrength = 0;
-          pointer.strength = 0;
-          glow!.style.opacity = '0';
-          stop();
-        }
-      },
-      { threshold: 0 },
-    );
-    viewportObserver.observe(container);
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     resize();
-    if (ambient) start();
 
     // Passive listeners: this must never delay a scroll or a tap.
     surface.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -499,9 +276,7 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
     return () => {
       stop();
       themeObserver.disconnect();
-      viewportObserver.disconnect();
       resizeObserver.disconnect();
-      particles = [];
       surface.removeEventListener('pointermove', onPointerMove);
       surface.removeEventListener('pointerdown', onPointerMove);
       surface.removeEventListener('pointerleave', onPointerLeave);
@@ -510,7 +285,7 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       window.removeEventListener('scroll', measure);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [reduced, ambient]);
+  }, [reduced]);
 
   return (
     <div
@@ -518,8 +293,9 @@ export function HeroField({ particles: ambient = true }: { particles?: boolean }
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* Static structural grid — unchanged, and all that renders without JS. */}
-      <div className="absolute inset-0 grid-lines opacity-[0.45] dark:opacity-[0.3]" />
+      {/* Static structural grid — all that renders without JS. */}
+      <div className="absolute inset-0 grid-lines opacity-[0.4] dark:opacity-[0.28]" />
+      <div className="hero-horizon" />
 
       {!reduced && (
         <div className="hero-field-mask absolute inset-0">

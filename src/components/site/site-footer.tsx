@@ -38,7 +38,7 @@ export async function SiteFooter({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-surface-sunken">
+    <footer className="site-footer">
       <div className="container-page">
         <div className="grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-12 lg:gap-8 lg:py-16">
           {/* Brand + newsletter */}

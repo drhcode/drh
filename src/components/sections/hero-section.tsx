@@ -19,8 +19,6 @@ interface HeroSectionProps {
   note?: string;
   /** Compact variant for inner pages. */
   size?: 'lg' | 'md';
-  /** Drifting particle layer behind the grid. On by default. */
-  particles?: boolean;
   as?: 'h1' | 'h2';
 }
 
@@ -41,7 +39,6 @@ export function HeroSection({
   secondaryHref = '/work',
   note,
   size = 'lg',
-  particles = true,
   as: Heading = 'h1',
 }: HeroSectionProps) {
   const reduced = useReducedMotion();
@@ -58,7 +55,7 @@ export function HeroSection({
   return (
     <section className="hero-top relative overflow-hidden">
       {/* Structural grid that responds to the pointer — texture, not decoration */}
-      <HeroField particles={particles} />
+      <HeroField />
 
       <div className="container-page relative">
         <div
@@ -70,9 +67,9 @@ export function HeroSection({
           {eyebrow && (
             <motion.p
               {...rise(0)}
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted-foreground"
+              className="pill-dimension mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground"
             >
-              <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+              <span className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_2px_var(--accent-glow)]" aria-hidden="true" />
               {eyebrow}
             </motion.p>
           )}

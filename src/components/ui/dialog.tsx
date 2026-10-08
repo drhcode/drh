@@ -35,7 +35,7 @@ export const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         'anim-dialog fixed left-1/2 top-1/2 z-50 grid w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4',
-        'rounded-xl border border-border bg-surface p-6 shadow-lg',
+        'rounded-xl border border-border bg-surface-raised p-6 shadow-lg',
         'max-h-[calc(100vh-2rem)] overflow-y-auto',
         className,
       )}

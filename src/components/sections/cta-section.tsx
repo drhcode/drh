@@ -22,7 +22,7 @@ export async function CtaSection({
   const settings = await getCompanySettings();
 
   return (
-    <section className="border-t border-border bg-surface-sunken">
+    <section className="border-t border-border">
       <div className="container-page py-20 md:py-24 lg:py-28">
         <Reveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-3xl leading-[1.12] md:text-4xl lg:text-[2.9rem]">

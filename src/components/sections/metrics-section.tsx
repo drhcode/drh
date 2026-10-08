@@ -18,7 +18,7 @@ export function MetricsSection({ items }: { items: Metric[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="border-y border-border bg-surface-sunken">
+    <section className="border-y border-border">
       <div className="container-page">
         <dl className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-4 sm:divide-y-0">
           {items.map((metric) => (

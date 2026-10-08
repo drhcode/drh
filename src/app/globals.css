@@ -109,6 +109,89 @@
   --shadow-lg: 0 18px 40px -12px oklch(0 0 0 / 0.6);
 }
 
+/* ==========================================================================
+   Public-site palette — "dimension"
+
+   The admin keeps the warm neutral system above. The public site switches to
+   a cooler, deeper ground with an electric violet accent and two companions
+   (cyan, magenta) used only in gradients, glows and the particle field.
+
+   Scoped with :has() on a marker the site layout renders, so it also reaches
+   portals (menus, dialogs, the cookie banner) that mount outside the layout.
+   Specificity (0,1,1) / (0,2,1) beats :root and .dark without !important.
+
+   Surfaces are translucent on purpose: the background is one continuous
+   field, and cards read as glass panes floating over it rather than as
+   opaque blocks that interrupt it. Raised surfaces (popovers, dialogs) stay
+   opaque so overlaid text is always legible.
+   ========================================================================== */
+:root {
+  --accent-2: oklch(0.7 0.15 210);
+  --accent-3: oklch(0.66 0.22 340);
+}
+
+html:has(.dimension-site) {
+  --background: oklch(0.975 0.01 285);
+  --surface: oklch(1 0 0 / 0.66);
+  --surface-raised: oklch(1 0 0);
+  --surface-sunken: oklch(0.945 0.018 285 / 0.62);
+
+  --foreground: oklch(0.2 0.04 282);
+  --muted-foreground: oklch(0.45 0.035 282);
+  --subtle-foreground: oklch(0.58 0.03 282);
+
+  --border: oklch(0.86 0.03 285 / 0.75);
+  --border-strong: oklch(0.78 0.04 285);
+  --ring: oklch(0.56 0.24 284);
+
+  --accent: oklch(0.53 0.25 284);
+  --accent-hover: oklch(0.47 0.25 284);
+  --accent-foreground: oklch(0.99 0 0);
+  --accent-subtle: oklch(0.95 0.035 285 / 0.8);
+  --accent-border: oklch(0.84 0.08 285);
+  --accent-glow: oklch(0.6 0.25 284 / 0.32);
+  --accent-2: oklch(0.6 0.14 215);
+  --accent-3: oklch(0.6 0.23 340);
+  --accent-2-glow: oklch(0.7 0.15 210 / 0.22);
+  --accent-3-glow: oklch(0.66 0.22 340 / 0.14);
+  --accent-deep: oklch(0.5 0.24 262);
+  --accent-edge: oklch(1 0 0 / 0.18);
+
+  --shadow-md: 0 8px 24px -10px oklch(0.4 0.15 284 / 0.22), 0 2px 6px -2px oklch(0.3 0.05 284 / 0.08);
+  --shadow-lg: 0 24px 60px -18px oklch(0.4 0.18 284 / 0.3);
+}
+
+html.dark:has(.dimension-site) {
+  --background: oklch(0.125 0.03 283);
+  --surface: oklch(0.21 0.045 283 / 0.5);
+  --surface-raised: oklch(0.2 0.04 283);
+  --surface-sunken: oklch(0.1 0.03 283 / 0.6);
+
+  --foreground: oklch(0.97 0.012 285);
+  --muted-foreground: oklch(0.76 0.03 285);
+  --subtle-foreground: oklch(0.6 0.035 285);
+
+  --border: oklch(0.42 0.07 285 / 0.38);
+  --border-strong: oklch(0.5 0.08 285 / 0.6);
+  --ring: oklch(0.74 0.18 285);
+
+  --accent: oklch(0.72 0.19 288);
+  --accent-hover: oklch(0.79 0.16 288);
+  --accent-foreground: oklch(0.13 0.04 283);
+  --accent-subtle: oklch(0.3 0.09 288 / 0.5);
+  --accent-border: oklch(0.5 0.14 288 / 0.6);
+  --accent-glow: oklch(0.65 0.22 288 / 0.42);
+  --accent-2: oklch(0.82 0.13 205);
+  --accent-3: oklch(0.72 0.2 340);
+  --accent-2-glow: oklch(0.82 0.13 205 / 0.2);
+  --accent-3-glow: oklch(0.72 0.2 340 / 0.14);
+  --accent-deep: oklch(0.66 0.2 262);
+  --accent-edge: oklch(1 0 0 / 0.22);
+
+  --shadow-md: 0 10px 30px -10px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(0.6 0.15 288 / 0.06);
+  --shadow-lg: 0 30px 70px -20px oklch(0 0 0 / 0.7), 0 0 40px -10px oklch(0.6 0.2 288 / 0.2);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -129,6 +212,8 @@
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-border: var(--accent-border);
   --color-accent-glow: var(--accent-glow);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
 
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -553,30 +638,257 @@
 }
 
 /* ==========================================================================
-   Ambient page glow
-   A single accent wash fixed to the viewport, sitting above the page
-   background and below everything else. It is deliberately static: the point is
-   depth behind the content as it scrolls past, and anything that moved here
-   would compete with the hero field rather than support it.
+   Aurora
+   The fixed backdrop of the public site, under the particle field. Two large
+   colour pools on pseudo-elements drift on long, offset loops — transform
+   only, so it runs on the compositor. A faint grain over the top keeps the
+   gradients from banding and gives the ground a material quality.
    ========================================================================== */
+@keyframes aurora-a {
+  0%, 100% { transform: translate3d(-6%, -4%, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(8%, 6%, 0) rotate(12deg) scale(1.12); }
+}
+
+@keyframes aurora-b {
+  0%, 100% { transform: translate3d(6%, 4%, 0) rotate(0deg) scale(1.08); }
+  50% { transform: translate3d(-8%, -6%, 0) rotate(-10deg) scale(0.96); }
+}
+
 @layer components {
-  .page-glow {
+  .page-aurora {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    /* Two offset pools rather than one centred disc — a single circle in the
-       middle of the screen reads as a spotlight, which is the cheap version of
-       this effect. */
-    background:
-      radial-gradient(60rem 40rem at 18% 28%, var(--accent-glow), transparent 70%),
-      radial-gradient(55rem 38rem at 82% 72%, var(--accent-glow), transparent 72%);
-    opacity: 0.35;
+    overflow: hidden;
+    background-color: var(--background);
   }
 
-  /* The dark theme carries it better, so it can afford a little more. */
-  .dark .page-glow {
+  .page-aurora::before,
+  .page-aurora::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    will-change: transform;
+  }
+
+  .page-aurora::before {
+    background:
+      radial-gradient(38% 32% at 22% 24%, var(--accent-glow), transparent 70%),
+      radial-gradient(30% 26% at 78% 18%, var(--accent-2-glow), transparent 70%);
+    animation: aurora-a 38s ease-in-out infinite;
+    opacity: 0.55;
+  }
+
+  .page-aurora::after {
+    background:
+      radial-gradient(34% 30% at 76% 74%, var(--accent-3-glow), transparent 70%),
+      radial-gradient(40% 34% at 28% 82%, var(--accent-glow), transparent 72%);
+    animation: aurora-b 46s ease-in-out infinite;
+    opacity: 0.45;
+  }
+
+  .dark .page-aurora::before {
+    opacity: 0.8;
+  }
+
+  .dark .page-aurora::after {
+    opacity: 0.7;
+  }
+
+  /* Grain: an SVG turbulence tile, far below the threshold of being noticed
+     as texture, but enough to break up gradient banding. */
+  .site-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ------------------------------------------------------------------------
+     Public-site surfaces and accents
+     ------------------------------------------------------------------------ */
+
+  /* Iridescent headline: the accent family sweeping slowly across the text. */
+  .text-dimension,
+  html:has(.dimension-site) .hero-top h1 {
+    background-image: linear-gradient(
+      100deg,
+      var(--foreground) 0%,
+      var(--foreground) 30%,
+      var(--accent) 52%,
+      var(--accent-2) 68%,
+      var(--accent-3) 82%,
+      var(--foreground) 100%
+    );
+    background-size: 220% 100%;
+    background-position: 0% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: text-sheen 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes text-sheen {
+    to {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Glass pill used for eyebrows: hairline gradient border via a masked ring. */
+  .pill-dimension {
+    position: relative;
+    background-color: var(--surface);
+    backdrop-filter: blur(10px);
+    border-color: transparent !important;
+  }
+
+  .pill-dimension::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(110deg, var(--accent), var(--accent-2), var(--accent-3));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  /* Primary buttons on the site: a gradient with a soft glow beneath. The
+     admin renders the same component without the scope and keeps flat fills. */
+  html:has(.dimension-site) .btn-primary {
+    background-image: linear-gradient(115deg, var(--accent) 0%, var(--accent-deep) 100%);
+    box-shadow:
+      0 0 0 1px var(--accent-edge) inset,
+      0 8px 28px -8px var(--accent-glow);
+  }
+
+  html:has(.dimension-site) .btn-primary:hover {
+    background-image: linear-gradient(115deg, var(--accent-hover) 0%, var(--accent-deep) 100%);
+    box-shadow:
+      0 0 0 1px var(--accent-edge) inset,
+      0 10px 36px -6px var(--accent-glow);
+  }
+
+  /* Cards and outline buttons pick up a whisper of blur so the particles
+     behind them soften instead of competing with the text. */
+  @media (min-width: 768px) {
+    html:has(.dimension-site) main .bg-surface {
+      backdrop-filter: blur(6px);
+    }
+  }
+
+  /* Divider grids (`gap-px` over a `bg-border` parent) would show the border
+     colour through every translucent cell. Clear the parent and let each cell
+     draw its own 1px ring into the gap instead. */
+  html:has(.dimension-site) main .gap-px.bg-border {
+    background-color: transparent;
+  }
+
+  html:has(.dimension-site) main .gap-px.bg-border > .bg-surface {
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  /* Section rules fade out at the edges instead of running wall to wall, so
+     the page reads as one continuous space rather than stacked bands. */
+  html:has(.dimension-site) main .hero-top.border-b,
+  html:has(.dimension-site) main section.border-t,
+  html:has(.dimension-site) main section.border-y {
+    border-image: linear-gradient(90deg, transparent, var(--accent-border) 30%, var(--accent-border) 70%, transparent) 1;
+  }
+
+  /* The footer is where the field ends: opaque, with a lit top edge. */
+  .site-footer {
+    position: relative;
+    z-index: 2;
+    background-color: var(--background);
+  }
+
+  .site-footer::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+    opacity: 0.6;
+  }
+
+  .site-footer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(60rem, 90%);
+    height: 6rem;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, var(--accent-glow), transparent);
     opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Hero horizon: a perspective grid receding to a vanishing line, scrolling
+     slowly towards the viewer. Masked so it fades into the page below. */
+  .hero-horizon {
+    position: absolute;
+    left: -50%;
+    right: -50%;
+    bottom: 0;
+    height: 42%;
+    perspective: 420px;
+    perspective-origin: 50% 0%;
+    /* Faded at both ends and toward the sides, so it reads as a floor far
+       below the copy rather than lines drawn through it. */
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, #000 45%, #000 65%, transparent 100%),
+      radial-gradient(ellipse 50% 100% at 50% 50%, #000 40%, transparent 100%);
+    mask-composite: intersect;
+    opacity: 0.32;
+  }
+
+  .dark .hero-horizon {
+    opacity: 0.4;
+  }
+
+  .hero-horizon::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -60% 0;
+    transform: rotateX(68deg);
+    transform-origin: 50% 0%;
+    background-image:
+      linear-gradient(to right, var(--accent-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--accent-border) 1px, transparent 1px);
+    background-size: 64px 64px;
+    animation: horizon-flow 6s linear infinite;
+  }
+
+  @keyframes horizon-flow {
+    to {
+      background-position: 0 64px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-aurora::before,
+    .page-aurora::after,
+    .text-dimension,
+    html:has(.dimension-site) .hero-top h1,
+    .hero-horizon::before {
+      animation: none;
+    }
   }
 }
 

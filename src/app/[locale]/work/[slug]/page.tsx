@@ -329,7 +329,7 @@ export default async function ProjectPage({ params }: Props) {
       {next && <NextProject project={next} label={t('nextProject')} />}
 
       {/* A dedicated CTA so this project's conversion signal is attributable. */}
-      <section className="border-t border-border bg-surface-sunken">
+      <section className="border-t border-border">
         <div className="container-page py-16 md:py-24">
           <Reveal className="mx-auto max-w-3xl text-center">
             <h2 className="text-balance text-2xl leading-[1.12] sm:text-3xl md:text-4xl">

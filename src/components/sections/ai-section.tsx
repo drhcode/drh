@@ -97,7 +97,7 @@ export async function AiSection() {
   );
 
   return (
-    <section className="border-t border-border bg-surface-sunken">
+    <section className="border-t border-border">
       <div className="container-page py-20 md:py-24 lg:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">
