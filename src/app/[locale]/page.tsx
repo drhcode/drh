@@ -5,6 +5,7 @@ import { isAppLocale, type AppLocale } from '@/i18n/routing';
 import { getCompanySettings, getFaqs, getPage } from '@/lib/data';
 import { PageSections } from '@/components/sections/page-sections';
 import { AiSection } from '@/components/sections/ai-section';
+import { HeroRobot } from '@/components/sections/hero-robot';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { faqSchema, jsonLdGraph, organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -66,7 +67,7 @@ export default async function HomePage({ params }: Props) {
         section type, so the page editor keeps working against the fixed set of
         blocks it already knows how to render and save.
       */}
-      <PageSections sections={page.sections.slice(0, 1)} locale={locale} />
+      <PageSections sections={page.sections.slice(0, 1)} locale={locale} heroVisual={<HeroRobot />} />
       <AiSection />
       <PageSections sections={page.sections.slice(1)} locale={locale} />
     </>

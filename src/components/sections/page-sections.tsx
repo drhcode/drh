@@ -35,17 +35,39 @@ import { RichTextSection } from './rich-text-section';
 export async function PageSections({
   sections,
   locale,
+  afterFirst,
+  heroVisual,
 }: {
   sections: PageSection[];
   locale: Language;
+  /**
+   * A fixed, code-owned block rendered after the first CMS section (normally
+   * the hero). Lets a system page add bespoke design without editors being
+   * able to remove it, while every CMS section keeps its own index — so the
+   * hero still carries the page's only h1.
+   */
+  afterFirst?: React.ReactNode;
+  /** Illustration passed to a hero section, beside its copy. */
+  heroVisual?: React.ReactNode;
 }) {
   const rendered = await Promise.all(
-    sections.map((section, index) => renderSection(section, index, locale)),
+    sections.map((section, index) => renderSection(section, index, locale, heroVisual)),
   );
-  return <>{rendered}</>;
+  return (
+    <>
+      {rendered.slice(0, 1)}
+      {afterFirst}
+      {rendered.slice(1)}
+    </>
+  );
 }
 
-async function renderSection(section: PageSection, index: number, locale: Language) {
+async function renderSection(
+  section: PageSection,
+  index: number,
+  locale: Language,
+  heroVisual?: React.ReactNode,
+) {
   const key = `${section.type}-${index}`;
   // Only the first section on a page carries the h1.
   const isFirst = index === 0;
@@ -63,6 +85,7 @@ async function renderSection(section: PageSection, index: number, locale: Langua
           secondaryCta={section.secondaryCta}
           note={section.note}
           as={isFirst ? 'h1' : 'h2'}
+          visual={heroVisual}
         />
       );
 

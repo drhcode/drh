@@ -343,5 +343,35 @@
         "reviewing": "Reviewer: reading the diff"
       }
     }
+  },
+  "about": {
+    "studioEyebrow": "Inside the studio",
+    "studioTitle": "Where ideas become shipped code",
+    "studioBody": "Every project runs through the same disciplined pipeline: typed code, automated checks and performance budgets that fail the build before they can fail your users. Our tooling, including the AI agents we build for ourselves, takes the repetitive work, so senior people spend their time on the decisions that matter.",
+    "point1": "Strictly typed, peer-reviewed code",
+    "point2": "Tests and Lighthouse checks on every change",
+    "point3": "AI-assisted, always human-approved",
+    "editorLabel": "Animated illustration: a small robot types code into an editor, then the build passes.",
+    "workspaceEyebrow": "Where the work happens",
+    "workspaceTitle": "A small senior team with a serious toolbox",
+    "workspaceBody": "We stay small on purpose. The people you meet in the first call are the people who design, build and launch your product, from architecture diagrams to the last pixel of the dashboard.",
+    "imageAlt": "A developer workspace at night: code open on a laptop, an analytics dashboard on a large monitor and an architecture diagram above them.",
+    "badgeBuild": "Build passing",
+    "badgeSpeed": "Lighthouse 95+",
+    "stat1Value": "8+",
+    "stat1Label": "Years shipping",
+    "stat2Value": "100+",
+    "stat2Label": "Projects delivered",
+    "stat3Value": "3",
+    "stat3Label": "Working languages"
+  },
+  "robot": {
+    "ariaLabel": "Say hi to the drh.al robot",
+    "hint": "Tap the robot to say hi",
+    "message1": "Hi there! 👋",
+    "message2": "Let's build something great.",
+    "message3": "Fast sites. Happy clients.",
+    "message4": "I write the code, you grow the business.",
+    "message5": "Hehe, that tickles! 😄"
   }
 }

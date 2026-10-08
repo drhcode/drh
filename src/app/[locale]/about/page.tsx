@@ -4,6 +4,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
 import { getCompanySettings, getPage } from '@/lib/data';
 import { PageSections } from '@/components/sections/page-sections';
+import { AboutStudio } from '@/components/sections/about-studio';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { breadcrumbSchema, jsonLdGraph, organizationSchema } from '@/lib/seo/schema';
@@ -61,7 +62,7 @@ export default async function AboutPage({ params }: Props) {
           ),
         )}
       />
-      <PageSections sections={page.sections} locale={locale} />
+      <PageSections sections={page.sections} locale={locale} afterFirst={<AboutStudio />} />
     </>
   );
 }

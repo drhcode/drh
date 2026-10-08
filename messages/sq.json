@@ -343,5 +343,35 @@
         "reviewing": "Rishikues: po lexohen ndryshimet"
       }
     }
+  },
+  "about": {
+    "studioEyebrow": "Brenda studios",
+    "studioTitle": "Ku idetë bëhen kod i publikuar",
+    "studioBody": "Çdo projekt kalon nëpër të njëjtin proces të disiplinuar: kod i tipizuar, kontrolle automatike dhe buxhete performance që ndalojnë build-in para se të dëmtojnë përdoruesit tuaj. Mjetet tona, përfshirë agjentët AI që ndërtojmë për vete, marrin përsipër punën e përsëritur, që njerëzit me përvojë të fokusohen te vendimet që kanë rëndësi.",
+    "point1": "Kod i tipizuar rreptësisht dhe i rishikuar",
+    "point2": "Teste dhe kontrolle Lighthouse në çdo ndryshim",
+    "point3": "I asistuar nga AI, gjithmonë i miratuar nga njeriu",
+    "editorLabel": "Ilustrim i animuar: një robot i vogël shkruan kod në një editor, pastaj build-i kalon me sukses.",
+    "workspaceEyebrow": "Ku ndodh puna",
+    "workspaceTitle": "Një ekip i vogël me përvojë dhe mjete serioze",
+    "workspaceBody": "Qëndrojmë të vegjël me qëllim. Njerëzit që takoni në telefonatën e parë janë ata që projektojnë, ndërtojnë dhe lançojnë produktin tuaj, nga diagramet e arkitekturës deri te pikseli i fundit i panelit.",
+    "imageAlt": "Një hapësirë pune zhvilluesi natën: kod i hapur në laptop, një panel analitik në monitor të madh dhe një diagram arkitekture mbi to.",
+    "badgeBuild": "Build i suksesshëm",
+    "badgeSpeed": "Lighthouse 95+",
+    "stat1Value": "8+",
+    "stat1Label": "Vite përvojë",
+    "stat2Value": "100+",
+    "stat2Label": "Projekte të realizuara",
+    "stat3Value": "3",
+    "stat3Label": "Gjuhë pune"
+  },
+  "robot": {
+    "ariaLabel": "Përshëndet robotin e drh.al",
+    "hint": "Prek robotin për ta përshëndetur",
+    "message1": "Përshëndetje! 👋",
+    "message2": "Le të ndërtojmë diçka të shkëlqyer.",
+    "message3": "Faqe të shpejta. Klientë të lumtur.",
+    "message4": "Unë shkruaj kodin, ju rritni biznesin.",
+    "message5": "Hehe, më gudulise! 😄"
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import type * as React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
@@ -20,6 +21,11 @@ interface HeroSectionProps {
   /** Compact variant for inner pages. */
   size?: 'lg' | 'md';
   as?: 'h1' | 'h2';
+  /**
+   * Optional illustration beside the copy (below it on small screens). The
+   * copy column narrows and the headline steps down a size to make room.
+   */
+  visual?: React.ReactNode;
 }
 
 /**
@@ -40,6 +46,7 @@ export function HeroSection({
   note,
   size = 'lg',
   as: Heading = 'h1',
+  visual,
 }: HeroSectionProps) {
   const reduced = useReducedMotion();
 
@@ -60,74 +67,88 @@ export function HeroSection({
       <div className="container-page relative">
         <div
           className={cn(
-            'max-w-4xl',
-            size === 'lg' ? 'pb-16 pt-20 md:pb-24 md:pt-28 lg:pb-28 lg:pt-32' : 'pb-12 pt-16 md:pb-16 md:pt-24',
+            visual && 'grid items-center gap-10 lg:grid-cols-12 lg:gap-6',
+            size === 'lg'
+              ? visual
+                ? 'pb-16 pt-14 md:pb-20 md:pt-20 lg:pb-24 lg:pt-24'
+                : 'pb-16 pt-20 md:pb-24 md:pt-28 lg:pb-28 lg:pt-32'
+              : 'pb-12 pt-16 md:pb-16 md:pt-24',
           )}
         >
-          {eyebrow && (
-            <motion.p
-              {...rise(0)}
-              className="pill-dimension mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground"
-            >
-              <span className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_2px_var(--accent-glow)]" aria-hidden="true" />
-              {eyebrow}
-            </motion.p>
-          )}
+          <div className={cn('max-w-4xl', visual && 'lg:col-span-7')}>
+            {eyebrow && (
+              <motion.p
+                {...rise(0)}
+                className="pill-dimension mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground"
+              >
+                <span className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_2px_var(--accent-glow)]" aria-hidden="true" />
+                {eyebrow}
+              </motion.p>
+            )}
 
-          <motion.div {...rise(0.06)}>
-            <Heading
-              className={cn(
-                'text-balance leading-[1.06]',
-                size === 'lg'
-                  ? 'text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.25rem]'
-                  : 'text-4xl md:text-5xl lg:text-[3.25rem]',
-              )}
-            >
-              {title}
-            </Heading>
-          </motion.div>
-
-          {subtitle && (
-            <motion.p
-              {...rise(0.12)}
-              className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground md:text-xl"
-            >
-              {subtitle}
-            </motion.p>
-          )}
-
-          {body && (
-            <motion.div {...rise(0.18)} className="mt-5 max-w-2xl space-y-4">
-              {body.split(/\n{2,}/).map((paragraph, index) => (
-                <p key={index} className="text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]">
-                  {paragraph}
-                </p>
-              ))}
+            <motion.div {...rise(0.06)}>
+              <Heading
+                className={cn(
+                  'text-balance leading-[1.06]',
+                  size === 'lg'
+                    ? visual
+                      ? 'text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[3.5rem] xl:text-[4rem]'
+                      : 'text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.25rem]'
+                    : 'text-4xl md:text-5xl lg:text-[3.25rem]',
+                )}
+              >
+                {title}
+              </Heading>
             </motion.div>
-          )}
 
-          {(primaryCta || secondaryCta) && (
-            <motion.div {...rise(0.24)} className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              {primaryCta && (
-                <Button asChild size="lg" className="group">
-                  <Link href={primaryHref}>
-                    {primaryCta}
-                    <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-              )}
-              {secondaryCta && (
-                <Button asChild size="lg" variant="outline">
-                  <Link href={secondaryHref}>{secondaryCta}</Link>
-                </Button>
-              )}
+            {subtitle && (
+              <motion.p
+                {...rise(0.12)}
+                className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground md:text-xl"
+              >
+                {subtitle}
+              </motion.p>
+            )}
+
+            {body && (
+              <motion.div {...rise(0.18)} className="mt-5 max-w-2xl space-y-4">
+                {body.split(/\n{2,}/).map((paragraph, index) => (
+                  <p key={index} className="text-base leading-relaxed text-muted-foreground md:text-[1.0625rem]">
+                    {paragraph}
+                  </p>
+                ))}
+              </motion.div>
+            )}
+
+            {(primaryCta || secondaryCta) && (
+              <motion.div {...rise(0.24)} className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                {primaryCta && (
+                  <Button asChild size="lg" className="group">
+                    <Link href={primaryHref}>
+                      {primaryCta}
+                      <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                )}
+                {secondaryCta && (
+                  <Button asChild size="lg" variant="outline">
+                    <Link href={secondaryHref}>{secondaryCta}</Link>
+                  </Button>
+                )}
+              </motion.div>
+            )}
+
+            {note && (
+              <motion.p {...rise(0.3)} className="mt-6 text-sm text-subtle-foreground">
+                {note}
+              </motion.p>
+            )}
+          </div>
+
+          {visual && (
+            <motion.div {...rise(0.2)} className="lg:col-span-5">
+              {visual}
             </motion.div>
-          )}
-
-          {note && (
-            <motion.p {...rise(0.3)} className="mt-6 text-sm text-subtle-foreground">
-              {note}
-            </motion.p>
           )}
         </div>
       </div>

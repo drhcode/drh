@@ -1039,3 +1039,454 @@ html.dark:has(.dimension-site) {
     }
   }
 }
+
+/* ==========================================================================
+   Code window + robot (About page)
+   The editor is always a dark editor, in both site themes — that is what an
+   editor looks like — so it carries its own small palette instead of the
+   page tokens. The robot animates with transforms only; `transform-box`
+   makes each SVG part rotate around its own box rather than the canvas.
+   ========================================================================== */
+@layer components {
+  .code-window {
+    --code-bg: oklch(0.17 0.03 283);
+    --code-panel: oklch(0.145 0.03 283);
+    --code-line: oklch(0.3 0.05 283 / 0.7);
+    background: var(--code-bg);
+    border: 1px solid oklch(0.42 0.08 285 / 0.5);
+    box-shadow:
+      0 30px 80px -24px oklch(0 0 0 / 0.55),
+      0 0 0 1px oklch(1 0 0 / 0.04) inset;
+    color: oklch(0.9 0.015 285);
+  }
+
+  .code-chrome,
+  .code-activity,
+  .code-explorer,
+  .code-tabs {
+    background: var(--code-panel);
+  }
+
+  .code-chrome,
+  .code-tabs {
+    border-bottom: 1px solid var(--code-line);
+  }
+
+  .code-activity,
+  .code-explorer {
+    border-right: 1px solid var(--code-line);
+  }
+
+  .code-terminal {
+    border-top: 1px solid var(--code-line);
+    background: oklch(0.135 0.03 283);
+  }
+
+  .code-tab-active {
+    background: var(--code-bg);
+    border-top: 1px solid var(--accent);
+    border-right: 1px solid var(--code-line);
+  }
+
+  .code-active {
+    background: oklch(0.3 0.08 288 / 0.45);
+  }
+
+  .code-line-active {
+    background: oklch(1 0 0 / 0.04);
+  }
+
+  .code-status {
+    background: linear-gradient(90deg, oklch(0.55 0.22 285), oklch(0.6 0.15 230));
+    color: oklch(0.98 0 0);
+  }
+
+  .code-text { color: oklch(0.9 0.015 285); }
+  .code-muted { color: oklch(0.6 0.03 285); }
+  .code-gutter { color: oklch(0.45 0.03 285); }
+  .code-accent { color: oklch(0.8 0.14 288); }
+  .code-type { color: oklch(0.72 0.14 240); font-weight: 600; font-size: 9px; }
+  .code-ok { color: oklch(0.8 0.17 150); }
+
+  .code-k { color: oklch(0.74 0.17 305); }
+  .code-f { color: oklch(0.86 0.12 90); }
+  .code-s { color: oklch(0.78 0.12 55); }
+  .code-t { color: oklch(0.8 0.11 190); }
+  .code-n { color: oklch(0.85 0.11 140); }
+  .code-c { color: oklch(0.56 0.04 285); font-style: italic; }
+  .code-p { color: oklch(0.88 0.015 285); }
+
+  .code-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.15em;
+    margin-left: 1px;
+    vertical-align: -0.2em;
+    background: oklch(0.85 0.12 288);
+    animation: caret-blink 1s steps(1) infinite;
+  }
+
+  @keyframes caret-blink {
+    50% { opacity: 0; }
+  }
+
+  /* Robot */
+  .robot g,
+  .robot rect,
+  .robot circle,
+  .robot path {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .robot-body {
+    animation: robot-bob 3.2s ease-in-out infinite;
+  }
+
+  .robot-antenna {
+    fill: var(--accent-3);
+    animation: robot-pulse 1.6s ease-in-out infinite;
+  }
+
+  .robot-eye {
+    fill: var(--accent-2);
+    filter: drop-shadow(0 0 4px var(--accent-2));
+    animation: robot-blink 4.5s ease-in-out infinite;
+  }
+
+  /* Eyes glance towards the code while typing, back to the viewer when done. */
+  .robot-eyes {
+    transition: transform 400ms ease;
+  }
+
+  .robot-typing .robot-eyes {
+    transform: translate(-5px, 2px);
+  }
+
+  .robot-smile {
+    stroke: var(--accent-2);
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+
+  .robot-happy .robot-smile {
+    opacity: 1;
+  }
+
+  .robot-core {
+    fill: var(--accent);
+    filter: drop-shadow(0 0 6px var(--accent));
+    animation: robot-pulse 2.4s ease-in-out infinite;
+  }
+
+  .robot-happy .robot-core {
+    fill: oklch(0.8 0.17 150);
+    filter: drop-shadow(0 0 6px oklch(0.8 0.17 150));
+  }
+
+  .robot-arm {
+    transform-origin: top center;
+  }
+
+  .robot-typing .robot-arm-l {
+    animation: robot-tap 0.26s ease-in-out infinite alternate;
+  }
+
+  .robot-typing .robot-arm-r {
+    animation: robot-tap 0.26s ease-in-out 0.13s infinite alternate;
+  }
+
+  .robot-key {
+    fill: oklch(0.38 0.06 285);
+  }
+
+  .robot-typing .robot-key:nth-child(3n) {
+    animation: key-flash 0.52s steps(1) infinite;
+  }
+
+  .robot-typing .robot-key:nth-child(3n + 1) {
+    animation: key-flash 0.52s steps(1) 0.26s infinite;
+  }
+
+  @keyframes robot-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  @keyframes robot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  @keyframes robot-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+
+  @keyframes robot-tap {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(-3px) rotate(-3deg); }
+  }
+
+  @keyframes key-flash {
+    50% { fill: var(--accent-2); }
+  }
+
+  /* Floating glass badges over the workspace image. */
+  .float-badge {
+    animation: badge-float 6s ease-in-out infinite;
+  }
+
+  .float-badge-late {
+    animation-delay: -3s;
+  }
+
+  @keyframes badge-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .robot *,
+    .robot-body,
+    .code-caret,
+    .float-badge {
+      animation: none !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Home hero robot
+   Parts moved by CSS set their own transform-box; the head and eyes are moved
+   from JS through their `transform` attribute and must keep the SVG's own
+   coordinate system, so nothing here may set `transform` on them.
+   ========================================================================== */
+@layer components {
+  .hero-robot .hr-bob,
+  .hero-robot .hr-arm,
+  .hero-robot .hr-arm-wave,
+  .hero-robot .hr-code,
+  .hero-robot .hr-eq,
+  .hero-robot .hr-ring,
+  .hero-robot .hr-holo,
+  .hero-robot .hr-cheek,
+  .hero-robot .hr-eye {
+    transform-box: fill-box;
+  }
+
+  .hero-robot .hr-bob {
+    transform-origin: center bottom;
+    animation: robot-bob 3.4s ease-in-out infinite;
+  }
+
+  .hero-robot .hr-holo {
+    transform-origin: center;
+    animation: holo-float 5s ease-in-out infinite;
+  }
+
+  .hero-robot .hr-code {
+    transform-origin: left center;
+    animation: holo-type 4.4s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+  }
+
+  .hero-robot .hr-key {
+    fill: var(--accent-2);
+    opacity: 0.25;
+  }
+
+  .hero-robot.is-typing .hr-key:nth-child(4n + 2) {
+    animation: key-glow 0.5s steps(1) infinite;
+  }
+
+  .hero-robot.is-typing .hr-key:nth-child(5n + 3) {
+    animation: key-glow 0.5s steps(1) 0.25s infinite;
+  }
+
+  .hero-robot .hr-eq {
+    fill: var(--accent-2);
+    transform-origin: center bottom;
+    animation: eq-bounce 0.9s ease-in-out infinite alternate;
+  }
+
+  .hero-robot.is-happy .hr-eq {
+    fill: var(--accent-3);
+  }
+
+  .hero-robot .hr-ring {
+    transform-origin: center;
+    animation: ring-out 3.2s ease-out infinite;
+  }
+
+  .hero-robot .hr-ring-late {
+    animation-delay: 1.6s;
+  }
+
+  .hero-robot .hr-antenna {
+    fill: var(--accent-3);
+    animation: robot-pulse 1.6s ease-in-out infinite;
+  }
+
+  .hero-robot.is-happy .hr-antenna {
+    animation-duration: 0.5s;
+  }
+
+  /* Arms */
+  .hero-robot .hr-arm {
+    transform-origin: top center;
+  }
+
+  .hero-robot.is-typing .hr-arm-l {
+    animation: robot-tap 0.24s ease-in-out infinite alternate;
+  }
+
+  .hero-robot.is-typing .hr-arm-r {
+    animation: robot-tap 0.24s ease-in-out 0.12s infinite alternate;
+  }
+
+  .hero-robot .hr-arm-wave {
+    opacity: 0;
+    transform-origin: 0% 100%;
+  }
+
+  .hero-robot.is-waving .hr-arm-r {
+    opacity: 0;
+  }
+
+  .hero-robot.is-waving .hr-arm-wave {
+    opacity: 1;
+    animation: robot-wave 0.5s ease-in-out infinite alternate;
+  }
+
+  /* Face */
+  .hero-robot .hr-eye {
+    fill: var(--accent-2);
+    filter: drop-shadow(0 0 6px var(--accent-2));
+    transform-origin: center;
+    animation: robot-blink 4.2s ease-in-out infinite;
+  }
+
+  .hero-robot .hr-eyes-happy path,
+  .hero-robot .hr-mouth-happy {
+    stroke: var(--accent-2);
+    filter: drop-shadow(0 0 5px var(--accent-2));
+  }
+
+  .hero-robot .hr-mouth-idle {
+    fill: var(--accent-2);
+    opacity: 0.7;
+  }
+
+  .hero-robot .hr-eyes-happy,
+  .hero-robot .hr-mouth-happy,
+  .hero-robot .hr-cheek {
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .hero-robot .hr-eyes-open,
+  .hero-robot .hr-mouth-idle {
+    transition: opacity 180ms ease;
+  }
+
+  .hero-robot.is-happy .hr-eyes-open,
+  .hero-robot.is-happy .hr-mouth-idle {
+    opacity: 0;
+  }
+
+  .hero-robot.is-happy .hr-eyes-happy,
+  .hero-robot.is-happy .hr-mouth-happy {
+    opacity: 1;
+  }
+
+  .hero-robot .hr-cheek {
+    fill: var(--accent-3);
+    filter: blur(2px);
+  }
+
+  .hero-robot.is-happy .hr-cheek {
+    opacity: 0.55;
+  }
+
+  /* Hover and press feedback on the whole illustration */
+  .hero-robot {
+    transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 300ms ease;
+  }
+
+  button:active > .hero-robot {
+    transform: scale(0.97);
+  }
+
+  button:focus-visible > .hero-robot {
+    filter: drop-shadow(0 0 0.75rem var(--accent-glow));
+  }
+
+  /* Speech bubble */
+  .hero-bubble {
+    background: var(--surface-raised);
+    border: 1px solid var(--accent-border);
+    color: var(--foreground);
+    transform-origin: 0% 100%;
+    transition:
+      opacity 200ms ease,
+      transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .hero-bubble-off {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+
+  .hero-bubble-on {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Hearts and sparks thrown on a tap */
+  .hero-burst {
+    animation: burst-up 1.3s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  }
+
+  @keyframes burst-up {
+    0% { opacity: 0; transform: translate(0, 10px) scale(0.4) rotate(0deg); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--burst-x, 0px), -70px) scale(1.15) rotate(var(--burst-rotate, 0deg)); }
+  }
+
+  @keyframes holo-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @keyframes holo-type {
+    0% { transform: scaleX(0); opacity: 0.4; }
+    18%, 82% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+  }
+
+  @keyframes key-glow {
+    50% { opacity: 0.95; }
+  }
+
+  @keyframes eq-bounce {
+    from { transform: scaleY(0.3); }
+    to { transform: scaleY(1); }
+  }
+
+  @keyframes ring-out {
+    from { transform: scale(0.6); opacity: 0.9; }
+    to { transform: scale(1.35); opacity: 0; }
+  }
+
+  @keyframes robot-wave {
+    from { transform: rotate(-8deg); }
+    to { transform: rotate(14deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-robot *,
+    .hero-burst {
+      animation: none !important;
+    }
+  }
+}
