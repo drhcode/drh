@@ -56,11 +56,8 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: settings.favicon
       ? { icon: settings.favicon, apple: settings.favicon }
       : {
-          icon: [
-            { url: '/favicon.svg', type: 'image/svg+xml' },
-            { url: '/favicon.ico', sizes: '32x32' },
-          ],
-          apple: '/apple-touch-icon.png',
+          icon: [{ url: '/favicon.jpg', type: 'image/jpeg', sizes: '250x250' }],
+          apple: '/favicon.jpg',
         },
   };
 }
