@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HeroField } from './hero-field';
+import { AccentTitle } from '@/components/site/accent-title';
 
 interface HeroSectionProps {
   eyebrow?: string;
@@ -89,15 +90,17 @@ export function HeroSection({
             <motion.div {...rise(0.06)}>
               <Heading
                 className={cn(
-                  'text-balance leading-[1.06]',
+                  'text-balance',
                   size === 'lg'
                     ? visual
-                      ? 'text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[3.5rem] xl:text-[4rem]'
-                      : 'text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.25rem]'
-                    : 'text-4xl md:text-5xl lg:text-[3.25rem]',
+                      ? 'text-[3rem] sm:text-6xl md:text-7xl lg:text-[4.75rem] xl:text-[5.5rem]'
+                      : 'text-[3rem] sm:text-6xl md:text-7xl lg:text-[6.25rem]'
+                    : 'text-[2.75rem] md:text-6xl lg:text-[4.5rem]',
+                  // After the sizes: tailwind-merge drops a leading-* that precedes a text-* size.
+                  'leading-[1]',
                 )}
               >
-                {title}
+                <AccentTitle text={title} autoLast />
               </Heading>
             </motion.div>
 

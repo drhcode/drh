@@ -79,7 +79,7 @@ export default async function ContactPage({ params }: Props) {
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
               {t('title')}
             </p>
-            <h1 className="text-balance text-4xl leading-[1.1] md:text-5xl">{t('heroTitle')}</h1>
+            <h1 className="text-balance text-[2.75rem] leading-[1.03] md:text-6xl">{t('heroTitle')}</h1>
 
             <div className="mt-6 space-y-4">
               {t('heroDescription')

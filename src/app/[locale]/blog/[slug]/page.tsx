@@ -111,7 +111,7 @@ export default async function BlogPostPage({ params }: Props) {
             </nav>
 
             <div className="mt-7 max-w-3xl">
-              <h1 className="text-balance text-3xl leading-[1.14] md:text-4xl lg:text-[3rem]">
+              <h1 className="text-balance text-[2.25rem] leading-[1.06] md:text-5xl lg:text-[3.75rem]">
                 {post.title}
               </h1>
 

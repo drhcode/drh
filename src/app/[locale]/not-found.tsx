@@ -18,7 +18,7 @@ export default async function NotFound() {
         <div className="max-w-2xl">
           <p className="font-mono text-sm font-medium text-accent">{t('code')}</p>
 
-          <h1 className="mt-5 text-balance text-4xl leading-[1.1] md:text-5xl lg:text-[3.5rem]">
+          <h1 className="mt-5 text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.75rem]">
             {t('title')}
           </h1>
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Reveal } from './reveal';
 import { AgentStudio, type AgentStudioCopy } from './agent-studio';
 import { AnimatedGlyph } from '@/components/site/animated-glyph';
+import { AccentTitle } from '@/components/site/accent-title';
 
 /**
  * AI engineering section (homepage).
@@ -107,8 +108,8 @@ export async function AiSection() {
                 {t('eyebrow')}
               </p>
 
-              <h2 className="mt-5 text-balance text-3xl leading-[1.12] md:text-4xl lg:text-[2.6rem]">
-                {t('title')}
+              <h2 className="mt-5 text-balance text-[2.5rem] leading-[1.04] md:text-5xl lg:text-[3.75rem]">
+                <AccentTitle text={t('title')} autoLast />
               </h2>
 
               <p className="mt-5 text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">

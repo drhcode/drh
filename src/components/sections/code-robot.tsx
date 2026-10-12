@@ -156,9 +156,9 @@ export function CodeRobot({ label, className }: { label: string; className?: str
       <div aria-hidden="true" className="code-window relative overflow-hidden rounded-xl">
         {/* Title bar */}
         <div className="code-chrome flex h-9 items-center gap-2 px-3.5">
-          <span className="size-3 rounded-full bg-[#ff5f57]" />
-          <span className="size-3 rounded-full bg-[#febc2e]" />
-          <span className="size-3 rounded-full bg-[#28c840]" />
+          <span className="size-3 rounded-full bg-[#d9735f]" />
+          <span className="size-3 rounded-full bg-[#d9a74a]" />
+          <span className="size-3 rounded-full bg-[#6aa77a]" />
           <span className="code-muted mx-auto pr-10 font-mono text-[11px]">drh.al — ship.ts</span>
         </div>
 
@@ -269,23 +269,23 @@ function Robot({ state, className }: { state: Phase; className?: string }) {
     >
       <defs>
         <linearGradient id={`${gradientId}-shell`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#cfc8f5" />
+          <stop offset="0" stopColor="#fbf6ef" />
+          <stop offset="1" stopColor="#d8c6b1" />
         </linearGradient>
       </defs>
 
       <g className="robot-body">
         {/* Antenna */}
-        <line x1="80" y1="24" x2="80" y2="10" stroke="#2a2550" strokeWidth="3" strokeLinecap="round" />
+        <line x1="80" y1="24" x2="80" y2="10" stroke="#062226" strokeWidth="3" strokeLinecap="round" />
         <circle className="robot-antenna" cx="80" cy="8" r="5" />
 
         {/* Ears */}
-        <rect x="31" y="44" width="10" height="20" rx="4" fill="#9d93e0" />
-        <rect x="119" y="44" width="10" height="20" rx="4" fill="#9d93e0" />
+        <rect x="31" y="44" width="10" height="20" rx="4" fill="#c8935f" />
+        <rect x="119" y="44" width="10" height="20" rx="4" fill="#c8935f" />
 
         {/* Head */}
-        <rect x="38" y="22" width="84" height="62" rx="20" fill={`url(#${gradientId}-shell)`} stroke="#2a2550" strokeWidth="3" />
-        <rect x="49" y="34" width="62" height="38" rx="13" fill="#120e2b" />
+        <rect x="38" y="22" width="84" height="62" rx="20" fill={`url(#${gradientId}-shell)`} stroke="#062226" strokeWidth="3" />
+        <rect x="49" y="34" width="62" height="38" rx="13" fill="#052226" />
 
         {/* Face: eyes glance left, towards the code */}
         <g className="robot-eyes">
@@ -295,26 +295,26 @@ function Robot({ state, className }: { state: Phase; className?: string }) {
         <path className="robot-smile" d="M70 64 Q80 71 90 64" fill="none" strokeWidth="3" strokeLinecap="round" />
 
         {/* Neck and torso */}
-        <rect x="70" y="84" width="20" height="8" fill="#9d93e0" />
-        <rect x="44" y="90" width="72" height="54" rx="16" fill={`url(#${gradientId}-shell)`} stroke="#2a2550" strokeWidth="3" />
+        <rect x="70" y="84" width="20" height="8" fill="#c8935f" />
+        <rect x="44" y="90" width="72" height="54" rx="16" fill={`url(#${gradientId}-shell)`} stroke="#062226" strokeWidth="3" />
         <circle className="robot-core" cx="80" cy="114" r="8" />
-        <rect x="64" y="128" width="32" height="4" rx="2" fill="#9d93e0" />
+        <rect x="64" y="128" width="32" height="4" rx="2" fill="#c8935f" />
       </g>
 
       {/* Arms reaching down to the keyboard */}
       <g className="robot-arm robot-arm-l">
-        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#2a2550" strokeWidth="9" strokeLinecap="round" />
-        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#e9e5ff" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="34" cy="148" r="7" fill="#9d93e0" stroke="#2a2550" strokeWidth="3" />
+        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#062226" strokeWidth="9" strokeLinecap="round" />
+        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#f2e8dd" strokeWidth="4.5" strokeLinecap="round" />
+        <circle cx="34" cy="148" r="7" fill="#c8935f" stroke="#062226" strokeWidth="3" />
       </g>
       <g className="robot-arm robot-arm-r">
-        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#2a2550" strokeWidth="9" strokeLinecap="round" />
-        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#e9e5ff" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="126" cy="148" r="7" fill="#9d93e0" stroke="#2a2550" strokeWidth="3" />
+        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#062226" strokeWidth="9" strokeLinecap="round" />
+        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#f2e8dd" strokeWidth="4.5" strokeLinecap="round" />
+        <circle cx="126" cy="148" r="7" fill="#c8935f" stroke="#062226" strokeWidth="3" />
       </g>
 
       {/* Keyboard */}
-      <rect x="14" y="150" width="132" height="20" rx="6" fill="#1b1638" stroke="#2a2550" strokeWidth="3" />
+      <rect x="14" y="150" width="132" height="20" rx="6" fill="#073b40" stroke="#062226" strokeWidth="3" />
       {Array.from({ length: 9 }, (_, index) => (
         <rect key={index} className="robot-key" x={22 + index * 13.2} y="156" width="9" height="7" rx="2" />
       ))}

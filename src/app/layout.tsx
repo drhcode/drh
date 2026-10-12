@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Geist_Mono, Instrument_Serif, Manrope } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { RouteProgress } from '@/components/route-progress';
@@ -8,14 +8,24 @@ import { publicEnv, serverEnv } from '@/lib/env';
 import { getCompanySettings } from '@/lib/data';
 import './globals.css';
 
-const inter = Inter({
+/** Body, navigation and buttons. Variable font, so every weight is one file. */
+const sans = Manrope({
   subsets: ['latin', 'latin-ext'],
   display: 'swap',
-  variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans-stack',
 });
 
-const mono = JetBrains_Mono({
+/** Display headings. Ships in a single regular weight, plus italic for accents. */
+const serif = Instrument_Serif({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-serif-stack',
+  weight: '400',
+  style: ['normal', 'italic'],
+});
+
+/** Numbers, tags and labels. */
+const mono = Geist_Mono({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-mono-stack',
@@ -66,16 +76,18 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fbfaf8' },
-    { media: '(prefers-color-scheme: dark)', color: '#161514' },
+    { media: '(prefers-color-scheme: light)', color: '#092b30' },
+    { media: '(prefers-color-scheme: dark)', color: '#092b30' },
   ],
 };
 
 /**
  * Applies the stored theme before first paint so there is no flash of the wrong
- * colour scheme. Kept inline and tiny on purpose.
+ * colour scheme. Kept inline and tiny on purpose. Dark is the default: the
+ * palette is built around Dark Teal, and light (Soft Ivory) is an opt-in from
+ * the toggle rather than something the OS setting switches on.
  */
-const themeScript = `(function(){try{var s=localStorage.getItem('drh-theme');var d=s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('drh-theme');var d=s!=='light';document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 /**
  * Google Consent Mode v2 bootstrap.
@@ -113,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const googleTagId = publicEnv.ga4MeasurementId ?? publicEnv.googleAdsId;
 
   return (
-    <html lang={lang} suppressHydrationWarning className={`${inter.variable} ${mono.variable}`}>
+    <html lang={lang} suppressHydrationWarning className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {googleTagId && (

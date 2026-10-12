@@ -122,7 +122,7 @@ export default async function IndustryPage({ params }: Props) {
                 {industry.title}
               </p>
 
-              <h1 className="mt-5 text-balance text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+              <h1 className="mt-5 text-balance text-[2.5rem] leading-[1.03] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
                 {industry.heroTitle ?? industry.title}
               </h1>
 

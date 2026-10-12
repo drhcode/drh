@@ -143,7 +143,7 @@ export default async function ServicePage({ params }: Props) {
                 Starts at 2rem so a long headline still breaks cleanly at 375px,
                 then steps up through the breakpoints.
               */}
-              <h1 className="mt-6 text-balance text-[2rem] leading-[1.12] sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+              <h1 className="mt-6 text-balance text-[2.5rem] leading-[1.03] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
                 {service.headline ?? service.title}
               </h1>
 

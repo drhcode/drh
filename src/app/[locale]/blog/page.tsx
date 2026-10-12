@@ -74,7 +74,7 @@ export default async function BlogPage({ params }: Props) {
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
             {t('title')}
           </p>
-          <h1 className="max-w-3xl text-balance text-4xl leading-[1.1] md:text-5xl lg:text-[3.5rem]">
+          <h1 className="max-w-3xl text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.75rem]">
             {t('heroTitle')}
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">

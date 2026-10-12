@@ -225,13 +225,13 @@ export function HeroRobot() {
         >
           <defs>
             <linearGradient id="hr-shell" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#ffffff" />
-              <stop offset="0.6" stopColor="#e4dfff" />
-              <stop offset="1" stopColor="#b9aff0" />
+              <stop offset="0" stopColor="#fbf6ef" />
+              <stop offset="0.6" stopColor="#f2e8dd" />
+              <stop offset="1" stopColor="#d8c6b1" />
             </linearGradient>
             <linearGradient id="hr-visor" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#1d1745" />
-              <stop offset="1" stopColor="#0b0920" />
+              <stop offset="0" stopColor="#0b3d42" />
+              <stop offset="1" stopColor="#052226" />
             </linearGradient>
             <linearGradient id="hr-holo" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" style={{ stopColor: 'var(--accent)' }} stopOpacity="0.28" />
@@ -292,8 +292,8 @@ export function HeroRobot() {
 
           <g className="hr-bob">
             {/* Body */}
-            <rect x="160" y="184" width="30" height="22" rx="6" fill="#9d93e0" stroke="#2a2550" strokeWidth="3" />
-            <rect x="110" y="200" width="130" height="104" rx="34" fill="url(#hr-shell)" stroke="#2a2550" strokeWidth="3.5" />
+            <rect x="160" y="184" width="30" height="22" rx="6" fill="#c8935f" stroke="#062226" strokeWidth="3" />
+            <rect x="110" y="200" width="130" height="104" rx="34" fill="url(#hr-shell)" stroke="#062226" strokeWidth="3.5" />
             <rect x="134" y="222" width="82" height="46" rx="14" fill="url(#hr-visor)" />
             {Array.from({ length: 6 }, (_, index) => (
               <rect
@@ -307,33 +307,33 @@ export function HeroRobot() {
                 rx="3"
               />
             ))}
-            <rect x="150" y="280" width="50" height="6" rx="3" fill="#9d93e0" />
+            <rect x="150" y="280" width="50" height="6" rx="3" fill="#c8935f" />
 
             {/* Typing arms */}
             <g className="hr-arm hr-arm-l">
-              <path d="M116 230 Q84 272 116 318" fill="none" stroke="#2a2550" strokeWidth="15" strokeLinecap="round" />
-              <path d="M116 230 Q84 272 116 318" fill="none" stroke="#efeaff" strokeWidth="8" strokeLinecap="round" />
-              <circle cx="117" cy="321" r="12" fill="#9d93e0" stroke="#2a2550" strokeWidth="3.5" />
+              <path d="M116 230 Q84 272 116 318" fill="none" stroke="#062226" strokeWidth="15" strokeLinecap="round" />
+              <path d="M116 230 Q84 272 116 318" fill="none" stroke="#f2e8dd" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="117" cy="321" r="12" fill="#c8935f" stroke="#062226" strokeWidth="3.5" />
             </g>
             <g className="hr-arm hr-arm-r">
-              <path d="M234 230 Q266 272 236 318" fill="none" stroke="#2a2550" strokeWidth="15" strokeLinecap="round" />
-              <path d="M234 230 Q266 272 236 318" fill="none" stroke="#efeaff" strokeWidth="8" strokeLinecap="round" />
-              <circle cx="235" cy="321" r="12" fill="#9d93e0" stroke="#2a2550" strokeWidth="3.5" />
+              <path d="M234 230 Q266 272 236 318" fill="none" stroke="#062226" strokeWidth="15" strokeLinecap="round" />
+              <path d="M234 230 Q266 272 236 318" fill="none" stroke="#f2e8dd" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="235" cy="321" r="12" fill="#c8935f" stroke="#062226" strokeWidth="3.5" />
             </g>
             {/* Waving arm, shown instead of the right typing arm after a tap */}
             <g className="hr-arm-wave">
-              <path d="M234 228 Q280 214 292 162" fill="none" stroke="#2a2550" strokeWidth="15" strokeLinecap="round" />
-              <path d="M234 228 Q280 214 292 162" fill="none" stroke="#efeaff" strokeWidth="8" strokeLinecap="round" />
-              <circle cx="293" cy="152" r="14" fill="#9d93e0" stroke="#2a2550" strokeWidth="3.5" />
+              <path d="M234 228 Q280 214 292 162" fill="none" stroke="#062226" strokeWidth="15" strokeLinecap="round" />
+              <path d="M234 228 Q280 214 292 162" fill="none" stroke="#f2e8dd" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="293" cy="152" r="14" fill="#c8935f" stroke="#062226" strokeWidth="3.5" />
             </g>
 
             {/* Head — rotated from JS around the neck */}
             <g ref={headRef} transform="rotate(4 175 190)">
-              <line x1="175" y1="60" x2="175" y2="34" stroke="#2a2550" strokeWidth="4" strokeLinecap="round" />
+              <line x1="175" y1="60" x2="175" y2="34" stroke="#062226" strokeWidth="4" strokeLinecap="round" />
               <circle className="hr-antenna" cx="175" cy="28" r="8" />
-              <rect x="70" y="102" width="22" height="54" rx="9" fill="#9d93e0" stroke="#2a2550" strokeWidth="3" />
-              <rect x="258" y="102" width="22" height="54" rx="9" fill="#9d93e0" stroke="#2a2550" strokeWidth="3" />
-              <rect x="85" y="58" width="180" height="132" rx="48" fill="url(#hr-shell)" stroke="#2a2550" strokeWidth="3.5" />
+              <rect x="70" y="102" width="22" height="54" rx="9" fill="#c8935f" stroke="#062226" strokeWidth="3" />
+              <rect x="258" y="102" width="22" height="54" rx="9" fill="#c8935f" stroke="#062226" strokeWidth="3" />
+              <rect x="85" y="58" width="180" height="132" rx="48" fill="url(#hr-shell)" stroke="#062226" strokeWidth="3.5" />
               <rect x="103" y="80" width="144" height="90" rx="34" fill="url(#hr-visor)" />
               {/* Visor glint */}
               <path d="M118 92 Q150 84 186 88" fill="none" stroke="#ffffff" strokeOpacity="0.22" strokeWidth="5" strokeLinecap="round" />

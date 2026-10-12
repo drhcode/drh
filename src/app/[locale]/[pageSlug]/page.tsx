@@ -113,7 +113,7 @@ async function LegalDocumentPage({ slug, locale }: { slug: LegalSlug; locale: Ap
       <header className="border-b border-border">
         <div className="container-page pb-12 pt-14 md:pt-20">
           <div className="max-w-2xl">
-            <h1 className="text-4xl leading-[1.12] md:text-5xl">{doc.title}</h1>
+            <h1 className="text-[2.75rem] leading-[1.04] md:text-6xl">{doc.title}</h1>
             <p className="mt-5 text-base leading-relaxed text-muted-foreground">{doc.intro}</p>
             <p className="mt-6 text-sm text-subtle-foreground">
               {t('lastUpdated')}{' '}

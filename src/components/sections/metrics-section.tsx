@@ -85,7 +85,7 @@ function AnimatedValue({ value }: { value: string }) {
   return (
     <span
       ref={ref}
-      className="block text-3xl font-semibold tabular-nums tracking-tight text-foreground md:text-4xl"
+      className="block font-mono text-3xl font-medium tabular-nums tracking-tight text-foreground md:text-4xl"
     >
       {display}
     </span>

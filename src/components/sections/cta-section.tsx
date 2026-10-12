@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { getCompanySettings } from '@/lib/data';
 import { EmailLink, PhoneLink, WhatsAppButton } from '@/components/site/contact-links';
 import { Reveal } from './reveal';
+import { AccentTitle } from '@/components/site/accent-title';
 
 /** Closing conversion block (spec §22). */
 export async function CtaSection({
@@ -25,8 +26,8 @@ export async function CtaSection({
     <section className="border-t border-border">
       <div className="container-page py-20 md:py-24 lg:py-28">
         <Reveal className="mx-auto max-w-3xl text-center">
-          <h2 className="text-balance text-3xl leading-[1.12] md:text-4xl lg:text-[2.9rem]">
-            {title}
+          <h2 className="text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.5rem]">
+            <AccentTitle text={title} autoLast />
           </h2>
 
           {body && (

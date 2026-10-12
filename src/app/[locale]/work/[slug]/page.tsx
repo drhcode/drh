@@ -127,7 +127,7 @@ export default async function ProjectPage({ params }: Props) {
             <p className="text-sm font-medium uppercase tracking-[0.14em] text-accent">
               {project.clientName}
             </p>
-            <h1 className="mt-4 text-balance text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+            <h1 className="mt-4 text-balance text-[2.5rem] leading-[1.03] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
               {project.title}
             </h1>
             {project.shortDescription && (

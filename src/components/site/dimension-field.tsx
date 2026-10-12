@@ -128,7 +128,8 @@ export function DimensionField() {
     let ripples: Ripple[] = [];
     let sprites: HTMLCanvasElement[] = [];
     let palette: string[] = [];
-    let additive = true;
+    /** Dark Teal theme: particles carry a little more opacity than on ivory. */
+    let dark = true;
     let frame = 0;
     let running = false;
     let last = 0;
@@ -173,13 +174,13 @@ export function DimensionField() {
      * interpolate a colour towards `transparent` (which is transparent black).
      */
     function buildSprites() {
-      const dark = document.documentElement.classList.contains('dark');
-      additive = dark;
+      dark = document.documentElement.classList.contains('dark');
+      // Caramel, sea glass, sand and the text colour (ivory on teal, teal on ivory).
       palette = [
-        resolveColor('--accent', '#8b6cff'),
-        resolveColor('--accent-2', '#5ee0ff'),
-        resolveColor('--accent-3', '#ff6ad5'),
-        dark ? resolveColor('--foreground', '#f4f2ff') : resolveColor('--accent-hover', '#5a3df0'),
+        resolveColor('--accent', '#c8935f'),
+        resolveColor('--accent-2', '#8cc2b8'),
+        resolveColor('--accent-3', '#e8d5bf'),
+        resolveColor('--foreground', '#f2e8dd'),
       ];
       const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-mono-stack').trim();
       if (fontFamily) monoFont = `${fontFamily}, ui-monospace, monospace`;
@@ -191,9 +192,11 @@ export function DimensionField() {
         const s = sprite.getContext('2d')!;
         const half = SPRITE_SIZE / 2;
         const gradient = s.createRadialGradient(half, half, 0, half, half, half);
+        // A crisp core with only a short falloff: matte points, not glows.
         gradient.addColorStop(0, 'rgba(255,255,255,1)');
-        gradient.addColorStop(0.12, 'rgba(255,255,255,0.9)');
-        gradient.addColorStop(0.3, 'rgba(255,255,255,0.28)');
+        gradient.addColorStop(0.2, 'rgba(255,255,255,0.95)');
+        gradient.addColorStop(0.34, 'rgba(255,255,255,0.3)');
+        gradient.addColorStop(0.55, 'rgba(255,255,255,0.05)');
         gradient.addColorStop(1, 'rgba(255,255,255,0)');
         s.fillStyle = gradient;
         s.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
@@ -211,8 +214,8 @@ export function DimensionField() {
         x: Math.random() * 2 - 1,
         y: Math.random() * 2 - 1,
         z,
-        // Mostly the primary accent, then the cool secondary, a few warm and white.
-        hue: roll < 0.48 ? 0 : roll < 0.8 ? 1 : roll < 0.9 ? 2 : 3,
+        // Mostly the text colour and sea glass; caramel and sand are the rarer warm notes.
+        hue: roll < 0.14 ? 0 : roll < 0.44 ? 1 : roll < 0.58 ? 2 : 3,
         phase: Math.random() * Math.PI * 2,
         rate: 0.6 + Math.random() * 1.4,
         size: 0.7 + Math.random() * 0.9,
@@ -276,7 +279,6 @@ export function DimensionField() {
 
     function draw(time: number, dt: number) {
       context!.clearRect(0, 0, width, height);
-      context!.globalCompositeOperation = additive ? 'lighter' : 'source-over';
 
       pointer.x += (pointer.tx - pointer.x) * 0.08;
       pointer.y += (pointer.ty - pointer.y) * 0.08;
@@ -341,8 +343,8 @@ export function DimensionField() {
         const boost = Math.max(lens, scanned * 0.8);
 
         const alpha =
-          Math.min(1, (0.24 + depth * 0.7) * twinkle * fadeIn + boost * 0.6) * (additive ? 1 : 0.8);
-        const size = (4 + depth * 16) * p.size * (1 + boost * 0.7);
+          Math.min(1, (0.2 + depth * 0.6) * twinkle * fadeIn + boost * 0.55) * (dark ? 0.85 : 0.7);
+        const size = (3 + depth * 12) * p.size * (1 + boost * 0.6);
 
         context!.globalAlpha = alpha;
         if (p.shape === 'glyph') {
@@ -406,7 +408,7 @@ export function DimensionField() {
               to: forward ? b : a,
               t: 0,
               speed: 0.7 + Math.random() * 0.9,
-              hue: Math.random() < 0.6 ? 1 : 0,
+              hue: Math.random() < 0.6 ? 0 : 1,
             });
           }
         }
@@ -419,7 +421,6 @@ export function DimensionField() {
       drawReticle(time);
 
       context!.globalAlpha = 1;
-      context!.globalCompositeOperation = 'source-over';
     }
 
     /** Data packets: a bright head with a short tail, riding a link. */
@@ -434,7 +435,7 @@ export function DimensionField() {
         const ty = packet.from.sy + (packet.to.sy - packet.from.sy) * tail;
         const fade = Math.sin(packet.t * Math.PI);
 
-        context!.globalAlpha = fade * (additive ? 0.9 : 0.6);
+        context!.globalAlpha = fade * (dark ? 0.75 : 0.6);
         context!.strokeStyle = palette[packet.hue];
         context!.lineWidth = 1.6;
         context!.beginPath();
@@ -452,13 +453,13 @@ export function DimensionField() {
         const radius = progress * RIPPLE_RADIUS;
         const fade = (1 - progress) ** 1.5;
         context!.lineWidth = 1.5;
-        context!.strokeStyle = palette[1];
-        context!.globalAlpha = fade * (additive ? 0.7 : 0.5);
+        context!.strokeStyle = palette[0];
+        context!.globalAlpha = fade * (dark ? 0.55 : 0.45);
         context!.beginPath();
         context!.arc(ripple.x, ripple.y, radius, 0, Math.PI * 2);
         context!.stroke();
         // A second, thinner ring trailing behind gives the wave some body.
-        context!.strokeStyle = palette[0];
+        context!.strokeStyle = palette[3];
         context!.globalAlpha = fade * 0.35;
         context!.beginPath();
         context!.arc(ripple.x, ripple.y, radius * 0.72, 0, Math.PI * 2);
@@ -470,10 +471,10 @@ export function DimensionField() {
       const gradient = context!.createLinearGradient(0, y - 60, 0, y + 6);
       gradient.addColorStop(0, 'rgba(0,0,0,0)');
       gradient.addColorStop(1, palette[1]);
-      context!.globalAlpha = additive ? 0.07 : 0.05;
+      context!.globalAlpha = dark ? 0.05 : 0.04;
       context!.fillStyle = gradient;
       context!.fillRect(0, y - 60, width, 66);
-      context!.globalAlpha = additive ? 0.28 : 0.18;
+      context!.globalAlpha = dark ? 0.2 : 0.16;
       context!.fillStyle = palette[1];
       context!.fillRect(0, y, width, 1);
     }
@@ -482,7 +483,7 @@ export function DimensionField() {
     function drawReticle(time: number) {
       if (!pointer.mouse || pointer.strength < 0.02) return;
       const { x, y } = pointer;
-      const alpha = pointer.strength * (additive ? 0.5 : 0.38);
+      const alpha = pointer.strength * (dark ? 0.45 : 0.38);
       const radius = 20;
       context!.globalAlpha = alpha;
       context!.strokeStyle = palette[1];
@@ -554,7 +555,7 @@ export function DimensionField() {
       );
       gradient.addColorStop(0, palette[streak.hue]);
       gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      context!.globalAlpha = streak.life * (additive ? 0.9 : 0.55);
+      context!.globalAlpha = streak.life * (dark ? 0.6 : 0.45);
       context!.strokeStyle = gradient;
       context!.lineWidth = 1.4;
       context!.beginPath();

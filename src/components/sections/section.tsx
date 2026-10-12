@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { AccentTitle } from '@/components/site/accent-title';
 
 export function Section({
   className,
@@ -48,12 +49,12 @@ export function SectionHeading({
       )}
     >
       {eyebrow && (
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-accent">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
           {eyebrow}
         </p>
       )}
-      <h2 id={id} className="text-3xl leading-[1.15] md:text-4xl lg:text-[2.6rem]">
-        {title}
+      <h2 id={id} className="text-[2.5rem] leading-[1.04] md:text-5xl lg:text-[3.75rem]">
+        <AccentTitle text={title} autoLast />
       </h2>
       {subtitle && (
         <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg">

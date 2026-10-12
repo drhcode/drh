@@ -52,7 +52,7 @@ export function Logo({
         fill
         sizes="256px"
         priority={priority}
-        className={cn('object-contain object-left', hasDarkVariant && 'dark:hidden')}
+        className={cn('object-contain object-left', hasDarkVariant ? 'dark:hidden' : 'logo-single')}
       />
       {hasDarkVariant && (
         <Image

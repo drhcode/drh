@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Check, Gauge, ShieldCheck } from 'lucide-react';
 import { CodeRobot } from './code-robot';
 import { Reveal } from './reveal';
+import { AccentTitle } from '@/components/site/accent-title';
 
 /** Served from /public; spaces are encoded so the optimiser receives a valid URL. */
 const WORKSPACE_IMAGE = encodeURI('/media/services/Custom Web Applications.png');
@@ -35,9 +36,9 @@ export async function AboutStudio() {
             </p>
             <h2
               id="about-studio-title"
-              className="text-dimension text-3xl leading-[1.15] md:text-4xl lg:text-[2.6rem]"
+              className="text-[2.5rem] leading-[1.05] md:text-5xl lg:text-[3.5rem]"
             >
-              {t('studioTitle')}
+              <AccentTitle text={t('studioTitle')} autoLast />
             </h2>
             <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
               {t('studioBody')}
@@ -62,8 +63,8 @@ export async function AboutStudio() {
         {/* Row 2: the workspace */}
         <div className="mt-28 grid items-center gap-12 lg:mt-36 lg:grid-cols-12">
           <Reveal className="relative lg:order-2 lg:col-span-7">
-            <div className="rounded-2xl bg-gradient-to-br from-accent via-accent-2 to-accent-3 p-px shadow-lg">
-              <div className="group relative aspect-[3/2] overflow-hidden rounded-[calc(1rem-1px)] bg-surface-raised">
+            <div className="rounded-2xl border border-border-strong p-1.5 shadow-lg">
+              <div className="group relative aspect-[3/2] overflow-hidden rounded-[0.75rem] bg-surface-raised">
                 <Image
                   src={WORKSPACE_IMAGE}
                   alt={t('imageAlt')}
@@ -92,7 +93,9 @@ export async function AboutStudio() {
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-accent">
               {t('workspaceEyebrow')}
             </p>
-            <h2 className="text-3xl leading-[1.15] md:text-4xl">{t('workspaceTitle')}</h2>
+            <h2 className="text-[2.5rem] leading-[1.05] md:text-5xl">
+              <AccentTitle text={t('workspaceTitle')} autoLast />
+            </h2>
             <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
               {t('workspaceBody')}
             </p>
@@ -101,7 +104,7 @@ export async function AboutStudio() {
                 <div key={stat.label} className="rounded-xl border border-border bg-surface p-4">
                   <dt className="sr-only">{stat.label}</dt>
                   <dd>
-                    <span className="block bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-2xl font-semibold text-transparent md:text-3xl">
+                    <span className="block font-mono text-2xl font-medium text-accent md:text-3xl">
                       {stat.value}
                     </span>
                     <span aria-hidden="true" className="mt-1 block text-xs leading-snug text-muted-foreground md:text-sm">
