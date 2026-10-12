@@ -8,7 +8,6 @@ import { SiteFooter } from '@/components/site/site-footer';
 import { CookieConsent } from '@/components/site/cookie-consent';
 import { AnalyticsScripts } from '@/components/site/analytics-scripts';
 import { ConsentProvider } from '@/components/site/consent-provider';
-import { DimensionField } from '@/components/site/dimension-field';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -45,14 +44,13 @@ export default async function LocaleLayout({
         </a>
 
         {/*
-          Fixed backdrop shared by every page: the aurora wash, then the particle
-          field over it. Both are decorative, so hidden from assistive technology
-          and take no pointer events. The footer paints over them opaquely.
+          Fixed backdrop shared by every page: a quiet tonal wash under a grain
+          tile. Decorative, so hidden from assistive technology and takes no
+          pointer events. The particle field lives only in the home hero.
           `dimension-site` scopes the public-site palette in globals.css, so the
           admin keeps its own.
         */}
         <div className="dimension-site page-aurora" aria-hidden="true" />
-        <DimensionField />
         <div className="site-grain" aria-hidden="true" />
 
         <div className="relative z-10 flex min-h-dvh flex-col">

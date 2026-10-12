@@ -110,96 +110,110 @@
 }
 
 /* ==========================================================================
-   Public-site palette — matte teal, ivory and caramel
+   Public-site palette — premium dark, ivory and light green
 
-   The admin keeps the warm neutral system above. The public site runs on
-   three brand colours — Dark Teal #092B30, Deep Teal #073B40 and Soft Ivory
-   #F2E8DD — plus one caramel accent for actions, links and italic headline
-   accents. Dark Teal is the default theme; Soft Ivory is the light theme.
+   Near-black with a faint green undertone is the ground, Soft Ivory #F2E8DD
+   carries all text, and one light green does everything that should catch
+   the eye: links, italic headline accents and the hero's particle field.
+   Primary buttons are ivory on black — the quietest high-contrast pairing,
+   which is what reads as premium. Dark is the default theme; the light theme
+   inverts to an ivory ground with near-black text and a deep green accent.
 
-   Matte means: surfaces are opaque and flat, shadows are soft and short,
-   nothing glows. Secondary text is ivory/teal at reduced opacity rather than
-   a separate grey, so every neutral stays inside the palette.
+   Matte: surfaces are opaque and flat, shadows soft, nothing glows outside
+   the hero. Secondary text is ivory (or ink) at reduced opacity, so every
+   neutral stays inside the palette.
 
    Scoped with :has() on a marker the site layout renders, so it also reaches
    portals (menus, dialogs, the cookie banner) that mount outside the layout.
    Specificity (0,1,1) / (0,2,1) beats :root and .dark without !important.
 
-   Contrast (WCAG): ivory on Dark Teal 12.3:1, on Deep Teal 10.1:1; caramel
-   on Dark Teal 5.6:1; deep caramel on ivory 4.9:1.
+   Contrast (WCAG): ivory on #0B0D0C 16.6:1; light green on #0B0D0C 13:1;
+   ink on ivory 15:1; deep green on ivory 5.3:1.
    ========================================================================== */
 :root {
   --accent-2: oklch(0.7 0.15 210);
   --accent-3: oklch(0.66 0.22 340);
 }
 
-/* Light — Soft Ivory */
+/* Light — Soft Ivory ground */
 html:has(.dimension-site) {
   --background: #f2e8dd;
   --surface: #f7f0e7;
   --surface-raised: #fbf7f1;
   --surface-sunken: #e9ddcf;
 
-  --foreground: #092b30;
-  --muted-foreground: rgb(9 43 48 / 0.74);
-  --subtle-foreground: rgb(9 43 48 / 0.66);
+  --foreground: #0f1311;
+  --muted-foreground: rgb(15 19 17 / 0.72);
+  --subtle-foreground: rgb(15 19 17 / 0.62);
 
-  --border: rgb(9 43 48 / 0.13);
-  --border-strong: rgb(9 43 48 / 0.24);
-  --ring: #8f5428;
+  --border: rgb(15 19 17 / 0.12);
+  --border-strong: rgb(15 19 17 / 0.22);
+  --ring: #256b42;
 
-  --accent: #8f5428;
-  --accent-hover: #774420;
-  --accent-foreground: #f7f0e7;
-  --accent-subtle: rgb(143 84 40 / 0.1);
-  --accent-border: rgb(143 84 40 / 0.3);
-  --accent-glow: rgb(143 84 40 / 0.14);
+  --accent: #256b42;
+  --accent-hover: #1d5634;
+  --accent-foreground: #f2e8dd;
+  --accent-subtle: rgb(37 107 66 / 0.1);
+  --accent-border: rgb(37 107 66 / 0.3);
+  --accent-glow: rgb(37 107 66 / 0.14);
   /* Companions for the particle field and illustrations only. */
-  --accent-2: #2e6b66;
-  --accent-3: #b98b5e;
-  --accent-2-glow: rgb(46 107 102 / 0.12);
-  --accent-3-glow: rgb(185 139 94 / 0.1);
-  --accent-deep: #774420;
+  --accent-2: #3f9a63;
+  --accent-3: #0f1311;
+  --accent-2-glow: rgb(63 154 99 / 0.1);
+  --accent-3-glow: rgb(255 255 255 / 0.35);
+  --accent-deep: #1d5634;
   --accent-edge: rgb(255 255 255 / 0.14);
 
-  --shadow-xs: 0 1px 2px 0 rgb(9 43 48 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(9 43 48 / 0.07);
-  --shadow-md: 0 6px 18px -8px rgb(9 43 48 / 0.16);
-  --shadow-lg: 0 18px 40px -16px rgb(9 43 48 / 0.22);
+  --shadow-xs: 0 1px 2px 0 rgb(15 19 17 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(15 19 17 / 0.07);
+  --shadow-md: 0 6px 18px -8px rgb(15 19 17 / 0.16);
+  --shadow-lg: 0 18px 40px -16px rgb(15 19 17 / 0.22);
 }
 
-/* Dark — Dark Teal (default) */
+/* Dark — premium near-black (default) */
 html.dark:has(.dimension-site) {
-  --background: #092b30;
-  --surface: #073b40;
-  --surface-raised: #0b4448;
-  --surface-sunken: #072428;
+  --background: #0b0d0c;
+  --surface: #121614;
+  --surface-raised: #181d1a;
+  --surface-sunken: #070908;
 
   --foreground: #f2e8dd;
-  --muted-foreground: rgb(242 232 221 / 0.74);
-  --subtle-foreground: rgb(242 232 221 / 0.58);
+  --muted-foreground: rgb(242 232 221 / 0.7);
+  --subtle-foreground: rgb(242 232 221 / 0.54);
 
-  --border: rgb(242 232 221 / 0.11);
-  --border-strong: rgb(242 232 221 / 0.22);
-  --ring: #d6a473;
+  --border: rgb(242 232 221 / 0.09);
+  --border-strong: rgb(242 232 221 / 0.17);
+  --ring: #a3e4b6;
 
-  --accent: #c8935f;
-  --accent-hover: #d6a675;
-  --accent-foreground: #092b30;
-  --accent-subtle: rgb(200 147 95 / 0.13);
-  --accent-border: rgb(200 147 95 / 0.38);
-  --accent-glow: rgb(200 147 95 / 0.18);
-  --accent-2: #8cc2b8;
-  --accent-3: #e8d5bf;
-  --accent-2-glow: rgb(140 194 184 / 0.1);
-  --accent-3-glow: rgb(232 213 191 / 0.06);
-  --accent-deep: #b07b49;
-  --accent-edge: rgb(255 255 255 / 0.1);
+  --accent: #a3e4b6;
+  --accent-hover: #bdeecb;
+  --accent-foreground: #0b0d0c;
+  --accent-subtle: rgb(163 228 182 / 0.1);
+  --accent-border: rgb(163 228 182 / 0.3);
+  --accent-glow: rgb(163 228 182 / 0.16);
+  --accent-2: #5fc48a;
+  --accent-3: #f2e8dd;
+  --accent-2-glow: rgb(95 196 138 / 0.07);
+  --accent-3-glow: rgb(242 232 221 / 0.03);
+  --accent-deep: #5fc48a;
+  --accent-edge: rgb(255 255 255 / 0.08);
 
-  --shadow-xs: 0 1px 2px 0 rgb(2 18 20 / 0.3);
-  --shadow-sm: 0 1px 3px 0 rgb(2 18 20 / 0.35);
-  --shadow-md: 0 8px 22px -10px rgb(2 18 20 / 0.55);
-  --shadow-lg: 0 22px 48px -18px rgb(2 18 20 / 0.65);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.45);
+  --shadow-md: 0 8px 22px -10px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 22px 48px -18px rgb(0 0 0 / 0.7);
+}
+
+/* Primary buttons: ivory on black (ink on ivory in the light theme), with
+   the green arriving on hover. The admin keeps its flat accent fill. */
+html:has(.dimension-site) .btn-primary {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+html:has(.dimension-site) .btn-primary:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
 }
 
 @theme inline {
@@ -993,12 +1007,12 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
    ========================================================================== */
 @layer components {
   .code-window {
-    --code-bg: #062a2e;
-    --code-panel: #052226;
+    --code-bg: #101412;
+    --code-panel: #0c0f0e;
     --code-line: rgb(242 232 221 / 0.09);
     background: var(--code-bg);
     border: 1px solid rgb(242 232 221 / 0.14);
-    box-shadow: 0 24px 60px -24px rgb(2 18 20 / 0.6);
+    box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.7);
     color: #f2e8dd;
   }
 
@@ -1021,7 +1035,7 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
 
   .code-terminal {
     border-top: 1px solid var(--code-line);
-    background: #041d21;
+    background: #090b0a;
   }
 
   .code-tab-active {
@@ -1031,7 +1045,7 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
   }
 
   .code-active {
-    background: rgb(200 147 95 / 0.16);
+    background: rgb(163 228 182 / 0.1);
   }
 
   .code-line-active {
@@ -1039,23 +1053,23 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
   }
 
   .code-status {
-    background: #c8935f;
-    color: #092b30;
+    background: #a3e4b6;
+    color: #0b0d0c;
   }
 
-  /* Syntax palette drawn from the brand: caramel, sand, sea glass, ivory. */
+  /* Syntax palette drawn from the brand: light greens, ivory and one warm sand. */
   .code-text { color: #f2e8dd; }
   .code-muted { color: rgb(242 232 221 / 0.5); }
   .code-gutter { color: rgb(242 232 221 / 0.32); }
-  .code-accent { color: #c8935f; }
-  .code-type { color: #8cc2b8; font-weight: 600; font-size: 9px; }
-  .code-ok { color: #8cc2b8; }
+  .code-accent { color: #a3e4b6; }
+  .code-type { color: #a3e4b6; font-weight: 600; font-size: 9px; }
+  .code-ok { color: #a3e4b6; }
 
-  .code-k { color: #d6a473; }
+  .code-k { color: #a3e4b6; }
   .code-f { color: #e8d5bf; }
-  .code-s { color: #8cc2b8; }
-  .code-t { color: #a9d4cc; }
-  .code-n { color: #e3b78a; }
+  .code-s { color: #d9c7a8; }
+  .code-t { color: #7fd1a0; }
+  .code-n { color: #c9e8a6; }
   .code-c { color: rgb(242 232 221 / 0.42); font-style: italic; }
   .code-p { color: rgb(242 232 221 / 0.86); }
 
@@ -1065,7 +1079,7 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
     height: 1.15em;
     margin-left: 1px;
     vertical-align: -0.2em;
-    background: #c8935f;
+    background: #a3e4b6;
     animation: caret-blink 1s steps(1) infinite;
   }
 
@@ -1121,7 +1135,7 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
   }
 
   .robot-happy .robot-core {
-    fill: #8cc2b8;
+    fill: #a3e4b6;
   }
 
   .robot-arm {

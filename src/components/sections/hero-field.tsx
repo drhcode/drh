@@ -6,16 +6,13 @@ import { useReducedMotion } from 'framer-motion';
 /**
  * Interactive hero backdrop.
  *
- * Sits over the site-wide particle field (`DimensionField`) and adds what is
- * specific to a hero:
+ * Every hero gets this layer; the full-height home hero also gets the
+ * particle field (`DimensionField`) beneath it. It adds:
  *
  *   1. the structural grid, with nodes at the 72px intersections lit by
  *      pointer proximity
  *   2. a perspective "horizon" grid receding towards a vanishing line
  *   3. a soft accent glow following the pointer, moved by GPU transform only
- *
- * The particles themselves live in the global field so they run continuously
- * across the whole page instead of stopping at the hero's edge.
  *
  * Restraint is structural:
  *   • The loop only runs while the pointer is engaged, and shuts down

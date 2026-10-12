@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HeroField } from './hero-field';
+import { DimensionField } from '@/components/site/dimension-field';
 import { AccentTitle } from '@/components/site/accent-title';
 
 interface HeroSectionProps {
@@ -27,6 +28,11 @@ interface HeroSectionProps {
    * copy column narrows and the headline steps down a size to make room.
    */
   visual?: React.ReactNode;
+  /**
+   * Full-viewport hero with the particle field behind it. Used by the home
+   * page only; every other hero stays compact and particle-free.
+   */
+  immersive?: boolean;
 }
 
 /**
@@ -48,6 +54,7 @@ export function HeroSection({
   size = 'lg',
   as: Heading = 'h1',
   visual,
+  immersive = false,
 }: HeroSectionProps) {
   const reduced = useReducedMotion();
 
@@ -61,19 +68,30 @@ export function HeroSection({
         };
 
   return (
-    <section className="hero-top relative overflow-hidden">
+    <section
+      className={cn(
+        'hero-top relative overflow-hidden',
+        // svh, not vh: mobile browser toolbars would otherwise push the fold.
+        immersive && 'flex min-h-[100svh] flex-col justify-center',
+      )}
+    >
+      {immersive && <DimensionField />}
       {/* Structural grid that responds to the pointer — texture, not decoration */}
       <HeroField />
 
-      <div className="container-page relative">
+      <div className="container-page relative w-full">
         <div
           className={cn(
             visual && 'grid items-center gap-10 lg:grid-cols-12 lg:gap-6',
-            size === 'lg'
-              ? visual
-                ? 'pb-16 pt-14 md:pb-20 md:pt-20 lg:pb-24 lg:pt-24'
-                : 'pb-16 pt-20 md:pb-24 md:pt-28 lg:pb-28 lg:pt-32'
-              : 'pb-12 pt-16 md:pb-16 md:pt-24',
+            // Immersive heroes are centred in the viewport by the section, so
+            // they only need breathing room, not fixed top and bottom spacing.
+            immersive
+              ? 'py-10 md:py-14 lg:py-8'
+              : size === 'lg'
+                ? visual
+                  ? 'pb-16 pt-14 md:pb-20 md:pt-20 lg:pb-24 lg:pt-24'
+                  : 'pb-16 pt-20 md:pb-24 md:pt-28 lg:pb-28 lg:pt-32'
+                : 'pb-12 pt-16 md:pb-16 md:pt-24',
           )}
         >
           <div className={cn('max-w-4xl', visual && 'lg:col-span-7')}>

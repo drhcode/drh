@@ -276,16 +276,16 @@ function Robot({ state, className }: { state: Phase; className?: string }) {
 
       <g className="robot-body">
         {/* Antenna */}
-        <line x1="80" y1="24" x2="80" y2="10" stroke="#062226" strokeWidth="3" strokeLinecap="round" />
+        <line x1="80" y1="24" x2="80" y2="10" stroke="#0d100f" strokeWidth="3" strokeLinecap="round" />
         <circle className="robot-antenna" cx="80" cy="8" r="5" />
 
         {/* Ears */}
-        <rect x="31" y="44" width="10" height="20" rx="4" fill="#c8935f" />
-        <rect x="119" y="44" width="10" height="20" rx="4" fill="#c8935f" />
+        <rect x="31" y="44" width="10" height="20" rx="4" fill="#8fd4a6" />
+        <rect x="119" y="44" width="10" height="20" rx="4" fill="#8fd4a6" />
 
         {/* Head */}
-        <rect x="38" y="22" width="84" height="62" rx="20" fill={`url(#${gradientId}-shell)`} stroke="#062226" strokeWidth="3" />
-        <rect x="49" y="34" width="62" height="38" rx="13" fill="#052226" />
+        <rect x="38" y="22" width="84" height="62" rx="20" fill={`url(#${gradientId}-shell)`} stroke="#0d100f" strokeWidth="3" />
+        <rect x="49" y="34" width="62" height="38" rx="13" fill="#070908" />
 
         {/* Face: eyes glance left, towards the code */}
         <g className="robot-eyes">
@@ -295,26 +295,26 @@ function Robot({ state, className }: { state: Phase; className?: string }) {
         <path className="robot-smile" d="M70 64 Q80 71 90 64" fill="none" strokeWidth="3" strokeLinecap="round" />
 
         {/* Neck and torso */}
-        <rect x="70" y="84" width="20" height="8" fill="#c8935f" />
-        <rect x="44" y="90" width="72" height="54" rx="16" fill={`url(#${gradientId}-shell)`} stroke="#062226" strokeWidth="3" />
+        <rect x="70" y="84" width="20" height="8" fill="#8fd4a6" />
+        <rect x="44" y="90" width="72" height="54" rx="16" fill={`url(#${gradientId}-shell)`} stroke="#0d100f" strokeWidth="3" />
         <circle className="robot-core" cx="80" cy="114" r="8" />
-        <rect x="64" y="128" width="32" height="4" rx="2" fill="#c8935f" />
+        <rect x="64" y="128" width="32" height="4" rx="2" fill="#8fd4a6" />
       </g>
 
       {/* Arms reaching down to the keyboard */}
       <g className="robot-arm robot-arm-l">
-        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#062226" strokeWidth="9" strokeLinecap="round" />
+        <path d="M48 102 Q26 116 34 146" fill="none" stroke="#0d100f" strokeWidth="9" strokeLinecap="round" />
         <path d="M48 102 Q26 116 34 146" fill="none" stroke="#f2e8dd" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="34" cy="148" r="7" fill="#c8935f" stroke="#062226" strokeWidth="3" />
+        <circle cx="34" cy="148" r="7" fill="#8fd4a6" stroke="#0d100f" strokeWidth="3" />
       </g>
       <g className="robot-arm robot-arm-r">
-        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#062226" strokeWidth="9" strokeLinecap="round" />
+        <path d="M112 102 Q134 116 126 146" fill="none" stroke="#0d100f" strokeWidth="9" strokeLinecap="round" />
         <path d="M112 102 Q134 116 126 146" fill="none" stroke="#f2e8dd" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="126" cy="148" r="7" fill="#c8935f" stroke="#062226" strokeWidth="3" />
+        <circle cx="126" cy="148" r="7" fill="#8fd4a6" stroke="#0d100f" strokeWidth="3" />
       </g>
 
       {/* Keyboard */}
-      <rect x="14" y="150" width="132" height="20" rx="6" fill="#073b40" stroke="#062226" strokeWidth="3" />
+      <rect x="14" y="150" width="132" height="20" rx="6" fill="#121614" stroke="#0d100f" strokeWidth="3" />
       {Array.from({ length: 9 }, (_, index) => (
         <rect key={index} className="robot-key" x={22 + index * 13.2} y="156" width="9" height="7" rx="2" />
       ))}

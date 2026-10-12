@@ -37,6 +37,7 @@ export async function PageSections({
   locale,
   afterFirst,
   heroVisual,
+  heroImmersive,
 }: {
   sections: PageSection[];
   locale: Language;
@@ -49,9 +50,11 @@ export async function PageSections({
   afterFirst?: React.ReactNode;
   /** Illustration passed to a hero section, beside its copy. */
   heroVisual?: React.ReactNode;
+  /** Render the hero full-viewport with the particle field. */
+  heroImmersive?: boolean;
 }) {
   const rendered = await Promise.all(
-    sections.map((section, index) => renderSection(section, index, locale, heroVisual)),
+    sections.map((section, index) => renderSection(section, index, locale, heroVisual, heroImmersive)),
   );
   return (
     <>
@@ -67,6 +70,7 @@ async function renderSection(
   index: number,
   locale: Language,
   heroVisual?: React.ReactNode,
+  heroImmersive?: boolean,
 ) {
   const key = `${section.type}-${index}`;
   // Only the first section on a page carries the h1.
@@ -86,6 +90,7 @@ async function renderSection(
           note={section.note}
           as={isFirst ? 'h1' : 'h2'}
           visual={heroVisual}
+          immersive={heroImmersive}
         />
       );
 

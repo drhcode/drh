@@ -4,31 +4,28 @@ import * as React from 'react';
 import { useReducedMotion } from 'framer-motion';
 
 /**
- * Site-wide particle field.
+ * Hero particle field.
  *
- * One fixed canvas behind every page. Particles live in a shallow 3D volume
- * and drift slowly towards the viewer, so the field has real depth rather than
- * being a flat layer of dots:
+ * Fills its parent (the full-height home hero) and nothing else — the rest of
+ * the site stays a quiet, flat ground. Particles live in a shallow 3D volume
+ * and drift slowly towards the viewer, so the field has real depth:
  *
- *   • near particles are larger, brighter and move further with scroll and
- *     pointer (parallax), far ones barely move — that difference is the depth
+ *   • near particles are larger, brighter and lean further with the pointer
+ *     (parallax), far ones barely move — that difference is the depth
  *   • particles at a similar depth are joined into constellations, and data
  *     packets travel along those links
  *   • a few particles are drawn as code glyphs or diamond nodes, so the field
  *     reads as a network of systems rather than a starfield
- *   • a scan line sweeps the viewport now and then, lighting what it passes
+ *   • a scan line sweeps the hero now and then, lighting what it passes
  *   • the mouse carries a small HUD reticle and acts as a lens
- *   • a tap or click anywhere sends a shockwave through the field — this is
- *     the part a finger can play with
+ *   • a tap or click inside the hero sends a shockwave through the field
  *   • every few seconds a single streak crosses the field
- *
- * The footer paints an opaque background over this canvas, which is how the
- * field stops there without the canvas needing to know where the footer is.
  *
  * Cost control: one sprite per colour is pre-rendered and stamped with
  * drawImage (no per-particle gradients), DPR is capped, packets and ripples
- * are capped, the loop stops when the tab is hidden, and under
- * prefers-reduced-motion a single still frame is drawn and nothing animates.
+ * are capped, the loop stops whenever the hero is scrolled out of view or the
+ * tab is hidden, and under prefers-reduced-motion a single still frame is
+ * drawn and nothing animates.
  */
 
 /** Particles per million square CSS pixels, so phones and ultrawides match. */
@@ -46,8 +43,6 @@ const LINK_DISTANCE = 128;
 const LINK_DEPTH = 0.16;
 /** How far the pointer lens reaches, in CSS px. */
 const LENS_RADIUS = 220;
-/** Scroll parallax strength for the nearest particles. */
-const SCROLL_PARALLAX = 0.32;
 /** Seconds between streaks, randomised within this range. */
 const STREAK_MIN = 5;
 const STREAK_MAX = 11;
@@ -133,7 +128,7 @@ export function DimensionField() {
     let frame = 0;
     let running = false;
     let last = 0;
-    let scrollY = window.scrollY;
+    let onScreen = true;
     let nextStreak = 2 + Math.random() * 3;
     let streak: Streak | null = null;
     let scanClock = SCAN_EVERY - 2;
@@ -175,11 +170,11 @@ export function DimensionField() {
      */
     function buildSprites() {
       dark = document.documentElement.classList.contains('dark');
-      // Caramel, sea glass, sand and the text colour (ivory on teal, teal on ivory).
+      // Light green, deeper green, ivory and the text colour.
       palette = [
-        resolveColor('--accent', '#c8935f'),
-        resolveColor('--accent-2', '#8cc2b8'),
-        resolveColor('--accent-3', '#e8d5bf'),
+        resolveColor('--accent', '#a3e4b6'),
+        resolveColor('--accent-2', '#5fc48a'),
+        resolveColor('--accent-3', '#f2e8dd'),
         resolveColor('--foreground', '#f2e8dd'),
       ];
       const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-mono-stack').trim();
@@ -214,8 +209,8 @@ export function DimensionField() {
         x: Math.random() * 2 - 1,
         y: Math.random() * 2 - 1,
         z,
-        // Mostly the text colour and sea glass; caramel and sand are the rarer warm notes.
-        hue: roll < 0.14 ? 0 : roll < 0.44 ? 1 : roll < 0.58 ? 2 : 3,
+        // Mostly light green, then the deeper green; ivory is the rarer neutral note.
+        hue: roll < 0.5 ? 0 : roll < 0.78 ? 1 : roll < 0.9 ? 2 : 3,
         phase: Math.random() * Math.PI * 2,
         rate: 0.6 + Math.random() * 1.4,
         size: 0.7 + Math.random() * 0.9,
@@ -228,8 +223,9 @@ export function DimensionField() {
     }
 
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      const rect = canvas!.parentElement!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
       const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       canvas!.width = Math.round(width * dpr);
       canvas!.height = Math.round(height * dpr);
@@ -254,12 +250,10 @@ export function DimensionField() {
 
       const parallaxX = (pointer.x - cx) * 0.018 * perspective * pointer.strength;
       const parallaxY = (pointer.y - cy) * 0.018 * perspective * pointer.strength;
-      const scroll = scrollY * SCROLL_PARALLAX * (NEAR / p.z);
-
       let sx = cx + p.x * spread * perspective * 0.55 - parallaxX;
-      let sy = cy + p.y * spread * perspective * 0.55 - parallaxY - scroll;
+      let sy = cy + p.y * spread * perspective * 0.55 - parallaxY;
 
-      // Wrap vertically so scrolling never empties the screen.
+      // Wrap vertically so drift never empties the field.
       const span = height + 80;
       sy = ((((sy + 40) % span) + span) % span) - 40;
 
@@ -514,7 +508,7 @@ export function DimensionField() {
       context!.fillStyle = palette[1];
       context!.globalAlpha = alpha * 0.9;
       context!.fillText(
-        `x:${Math.round(x).toString().padStart(4, '0')} y:${Math.round(y + scrollY).toString().padStart(4, '0')}`,
+        `x:${Math.round(x).toString().padStart(4, '0')} y:${Math.round(y).toString().padStart(4, '0')}`,
         x + radius + 10,
         y + radius - 2,
       );
@@ -575,7 +569,7 @@ export function DimensionField() {
     }
 
     function start() {
-      if (running || reduced || document.visibilityState === 'hidden') return;
+      if (running || reduced || !onScreen || document.visibilityState === 'hidden') return;
       running = true;
       last = performance.now();
       frame = requestAnimationFrame(tick);
@@ -586,13 +580,26 @@ export function DimensionField() {
       cancelAnimationFrame(frame);
     }
 
+    /** Pointer position in canvas space, or null when it is outside the hero. */
+    function local(event: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      return x < 0 || y < 0 || x > rect.width || y > rect.height ? null : { x, y };
+    }
+
     function onPointerMove(event: PointerEvent) {
       const mouse = event.pointerType === 'mouse';
       // A finger only steers the lens while it is actually on the glass.
       if (!mouse && event.buttons === 0) return;
+      const at = local(event);
+      if (!at) {
+        pointer.target = 0;
+        return;
+      }
       pointer.mouse = mouse;
-      pointer.tx = event.clientX;
-      pointer.ty = event.clientY;
+      pointer.tx = at.x;
+      pointer.ty = at.y;
       if (pointer.strength < 0.02) {
         pointer.x = pointer.tx;
         pointer.y = pointer.ty;
@@ -601,14 +608,16 @@ export function DimensionField() {
     }
 
     function onPointerDown(event: PointerEvent) {
+      const at = local(event);
+      if (!at) return;
       onPointerMove(event);
       if (event.pointerType !== 'mouse') {
         pointer.mouse = false;
-        pointer.tx = pointer.x = event.clientX;
-        pointer.ty = pointer.y = event.clientY;
+        pointer.tx = pointer.x = at.x;
+        pointer.ty = pointer.y = at.y;
         pointer.target = 1;
       }
-      ripples.push({ x: event.clientX, y: event.clientY, age: 0 });
+      ripples.push({ x: at.x, y: at.y, age: 0 });
       if (ripples.length > MAX_RIPPLES) ripples.shift();
     }
 
@@ -618,11 +627,6 @@ export function DimensionField() {
 
     function onPointerLeave() {
       pointer.target = 0;
-    }
-
-    function onScroll() {
-      scrollY = window.scrollY;
-      if (reduced) draw(performance.now(), 0);
     }
 
     function onVisibilityChange() {
@@ -652,8 +656,16 @@ export function DimensionField() {
       start();
     }
 
-    window.addEventListener('resize', onResize, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(canvas.parentElement!);
+
+    // Only animate while the hero is actually visible.
+    const viewportObserver = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      if (onScreen) start();
+      else stop();
+    });
+    viewportObserver.observe(canvas);
     if (!reduced) {
       window.addEventListener('pointermove', onPointerMove, { passive: true });
       window.addEventListener('pointerdown', onPointerDown, { passive: true });
@@ -666,11 +678,11 @@ export function DimensionField() {
     return () => {
       stop();
       themeObserver.disconnect();
+      resizeObserver.disconnect();
+      viewportObserver.disconnect();
       particles = [];
       packets = [];
       ripples = [];
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
@@ -684,7 +696,7 @@ export function DimensionField() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0"
+      className="pointer-events-none absolute inset-0"
     />
   );
 }
