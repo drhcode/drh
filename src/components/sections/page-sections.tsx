@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import type { Language, PageSection } from '@/types/database';
 import {
   getBlogPosts,
@@ -21,6 +22,19 @@ import { BlogSection } from './blog-section';
 import { FaqSection } from './faq-section';
 import { CtaSection } from './cta-section';
 import { RichTextSection } from './rich-text-section';
+import type { Kicker } from './section';
+
+const NUMBERED_TYPES = [
+  'services',
+  'projects',
+  'featureGrid',
+  'industries',
+  'process',
+  'blog',
+  'faq',
+] as const;
+type NumberedType = (typeof NUMBERED_TYPES)[number];
+const NUMBERED = new Set<string>(NUMBERED_TYPES);
 
 /**
  * Renders a CMS page from its ordered section blocks (spec §63).
@@ -53,8 +67,23 @@ export async function PageSections({
   /** Render the hero full-viewport with the particle field. */
   heroImmersive?: boolean;
 }) {
+  // Number the headed sections in page order ("01 — What we do"). Testimonials
+  // are left out because that section renders nothing when the CMS has none,
+  // which would leave a gap in the sequence.
+  const tSections = await getTranslations('sections');
+  const kickers = sections.map((section, index): Kicker | undefined =>
+    NUMBERED.has(section.type)
+      ? {
+          index: sections.slice(0, index + 1).filter((s) => NUMBERED.has(s.type)).length,
+          label: tSections(section.type as NumberedType),
+        }
+      : undefined,
+  );
+
   const rendered = await Promise.all(
-    sections.map((section, index) => renderSection(section, index, locale, heroVisual, heroImmersive)),
+    sections.map((section, index) =>
+      renderSection(section, index, locale, heroVisual, heroImmersive, kickers[index]),
+    ),
   );
   return (
     <>
@@ -71,6 +100,7 @@ async function renderSection(
   locale: Language,
   heroVisual?: React.ReactNode,
   heroImmersive?: boolean,
+  kicker?: Kicker,
 ) {
   const key = `${section.type}-${index}`;
   // Only the first section on a page carries the h1.
@@ -106,6 +136,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           items={section.items}
         />
       );
@@ -116,6 +147,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           steps={section.steps}
         />
       );
@@ -132,6 +164,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           services={services}
         />
       );
@@ -144,6 +177,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           projects={projects}
         />
       );
@@ -156,6 +190,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           industries={industries}
         />
       );
@@ -168,6 +203,7 @@ async function renderSection(
           key={key}
           title={section.title}
           subtitle={section.subtitle}
+          kicker={kicker}
           testimonials={testimonials}
         />
       );
@@ -176,14 +212,26 @@ async function renderSection(
     case 'blog': {
       const posts = (await getBlogPosts(locale)).slice(0, section.limit ?? 3);
       return (
-        <BlogSection key={key} title={section.title} subtitle={section.subtitle} posts={posts} />
+        <BlogSection
+          key={key}
+          title={section.title}
+          subtitle={section.subtitle}
+          kicker={kicker}
+          posts={posts}
+        />
       );
     }
 
     case 'faq': {
       const faqs = await getFaqs(locale, { category: section.category ?? 'general' });
       return (
-        <FaqSection key={key} title={section.title} subtitle={section.subtitle} faqs={faqs} />
+        <FaqSection
+          key={key}
+          title={section.title}
+          subtitle={section.subtitle}
+          kicker={kicker}
+          faqs={faqs}
+        />
       );
     }
 

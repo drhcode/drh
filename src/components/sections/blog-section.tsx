@@ -6,18 +6,20 @@ import type { BlogPostView } from '@/lib/data/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
-import { Section, SectionHeading } from './section';
+import { Section, SectionHeading, type Kicker } from './section';
 import { Reveal } from './reveal';
 import { GlowGrid } from '@/components/ui/glow';
 
 export async function BlogSection({
   title,
   subtitle,
+  kicker,
   posts,
   bordered = true,
 }: {
   title?: string;
   subtitle?: string | null;
+  kicker?: Kicker;
   posts: BlogPostView[];
   bordered?: boolean;
 }) {
@@ -29,7 +31,7 @@ export async function BlogSection({
   return (
     <Section bordered={bordered}>
       <div className="flex flex-wrap items-end justify-between gap-6">
-        {title && <SectionHeading title={title} subtitle={subtitle} />}
+        {title && <SectionHeading kicker={kicker} title={title} subtitle={subtitle} />}
         <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
           <Link href="/blog">
             {t('viewAllArticles')}

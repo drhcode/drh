@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import type { ProjectView } from '@/lib/data/types';
 import { Button } from '@/components/ui/button';
-import { Section, SectionHeading } from './section';
+import { Section, SectionHeading, type Kicker } from './section';
 import { Reveal } from './reveal';
 import { ProjectCard } from './project-card';
 import { GlowGrid } from '@/components/ui/glow';
@@ -11,12 +11,14 @@ import { GlowGrid } from '@/components/ui/glow';
 export async function ProjectsSection({
   title,
   subtitle,
+  kicker,
   projects,
   showCta = true,
   bordered = true,
 }: {
   title?: string;
   subtitle?: string | null;
+  kicker?: Kicker;
   projects: ProjectView[];
   showCta?: boolean;
   bordered?: boolean;
@@ -27,7 +29,7 @@ export async function ProjectsSection({
   return (
     <Section bordered={bordered}>
       <div className="flex flex-wrap items-end justify-between gap-6">
-        {title && <SectionHeading title={title} subtitle={subtitle} />}
+        {title && <SectionHeading kicker={kicker} title={title} subtitle={subtitle} />}
         {showCta && (
           <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
             <Link href="/work">

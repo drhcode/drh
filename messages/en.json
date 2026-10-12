@@ -291,7 +291,8 @@
   "cta": {
     "title": "Let's Build Something People Remember",
     "body": "Tell us what you're building, what isn't working today and where you want to go.\n\nWe'll review your requirements and reply within 24 hours with the recommended next steps.",
-    "button": "Start a Project"
+    "button": "Start a Project",
+    "available": "Taking on new projects"
   },
   "ai": {
     "eyebrow": "AI Engineering",
@@ -373,5 +374,23 @@
     "message3": "Fast sites. Happy clients.",
     "message4": "I write the code, you grow the business.",
     "message5": "Hehe, that tickles! 😄"
+  },
+  "faq": {
+    "stillTitle": "Still have a question?",
+    "stillBody": "Talk to the people who will actually build it. We reply within 24 hours.",
+    "ask": "Ask us directly"
+  },
+  "sections": {
+    "services": "What we do",
+    "projects": "Portfolio",
+    "featureGrid": "Why drh.al",
+    "industries": "Industries",
+    "process": "How we work",
+    "testimonials": "Client words",
+    "blog": "Journal",
+    "faq": "FAQ"
+  },
+  "hero": {
+    "scroll": "Scroll"
   }
 }

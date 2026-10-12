@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from '@/lib/use-reduced-motion';
 import { useTranslations } from 'next-intl';
 import { Heart, Sparkles, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';

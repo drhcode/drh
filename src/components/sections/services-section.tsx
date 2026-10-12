@@ -2,58 +2,51 @@ import { ArrowRight } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import type { ServiceView } from '@/lib/data/types';
-import { ServiceGlyph } from '@/components/site/service-glyph';
-import { Section, SectionHeading } from './section';
-import { Reveal } from './reveal';
-import { GlowGrid } from '@/components/ui/glow';
+import { Section, SectionHeading, type Kicker } from './section';
+import { ServiceList } from './service-list';
 
 export async function ServicesSection({
   title,
   subtitle,
+  kicker,
   services,
   bordered = true,
 }: {
   title?: string;
   subtitle?: string | null;
+  kicker?: Kicker;
   services: ServiceView[];
   bordered?: boolean;
 }) {
   if (services.length === 0) return null;
 
   const t = await getTranslations('common');
+  const tNav = await getTranslations('nav');
 
   return (
     <Section bordered={bordered}>
-      {title && <SectionHeading title={title} subtitle={subtitle} />}
+      {title && (
+        <div className="mb-14 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
+          <SectionHeading kicker={kicker} title={title} subtitle={subtitle} />
+          <Link
+            href="/services"
+            className="group inline-flex shrink-0 items-center gap-2 self-start text-sm font-semibold text-foreground transition-colors hover:text-accent lg:self-end"
+          >
+            {tNav('viewAllServices')}
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
+        </div>
+      )}
 
-      <GlowGrid as="ul" className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-        {services.map((service, index) => (
-          <Reveal as="li" key={service.slug} delay={index * 0.05} className="bg-surface">
-            <Link
-              href={`/services/${service.slug}`}
-              data-glow
-              className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
-            >
-              <span className="flex size-11 items-center justify-center rounded-lg border border-border bg-surface-sunken text-accent transition-colors group-hover:border-accent-border group-hover:bg-accent-subtle">
-                <ServiceGlyph iconKey={service.iconKey} className="size-5" />
-              </span>
-
-              <h3 className="mt-6 text-lg font-medium text-foreground">{service.title}</h3>
-
-              {service.shortDescription && (
-                <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  {service.shortDescription}
-                </p>
-              )}
-
-              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-accent">
-                {t('learnMore')}
-                <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-1" />
-              </span>
-            </Link>
-          </Reveal>
-        ))}
-      </GlowGrid>
+      <ServiceList
+        learnMore={t('learnMore')}
+        services={services.map((service) => ({
+          slug: service.slug,
+          title: service.title,
+          shortDescription: service.shortDescription,
+          coverImage: service.coverImage,
+        }))}
+      />
     </Section>
   );
 }

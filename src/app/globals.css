@@ -1442,3 +1442,40 @@ html:has(.dimension-site) .uppercase[class*='tracking-'] {
     }
   }
 }
+
+/* ==========================================================================
+   Accordion open/close
+   Radix exposes the measured content height as a variable, so the panel can
+   animate to its real height instead of a guessed max-height.
+   ========================================================================== */
+@keyframes accordion-down {
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-accordion-content-height); opacity: 1; }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
+
+@layer components {
+  .anim-accordion[data-state='open'] {
+    animation: accordion-down 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .anim-accordion[data-state='closed'] {
+    animation: accordion-up 200ms ease-in;
+  }
+}
+
+/* Hero scroll cue: a short bar sliding down a hairline. */
+@keyframes scroll-cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+@layer components {
+  .scroll-cue {
+    animation: scroll-cue 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}

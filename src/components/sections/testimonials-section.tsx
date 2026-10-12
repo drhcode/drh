@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { Star } from 'lucide-react';
 import type { TestimonialView } from '@/lib/data/types';
 import { initials } from '@/lib/utils';
-import { Section, SectionHeading } from './section';
+import { Section, SectionHeading, type Kicker } from './section';
 import { Reveal } from './reveal';
 import { GlowGrid } from '@/components/ui/glow';
 
@@ -15,11 +15,13 @@ import { GlowGrid } from '@/components/ui/glow';
 export function TestimonialsSection({
   title,
   subtitle,
+  kicker,
   testimonials,
   bordered = true,
 }: {
   title?: string;
   subtitle?: string | null;
+  kicker?: Kicker;
   testimonials: TestimonialView[];
   bordered?: boolean;
 }) {
@@ -27,7 +29,7 @@ export function TestimonialsSection({
 
   return (
     <Section bordered={bordered}>
-      {title && <SectionHeading title={title} subtitle={subtitle} />}
+      {title && <SectionHeading kicker={kicker} title={title} subtitle={subtitle} />}
 
       <GlowGrid as="ul" className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {testimonials.map((testimonial, index) => (

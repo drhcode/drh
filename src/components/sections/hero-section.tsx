@@ -1,8 +1,10 @@
 'use client';
 
 import type * as React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useReducedMotion } from '@/lib/use-reduced-motion';
+import { ArrowRight, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -57,15 +59,19 @@ export function HeroSection({
   immersive = false,
 }: HeroSectionProps) {
   const reduced = useReducedMotion();
+  const t = useTranslations('hero');
 
-  const rise = (delay: number) =>
-    reduced
-      ? {}
-      : {
-          initial: { opacity: 0, y: 14 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] as const },
-        };
+  // Always animate to the visible state; reduced motion only makes it instant.
+  // Dropping `animate` instead would strand the copy at its initial opacity:
+  // `reduced` becomes known just after hydration, when the element has
+  // already mounted with `initial` applied.
+  const rise = (delay: number) => ({
+    initial: { opacity: 0, y: 14 },
+    animate: { opacity: 1, y: 0 },
+    transition: reduced
+      ? { duration: 0 }
+      : { duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] as const },
+  });
 
   return (
     <section
@@ -160,9 +166,18 @@ export function HeroSection({
             )}
 
             {note && (
-              <motion.p {...rise(0.3)} className="mt-6 text-sm text-subtle-foreground">
-                {note}
-              </motion.p>
+              // The note is a "·"-separated list of assurances; each becomes a chip.
+              <motion.ul {...rise(0.3)} className="mt-8 flex flex-wrap gap-2">
+                {note.split('·').map((item) => item.trim()).filter(Boolean).map((item) => (
+                  <li
+                    key={item}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <Check className="size-3.5 text-accent" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </motion.ul>
             )}
           </div>
 
@@ -173,6 +188,20 @@ export function HeroSection({
           )}
         </div>
       </div>
+
+      {immersive && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-6 hidden flex-col items-center gap-3 lg:flex"
+        >
+          <span className="text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-subtle-foreground">
+            {t('scroll')}
+          </span>
+          <span className="relative h-10 w-px overflow-hidden bg-border-strong">
+            <span className="scroll-cue absolute inset-x-0 top-0 h-1/2 bg-accent" />
+          </span>
+        </div>
+      )}
     </section>
   );
 }

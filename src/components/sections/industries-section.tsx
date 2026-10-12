@@ -1,17 +1,20 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { IndustryGlyph } from '@/components/site/industry-glyph';
 import { Link } from '@/i18n/navigation';
 import type { IndustryView } from '@/lib/data/types';
-import { Section, SectionHeading } from './section';
+import { Section, SectionHeading, type Kicker } from './section';
 import { Reveal } from './reveal';
 
 export function IndustriesSection({
   title,
   subtitle,
+  kicker,
   industries,
   bordered = true,
 }: {
   title?: string;
   subtitle?: string | null;
+  kicker?: Kicker;
   industries: IndustryView[];
   bordered?: boolean;
 }) {
@@ -19,17 +22,22 @@ export function IndustriesSection({
 
   return (
     <Section bordered={bordered}>
-      {title && <SectionHeading title={title} subtitle={subtitle} />}
+      {title && <SectionHeading kicker={kicker} title={title} subtitle={subtitle} />}
 
-      <ul className="mt-12 flex flex-wrap gap-3">
+      <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {industries.map((industry, index) => (
-          <Reveal as="li" key={industry.slug} delay={Math.min(index, 8) * 0.03}>
+          <Reveal as="li" key={industry.slug} delay={Math.min(index, 9) * 0.03}>
             <Link
               href={`/industries/${industry.slug}`}
-              className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent-border hover:bg-accent-subtle hover:text-accent"
+              className="group flex h-full min-h-36 flex-col justify-between gap-6 rounded-xl border border-border bg-surface p-5 transition-[border-color,transform,background-color] duration-300 hover:-translate-y-1 hover:border-accent-border md:min-h-40"
             >
-              {industry.title}
-              <ArrowRight className="size-3.5 text-subtle-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent" />
+              <span className="flex items-start justify-between">
+                <IndustryGlyph iconKey={industry.iconKey} className="size-7 text-accent" />
+                <ArrowUpRight className="size-4 text-subtle-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent group-hover:opacity-100" />
+              </span>
+              <span className="text-[0.9375rem] font-medium leading-snug text-foreground">
+                {industry.title}
+              </span>
             </Link>
           </Reveal>
         ))}

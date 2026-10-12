@@ -291,7 +291,8 @@
   "cta": {
     "title": "Le të Ndërtojmë Diçka që Njerëzit e Mbajnë Mend",
     "body": "Na tregoni çfarë po ndërtoni, çfarë nuk po funksionon sot dhe ku doni të shkoni.\n\nDo t’i shqyrtojmë kërkesat tuaja dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
-    "button": "Nis një Projekt"
+    "button": "Nis një Projekt",
+    "available": "Pranojmë projekte të reja"
   },
   "ai": {
     "eyebrow": "Inxhinieri AI",
@@ -373,5 +374,23 @@
     "message3": "Faqe të shpejta. Klientë të lumtur.",
     "message4": "Unë shkruaj kodin, ju rritni biznesin.",
     "message5": "Hehe, më gudulise! 😄"
+  },
+  "faq": {
+    "stillTitle": "Ende keni një pyetje?",
+    "stillBody": "Flisni me njerëzit që do ta ndërtojnë. Përgjigjemi brenda 24 orësh.",
+    "ask": "Na pyesni direkt"
+  },
+  "sections": {
+    "services": "Çfarë bëjmë",
+    "projects": "Portofoli",
+    "featureGrid": "Pse drh.al",
+    "industries": "Industritë",
+    "process": "Si punojmë",
+    "testimonials": "Fjalë klientësh",
+    "blog": "Blog",
+    "faq": "Pyetje të shpeshta"
+  },
+  "hero": {
+    "scroll": "Lëviz poshtë"
   }
 }

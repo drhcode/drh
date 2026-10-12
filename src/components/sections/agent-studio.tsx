@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useInView, useReducedMotion } from 'framer-motion';
+import { useInView } from 'framer-motion';
+import { useReducedMotion } from '@/lib/use-reduced-motion';
 import { cn } from '@/lib/utils';
 
 /**
@@ -103,8 +104,11 @@ export function AgentStudio({ copy, className }: { copy: AgentStudioCopy; classN
   const inView = useInView(ref, { margin: '-15% 0px -15% 0px' });
 
   const lastStep = copy.steps.length - 1;
+  const [playing, setStep] = React.useState(0);
   // With reduced motion the illustration is a still: the finished state.
-  const [step, setStep] = React.useState(reduced ? lastStep : 0);
+  // Derived rather than seeded into state, because `reduced` only becomes
+  // known after hydration.
+  const step = reduced ? lastStep : playing;
 
   React.useEffect(() => {
     if (reduced) return;

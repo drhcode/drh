@@ -25,8 +25,15 @@ export function Section({
   );
 }
 
+/** Numbered label above a section heading: "02 — What we do". */
+export interface Kicker {
+  index: number;
+  label: string;
+}
+
 export function SectionHeading({
   eyebrow,
+  kicker,
   title,
   subtitle,
   align = 'left',
@@ -34,6 +41,7 @@ export function SectionHeading({
   id,
 }: {
   eyebrow?: string;
+  kicker?: Kicker;
   title: string;
   subtitle?: string | null;
   align?: 'left' | 'center';
@@ -48,10 +56,23 @@ export function SectionHeading({
         className,
       )}
     >
-      {eyebrow && (
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
-          {eyebrow}
+      {kicker ? (
+        <p
+          className={cn(
+            'mb-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground',
+            align === 'center' && 'justify-center',
+          )}
+        >
+          <span className="text-accent">{String(kicker.index).padStart(2, '0')}</span>
+          <span className="h-px w-8 bg-border-strong" aria-hidden="true" />
+          {kicker.label}
         </p>
+      ) : (
+        eyebrow && (
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
+            {eyebrow}
+          </p>
+        )
       )}
       <h2 id={id} className="text-[2.5rem] leading-[1.04] md:text-5xl lg:text-[3.75rem]">
         <AccentTitle text={title} autoLast />
