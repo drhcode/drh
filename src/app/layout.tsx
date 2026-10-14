@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist_Mono, Instrument_Serif, Manrope } from 'next/font/google';
+import localFont from 'next/font/local';
 import { getLocale } from 'next-intl/server';
 import { Toaster } from '@/components/ui/toaster';
 import { RouteProgress } from '@/components/route-progress';
@@ -8,28 +8,44 @@ import { publicEnv, serverEnv } from '@/lib/env';
 import { getCompanySettings } from '@/lib/data';
 import './globals.css';
 
+/*
+ * Fonts are self-hosted from ./fonts rather than loaded with next/font/google.
+ * The Google loader downloads the files during `next build`, and the Hostinger
+ * build server intermittently gets a response next/font cannot parse, which
+ * fails the whole build. Committed files make the build independent of the
+ * network. Each file is Google's "latin" subset (U+0000–00FF plus €, curly
+ * quotes and dashes), which covers English and Albanian (ë, ç) completely.
+ */
+
 /** Body, navigation and buttons. Variable font, so every weight is one file. */
-const sans = Manrope({
-  subsets: ['latin', 'latin-ext'],
+const manrope = localFont({
+  src: './fonts/manrope-latin-var.woff2',
+  weight: '200 800',
   display: 'swap',
   variable: '--font-sans-stack',
+  fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
 });
 
 /** Display headings. Ships in a single regular weight, plus italic for accents. */
-const serif = Instrument_Serif({
-  subsets: ['latin', 'latin-ext'],
+const instrumentSerif = localFont({
+  src: [
+    { path: './fonts/instrument-serif-latin.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/instrument-serif-latin-italic.woff2', weight: '400', style: 'italic' },
+  ],
   display: 'swap',
   variable: '--font-serif-stack',
-  weight: '400',
-  style: ['normal', 'italic'],
+  fallback: ['Georgia', 'serif'],
+  adjustFontFallback: 'Times New Roman',
 });
 
-/** Numbers, tags and labels. */
-const mono = Geist_Mono({
-  subsets: ['latin'],
+/** Numbers, tags and labels. Variable font. */
+const geistMono = localFont({
+  src: './fonts/geist-mono-latin-var.woff2',
+  weight: '100 900',
   display: 'swap',
   variable: '--font-mono-stack',
-  weight: ['400', '500'],
+  fallback: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+  adjustFontFallback: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -125,7 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const googleTagId = publicEnv.ga4MeasurementId ?? publicEnv.googleAdsId;
 
   return (
-    <html lang={lang} suppressHydrationWarning className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+    <html lang={lang} suppressHydrationWarning className={`${manrope.variable} ${instrumentSerif.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {googleTagId && (
