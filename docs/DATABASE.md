@@ -1,11 +1,14 @@
 # Database
 
-PostgreSQL via Supabase. Two migrations, applied in order, then the generated seed.
+PostgreSQL via Supabase. Migrations are applied in order, then the generated seed.
 
 ```
-supabase/migrations/0001_schema.sql   tables, enums, indexes, triggers
-supabase/migrations/0002_rls.sql      row level security, storage, auth hook
-supabase/seed.sql                     generated — see npm run seed:sql
+supabase/migrations/0001_schema.sql               tables, enums, indexes, triggers
+supabase/migrations/0002_rls.sql                  row level security, storage, auth hook
+supabase/migrations/0003_simplify_case_studies.sql  single case-study narrative
+supabase/migrations/0004_audit_requests.sql       free website audit requests (/audit)
+supabase/migrations/0005_project_before_image.sql optional "before" screenshot per project
+supabase/seed.sql                                 generated — see npm run seed:sql
 ```
 
 ## Shape
@@ -31,6 +34,16 @@ pages ─────── page_translations       sections stored as jsonb
 leads ─────┬── lead_notes             internal only
            └── lead_activity          status changes, notes, value edits
 ```
+
+`audit_requests` holds requests from the /audit form (url, email, locale,
+status, attribution). Like `leads`, it is written only by the server action
+through the service role; RLS is enabled with no anon policy, and staff with the
+super_admin, admin or marketing role can read and update it. Strategy-call
+requests from /book (when no Calendly URL is configured) are stored as ordinary
+`leads` with the service "Strategy call request".
+
+`projects.before_image` is an optional screenshot of the client's previous
+site; when present the case study shows a before/after slider.
 
 Supporting tables: `admin_users`, `media`, `newsletter_subscribers`,
 `redirects`, `seo_settings`, `site_settings`, `integrations`, `activity_logs`,

@@ -12,6 +12,8 @@ const files = [
   ['supabase/migrations/0001_schema.sql', 'Migration 0001 — schema'],
   ['supabase/migrations/0002_rls.sql', 'Migration 0002 — row level security'],
   ['supabase/migrations/0003_simplify_case_studies.sql', 'Migration 0003 — simplify case studies'],
+  ['supabase/migrations/0004_audit_requests.sql', 'Migration 0004 — website audit requests'],
+  ['supabase/migrations/0005_project_before_image.sql', 'Migration 0005 — case-study before screenshot'],
   ['supabase/seed.sql', 'Seed — initial content'],
 ];
 

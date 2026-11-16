@@ -149,6 +149,12 @@ export function ProjectForm({
               defaultValue={project?.cover_image_mobile ?? ''}
               aspect="aspect-[4/5]"
             />
+            <MediaPicker
+              name="before_image"
+              label="Before screenshot (optional)"
+              description="A screenshot of the previous site. When set, the case study shows a before/after drag slider against the cover image."
+              defaultValue={project?.before_image ?? ''}
+            />
             <GalleryEditor name="gallery" defaultValue={media} />
           </FormSection>
         </div>

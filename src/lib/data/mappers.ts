@@ -115,6 +115,7 @@ export function mapProject(raw: RawProject, language: Language): ProjectView {
     projectDate: p.project_date,
     coverImage: p.cover_image,
     coverImageMobile: p.cover_image_mobile,
+    beforeImage: p.before_image ?? null,
     websiteUrl: p.website_url,
     featured: p.featured,
     status: p.status,
