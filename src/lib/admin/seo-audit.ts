@@ -5,7 +5,7 @@ import {
   getProjects,
   getServices,
 } from '@/lib/data';
-import { routing, type AppLocale } from '@/i18n/routing';
+import { CONTENT_LANGUAGES, type AppLocale } from '@/i18n/routing';
 import { LEGAL_SLUGS } from '@/content/legal';
 import { plainText } from '@/lib/utils';
 
@@ -118,7 +118,8 @@ function evaluate(candidate: Candidate, titleCounts: Map<string, number>): SeoWa
 export async function runSeoAudit(): Promise<SeoAuditRow[]> {
   const candidates: Candidate[] = [];
 
-  for (const locale of routing.locales) {
+  // CMS content exists in the content languages only (Italian is UI-only).
+  for (const locale of CONTENT_LANGUAGES) {
     const [projects, services, industries, posts, pages] = await Promise.all([
       getProjects(locale),
       getServices(locale),

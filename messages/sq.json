@@ -1,67 +1,101 @@
 {
   "nav": {
-    "work": "Puna",
+    "work": "Punët",
     "services": "Shërbimet",
     "industries": "Industritë",
     "about": "Rreth nesh",
     "blog": "Blog",
     "contact": "Kontakt",
-    "startProject": "Nis një Projekt",
-    "menu": "Menu",
+    "startProject": "Nis një projekt",
     "openMenu": "Hap menunë",
     "closeMenu": "Mbyll menunë",
     "language": "Gjuha",
-    "servicesMenuLabel": "Të gjitha shërbimet",
-    "viewAllServices": "Shiko të gjitha shërbimet",
     "search": "Kërko",
-    "searchPlaceholder": "Kërko projekte, shërbime, artikuj…",
-    "toggleTheme": "Ndrysho temën",
-    "skipToContent": "Kalo te përmbajtja"
+    "skipToContent": "Kalo te përmbajtja",
+    "journal": "Blog",
+    "pricing": "Çmimet"
   },
   "common": {
-    "readMore": "Lexo më shumë",
-    "viewProject": "Shiko projektin",
-    "viewAllProjects": "Shiko të Gjitha Projektet",
-    "viewAllArticles": "Shiko të gjithë artikujt",
-    "learnMore": "Mëso më shumë",
-    "backTo": "Kthehu te {target}",
-    "loading": "Duke u ngarkuar…",
-    "noResults": "Nuk u gjet asnjë rezultat",
     "minRead": "{minutes} min lexim",
     "published": "Publikuar",
     "updated": "Përditësuar",
     "next": "Tjetër",
-    "previous": "Mëparshëm",
     "page": "Faqe",
-    "loadMore": "Shfaq më shumë",
-    "close": "Mbyll",
     "email": "Email",
     "phone": "Telefon",
     "whatsapp": "WhatsApp",
     "location": "Vendndodhja",
-    "worldwide": "Në mbarë botën",
-    "or": "ose"
+    "home": "Kreu"
   },
   "home": {
-    "trustedBy": "Teknologjitë me të cilat ndërtojmë"
+    "badge": "Pranojmë projekte të reja — përgjigje brenda 24 orësh",
+    "heroLine1": "Zhvillim Web,",
+    "heroLine2": "Aplikacione & SEO",
+    "heroLine3": "në",
+    "heroAccent": "Shqipëri",
+    "sub": "Faqe interneti me performancë të lartë, aplikacione web dhe mobile, SEO dhe marketing digjital — strategji, dizajn dhe zhvillim nga profesionistë me përvojë, të ndërtuara për rritje të matshme. Në Shqipëri dhe në mbarë botën.",
+    "cta1": "Nis një projekt",
+    "cta2": "Shiko punët tona",
+    "trust1": "Konsultë strategjike falas",
+    "trust2": "Përgjigje brenda 24 orësh",
+    "trust3": "Shqipëri & në botë",
+    "trusted": "NA BESOJNË EKIPE NË SHQIPËRI, ITALI, MBRETËRINË E BASHKUAR & SHBA",
+    "aiTitle": "AI që punon, jo që vetëm *flet*.",
+    "aiCards": {
+      "agents": {
+        "title": "Rrjedha agjentësh"
+      },
+      "retrieval": {
+        "title": "Kërkim mbi të dhënat tuaja"
+      },
+      "integration": {
+        "title": "Integrim sistemesh"
+      },
+      "evaluation": {
+        "title": "Vlerësimi i pari"
+      }
+    },
+    "aiCta": "Diskuto një projekt AI",
+    "aiCta2": "Shiko të gjitha shërbimet",
+    "studio": {
+      "architect": "Arkitekt",
+      "coder": "Zhvillues",
+      "tester": "Testues",
+      "reviewer": "Rishikues"
+    },
+    "stats": {
+      "years": "Vite përvojë",
+      "projects": "Projekte të realizuara"
+    },
+    "measuredTitle": "Lançimi është aty ku nis *matja*.",
+    "servicesTitle": "Shërbime digjitale të ndërtuara rreth *biznesit tuaj*.",
+    "allServices": "Të gjitha shërbimet",
+    "tool1k": "LLOGARITËS ÇMIMI",
+    "tool1": "Vlerësoni projektin tuaj në 60 sekonda.",
+    "tool1c": "Merr vlerësimin",
+    "tool2k": "AUDIT FALAS I FAQES",
+    "tool2": "Shikoni çfarë po e ngadalëson faqen tuaj.",
+    "tool2c": "Audito faqen time",
+    "tool3k": "KONSULTË FALAS",
+    "tool3": "Rezervoni 30 minuta me një zhvillues të lartë.",
+    "tool3c": "Zgjidh orarin",
+    "workTitle": "Rezultate, jo thjesht *dorëzime*.",
+    "whyTitle": "Një partner digjital që mendon si *operator*.",
+    "industriesTitle": "Të ndërtuara për industritë që njohim *më mirë*.",
+    "processTitle": "Një rrugë e qartë nga ideja te *rezultatet*.",
+    "testimonialsTitle": "Çfarë thonë *klientët*.",
+    "journalTitle": "Ide për web, aplikacione & *rritje*.",
+    "allArticles": "Të gjithë artikujt",
+    "faqTitle": "Pyetjet që na bëhen para çdo *projekti*."
   },
   "work": {
     "title": "Puna Jonë",
     "heroTitle": "Website, aplikacione dhe përvoja dixhitale të ndërtuara për rritje.",
     "heroDescription": "Eksploroni projekte të përzgjedhura të dorëzuara nga drh.al për biznese në Shqipëri dhe tregje ndërkombëtare.",
     "filterAll": "Të gjitha",
-    "filterWebsites": "Website",
-    "filterWebApps": "Aplikacione Web",
-    "filterMobileApps": "Aplikacione Mobile",
-    "filterEcommerce": "E-commerce",
-    "filterSeo": "SEO",
-    "filterBranding": "Branding",
-    "filterByService": "Filtro sipas shërbimit",
     "filterByIndustry": "Filtro sipas industrisë",
-    "allIndustries": "Të gjitha industritë",
     "empty": "Ende nuk ka projekte që përputhen me këta filtra.",
-    "clearFilters": "Pastro filtrat",
-    "showing": "Duke shfaqur {count} nga {total} projekte"
+    "crumb": "Puna"
   },
   "project": {
     "client": "Klienti",
@@ -89,7 +123,8 @@
     "process": "Si punojmë",
     "relatedWork": "Punë të përzgjedhura",
     "faq": "Pyetje të shpeshta",
-    "allServices": "Të gjitha shërbimet"
+    "allServices": "Të gjitha shërbimet",
+    "filterAll": "Të gjitha"
   },
   "industries": {
     "title": "Industritë",
@@ -106,67 +141,44 @@
     "heroTitle": "Njohuri mbi Web, Aplikacione & Rritje",
     "heroDescription": "Shkrime praktike mbi ndërtimin, lansimin dhe rritjen e produkteve dixhitale — nga ekipi që i dorëzon.",
     "featured": "Të veçuara",
-    "allPosts": "Të gjithë artikujt",
     "categories": "Kategoritë",
     "allCategories": "Të gjitha",
-    "tags": "Etiketat",
     "search": "Kërko artikuj",
-    "searchPlaceholder": "Kërko artikuj…",
     "empty": "Nuk u gjet asnjë artikull.",
     "tableOfContents": "Në këtë faqe",
-    "relatedPosts": "Artikuj të ngjashëm",
     "relatedService": "Shërbim i lidhur",
-    "by": "Nga",
-    "share": "Shpërnda",
     "ctaTitle": "Doni ta bëni siç duhet?",
     "ctaBody": "Ne ndërtojmë dhe rrisim produkte dixhitale për biznese në Shqipëri dhe në botë.",
-    "ctaButton": "Nis një Projekt"
+    "ctaButton": "Nis një Projekt",
+    "crumb": "Blog"
   },
   "contact": {
     "title": "Nis një Projekt",
     "heroTitle": "Na Tregoni Çfarë Po Ndërtoni",
     "heroDescription": "Keni një ide, një website ekzistues që kërkon përmirësim, ose një produkt dixhital gati për fazën tjetër?\n\nNa tregoni për projektin tuaj. Do t'i shqyrtojmë kërkesat dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
-    "detailsTitle": "Të dhënat e kontaktit",
     "responseTime": "Përgjigjemi brenda 24 orësh pune.",
-    "whatsappCta": "Na shkruani në WhatsApp",
     "bookCall": "Rezervo një takim"
   },
   "form": {
     "fullName": "Emri i Plotë",
-    "fullNamePlaceholder": "Jane Doe",
     "email": "Email Pune",
-    "emailPlaceholder": "ju@kompania.com",
     "phone": "Telefon",
-    "phonePlaceholder": "+355 …",
     "company": "Kompania",
-    "companyPlaceholder": "Emri i kompanisë",
     "website": "Adresa e Website-it",
-    "websitePlaceholder": "https://",
     "service": "Çfarë Ju Nevojitet?",
-    "servicePlaceholder": "Zgjidhni një shërbim",
     "budget": "Buxheti i Vlerësuar",
-    "budgetPlaceholder": "Zgjidhni një diapazon",
     "timeline": "Afati",
-    "timelinePlaceholder": "Zgjidhni një afat",
     "message": "Detajet e Projektit",
     "messagePlaceholder": "Objektivat, kërkesat kryesore, website-i aktual dhe referenca të dobishme…",
     "messageHint": "{count} / {max} karaktere",
     "attachment": "Bashkëngjitje",
-    "attachmentHint": "Opsionale. PDF, DOC ose DOCX, deri në 10 MB.",
-    "attachmentChoose": "Zgjidh skedarin",
     "attachmentRemove": "Hiq skedarin",
     "privacy": "Pranoj <link>Politikën e Privatësisë</link>.",
     "submit": "Dërgo Përshkrimin e Projektit",
     "submitting": "Duke dërguar…",
-    "optional": "opsionale",
-    "required": "e detyrueshme",
-    "successTitle": "Përshkrimi u pranua.",
-    "successBody": "Faleminderit — përshkrimi i projektit tuaj është tek ne. Ne e shqyrtojmë personalisht çdo kërkesë dhe do të përgjigjemi brenda 24 orësh pune.",
-    "successNote": "Një konfirmim është nisur drejt email-it tuaj.",
     "successAnother": "Dërgo një tjetër",
     "errorTitle": "Dërgimi nuk u krye.",
     "errorBody": "Diçka shkoi gabim nga ana jonë. Ju lutemi provoni sërish, ose na shkruani direkt në {email}.",
-    "verifying": "Duke verifikuar…",
     "spamCheckFailed": "Verifikimi kundër spam-it dështoi. Rifreskoni faqen dhe provoni sërish.",
     "rateLimited": "Shumë dërgime nga kjo lidhje. Ju lutemi provoni më vonë.",
     "budgetOptions": {
@@ -230,7 +242,16 @@
     "cookies": "Cookies",
     "terms": "Kushtet",
     "cookieSettings": "Preferencat e Cookies",
-    "builtBy": "Ndërtuar nga drh.al"
+    "ctaBadge": "Pranojmë projekte të reja",
+    "ctaTitle": "Le të ndërtojmë diçka që njerëzit e *mbajnë mend*.",
+    "ctaBody": "Na tregoni për projektin tuaj. Ju përgjigjemi brenda 24 orësh me hapat e ardhshëm — pa asnjë detyrim.",
+    "ctaButton": "Nis një projekt",
+    "dock": "Telefonatë falas",
+    "contactPage": "Kontakt",
+    "work": "Punët",
+    "industries": "Industritë",
+    "about": "Rreth nesh",
+    "journal": "Blog"
   },
   "cookies": {
     "title": "Ne përdorim cookies",
@@ -246,8 +267,7 @@
     "marketing": "Marketing",
     "marketingBody": "Përdoret për të matur fushatat reklamuese dhe për të shfaqur reklama relevante.",
     "alwaysOn": "Gjithmonë aktive",
-    "manageTitle": "Preferencat e cookies",
-    "policyLink": "Lexoni politikën tonë të cookies"
+    "manageTitle": "Preferencat e cookies"
   },
   "search": {
     "title": "Kërko",
@@ -257,9 +277,7 @@
     "groupProjects": "Projekte",
     "groupServices": "Shërbime",
     "groupIndustries": "Industri",
-    "groupBlog": "Artikuj",
-    "groupPages": "Faqe",
-    "openHint": "Shtypni <kbd>⌘</kbd> <kbd>K</kbd> për të kërkuar"
+    "groupBlog": "Artikuj"
   },
   "notFound": {
     "code": "404",
@@ -276,109 +294,24 @@
     "home": "Shko te kreu"
   },
   "legal": {
-    "privacyTitle": "Politika e Privatësisë",
-    "termsTitle": "Kushtet e Shërbimit",
-    "cookiesTitle": "Politika e Cookies",
     "lastUpdated": "Përditësuar më"
-  },
-  "a11y": {
-    "breadcrumb": "Shtegu i navigimit",
-    "pagination": "Faqosja",
-    "mainNavigation": "Navigimi kryesor",
-    "footerNavigation": "Navigimi i fundit të faqes",
-    "socialLinks": "Lidhje sociale"
   },
   "cta": {
     "title": "Le të Ndërtojmë Diçka që Njerëzit e Mbajnë Mend",
     "body": "Na tregoni çfarë po ndërtoni, çfarë nuk po funksionon sot dhe ku doni të shkoni.\n\nDo t’i shqyrtojmë kërkesat tuaja dhe do të përgjigjemi brenda 24 orësh me hapat e rekomanduar.",
-    "button": "Nis një Projekt",
-    "available": "Pranojmë projekte të reja"
-  },
-  "ai": {
-    "eyebrow": "Inxhinieri AI",
-    "title": "AI që bën punën, jo premtime",
-    "body": "Ndërtojmë AI në produkte aty ku ka vlerë reale — rrjedha agjentësh që e çojnë një detyrë nga fillimi në fund, kërkim mbi përmbajtjen tuaj, dhe integrime që vendosin një model pas sistemeve që biznesi juaj përdor tashmë. Çdo ndërtim vjen me vlerësime, që ta shihni çfarë bën përpara se të prekë një klient.",
-    "cta": "Diskuto një projekt AI",
-    "secondaryCta": "Shiko të gjitha shërbimet",
-    "capabilities": {
-      "agents": {
-        "title": "Rrjedha agjentësh",
-        "body": "Detyra shumëhapëshe të ndara mes agjentësh të specializuar, me miratim njerëzor aty ku ka rëndësi."
-      },
-      "retrieval": {
-        "title": "Kërkim mbi të dhënat tuaja",
-        "body": "Përgjigje të bazuara në dokumentet dhe të dhënat tuaja, me referenca te burimi."
-      },
-      "integration": {
-        "title": "Integrim sistemesh",
-        "body": "Modele të lidhura me ERP, CRM ose dyqanin që keni, jo të vendosura veçmas."
-      },
-      "evaluation": {
-        "title": "Vlerësimi i pari",
-        "body": "Teste dhe vlerësim përpara nisjes, që cilësia të matet e të mos supozohet."
-      }
-    },
-    "studio": {
-      "teamLabel": "Ekipi i agjentëve AI",
-      "active": "{count} agjentë aktivë",
-      "lead": "Agjenti kryesor",
-      "roles": {
-        "architect": "Arkitekt",
-        "coder": "Zhvillues",
-        "tester": "Testues",
-        "reviewer": "Rishikues"
-      },
-      "status": {
-        "architect": "Arkitekti po planifikon integrimin…",
-        "coder": "Zhvilluesi po shkruan syncOrders()…",
-        "tester": "Testuesi po ekzekuton testet…",
-        "reviewer": "Rishikuesi po kontrollon ndryshimet…"
-      },
-      "log": {
-        "planning": "Arkitekt: harta dyqan → magazinë",
-        "planned": "Arkitekt: struktura e integrimit u miratua",
-        "writing": "Zhvillues: po implementohet syncOrders()",
-        "written": "Zhvillues: syncOrders() u përfundua",
-        "testing": "Testues: po ekzekutohen testet e integrimit",
-        "tested": "Testues: 24 kaluan, 0 dështuan",
-        "reviewing": "Rishikues: po lexohen ndryshimet"
-      }
-    }
+    "button": "Nis një Projekt"
   },
   "about": {
     "studioEyebrow": "Brenda studios",
-    "studioTitle": "Ku idetë bëhen kod i publikuar",
-    "studioBody": "Çdo projekt kalon nëpër të njëjtin proces të disiplinuar: kod i tipizuar, kontrolle automatike dhe buxhete performance që ndalojnë build-in para se të dëmtojnë përdoruesit tuaj. Mjetet tona, përfshirë agjentët AI që ndërtojmë për vete, marrin përsipër punën e përsëritur, që njerëzit me përvojë të fokusohen te vendimet që kanë rëndësi.",
-    "point1": "Kod i tipizuar rreptësisht dhe i rishikuar",
-    "point2": "Teste dhe kontrolle Lighthouse në çdo ndryshim",
-    "point3": "I asistuar nga AI, gjithmonë i miratuar nga njeriu",
-    "editorLabel": "Ilustrim i animuar: një robot i vogël shkruan kod në një editor, pastaj build-i kalon me sukses.",
-    "workspaceEyebrow": "Ku ndodh puna",
-    "workspaceTitle": "Një ekip i vogël me përvojë dhe mjete serioze",
-    "workspaceBody": "Qëndrojmë të vegjël me qëllim. Njerëzit që takoni në telefonatën e parë janë ata që projektojnë, ndërtojnë dhe lançojnë produktin tuaj, nga diagramet e arkitekturës deri te pikseli i fundit i panelit.",
-    "imageAlt": "Një hapësirë pune zhvilluesi natën: kod i hapur në laptop, një panel analitik në monitor të madh dhe një diagram arkitekture mbi to.",
-    "badgeBuild": "Build i suksesshëm",
-    "badgeSpeed": "Lighthouse 95+",
     "stat1Value": "8+",
     "stat1Label": "Vite përvojë",
     "stat2Value": "100+",
     "stat2Label": "Projekte të realizuara",
     "stat3Value": "3",
-    "stat3Label": "Gjuhë pune"
-  },
-  "robot": {
-    "ariaLabel": "Përshëndet robotin e drh.al",
-    "hint": "Prek robotin për ta përshëndetur",
-    "message1": "Përshëndetje! 👋",
-    "message2": "Le të ndërtojmë diçka të shkëlqyer.",
-    "message3": "Faqe të shpejta. Klientë të lumtur.",
-    "message4": "Unë shkruaj kodin, ju rritni biznesin.",
-    "message5": "Hehe, më gudulise! 😄"
-  },
-  "faq": {
-    "stillTitle": "Ende keni një pyetje?",
-    "stillBody": "Flisni me njerëzit që do ta ndërtojnë. Përgjigjemi brenda 24 orësh.",
-    "ask": "Na pyesni direkt"
+    "crumb": "Rreth nesh",
+    "philosophyEyebrow": "Filozofia jonë",
+    "valuesEyebrow": "Çfarë na bën ndryshe",
+    "marketsEyebrow": "Tregjet ku shërbejmë"
   },
   "sections": {
     "services": "Çfarë bëjmë",
@@ -390,7 +323,9 @@
     "blog": "Blog",
     "faq": "Pyetje të shpeshta"
   },
-  "hero": {
-    "scroll": "Lëviz poshtë"
+  "service": {
+    "selectedWork": "Punë të përzgjedhura",
+    "overview": "Përmbledhje",
+    "stack": "Teknologjitë"
   }
 }

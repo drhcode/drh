@@ -243,8 +243,12 @@ export async function getLandingPageSlugs(): Promise<string[]> {
 export const getCompanySettings = fetchCompanySettings;
 
 // ─── Site-wide search (spec §71) ─────────────────────────────────────────────
-export async function getSearchIndex(locale: Language): Promise<SearchResult[]> {
-  const prefix = locale === 'en' ? '' : `/${locale}`;
+/**
+ * `locale` is the content language; `urlLocale` the interface locale the links
+ * should stay in (Italian pages search English content but link to /it/…).
+ */
+export async function getSearchIndex(locale: Language, urlLocale: string = locale): Promise<SearchResult[]> {
+  const prefix = urlLocale === 'en' ? '' : `/${urlLocale}`;
   const [projects, services, industries, posts] = await Promise.all([
     getProjects(locale),
     getServices(locale),

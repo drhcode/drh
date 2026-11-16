@@ -7,61 +7,225 @@
     "blog": "Blog",
     "contact": "Contact",
     "startProject": "Start a Project",
-    "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "language": "Language",
-    "servicesMenuLabel": "All services",
-    "viewAllServices": "View all services",
     "search": "Search",
-    "searchPlaceholder": "Search projects, services, articles…",
-    "toggleTheme": "Toggle theme",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "home": "drh.al home",
+    "mainNavigation": "Main",
+    "journal": "Journal",
+    "pricing": "Pricing",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme"
   },
   "common": {
-    "readMore": "Read more",
-    "viewProject": "View project",
-    "viewAllProjects": "View All Projects",
-    "viewAllArticles": "View all articles",
-    "learnMore": "Learn more",
-    "backTo": "Back to {target}",
-    "loading": "Loading…",
-    "noResults": "No results found",
     "minRead": "{minutes} min read",
     "published": "Published",
     "updated": "Updated",
     "next": "Next",
-    "previous": "Previous",
     "page": "Page",
-    "loadMore": "Load more",
-    "close": "Close",
     "email": "Email",
     "phone": "Phone",
     "whatsapp": "WhatsApp",
     "location": "Location",
-    "worldwide": "Worldwide",
-    "or": "or"
+    "breadcrumb": "Breadcrumb",
+    "home": "Home",
+    "minShort": "{minutes} min"
   },
   "home": {
-    "trustedBy": "Technologies we build with"
+    "badge": "Taking on new projects — reply within 24 hours",
+    "heroLine1": "Web Development,",
+    "heroLine2": "Mobile Apps & SEO",
+    "heroLine3": "in",
+    "heroAccent": "Albania",
+    "sub": "High-performance websites, custom web apps, mobile apps, SEO and performance marketing — strategy, design and senior-level development built around measurable growth. In Albania and worldwide.",
+    "cta1": "Start a Project",
+    "cta2": "View Our Work",
+    "trust1": "Free strategy call",
+    "trust2": "Reply within 24h",
+    "trust3": "Albania & worldwide",
+    "orbit": {
+      "nextjs": "Next.js",
+      "agents": "AI agents",
+      "seo": "SEO",
+      "mobile": "Mobile apps",
+      "ecommerce": "E-commerce"
+    },
+    "perfTitle": "PERFORMANCE BUDGET",
+    "perfStatus": "BUILD PASSING",
+    "perfNote": "Core Web Vitals checked on every change.",
+    "badgeText": "START A PROJECT · REPLY IN 24H · ",
+    "badgeLabel": "Start a project — we reply within 24 hours",
+    "techLabel": "Technologies",
+    "trusted": "TRUSTED BY TEAMS IN ALBANIA, ITALY, THE UK & THE US",
+    "clientsLabel": "Clients and reviews",
+    "ratingLabel": "Google rating: {rating} out of 5",
+    "reviews": "{count} reviews on Google",
+    "aiEyebrow": "AI ENGINEERING",
+    "aiTitle": "AI that does the work, not the *talking*.",
+    "aiBody": "AI built into your product: agent workflows that finish tasks end to end, retrieval over your own content, and integrations with the systems you already run. Every build ships with evaluations before a customer ever sees it.",
+    "aiCards": {
+      "agents": {
+        "title": "Agent workflows",
+        "body": "Multi-step tasks split across specialised agents, with human approval on key steps."
+      },
+      "retrieval": {
+        "title": "Retrieval over your data",
+        "body": "Answers grounded in your documents, with source citations."
+      },
+      "integration": {
+        "title": "System integration",
+        "body": "Models wired into your ERP, CRM or storefront."
+      },
+      "evaluation": {
+        "title": "Evaluation first",
+        "body": "Test sets and scoring before launch, not after."
+      }
+    },
+    "aiCta": "Discuss an AI build",
+    "aiCta2": "See all services",
+    "studio": {
+      "name": "agent-studio",
+      "active": "4 ACTIVE",
+      "architect": "Architect",
+      "coder": "Coder",
+      "tester": "Tester",
+      "reviewer": "Reviewer",
+      "done": "DONE",
+      "running": "RUNNING",
+      "queued": "QUEUED",
+      "needsYou": "NEEDS YOU",
+      "approvedStatus": "APPROVED",
+      "taskArchitect": "Mapped order → ERP schema",
+      "taskCoder": "Writing sync-orders.ts",
+      "taskTester": "Eval set · 48 cases",
+      "taskReviewer": "Human approval gate",
+      "waiting": "Reviewer is waiting for human approval",
+      "approve": "Approve",
+      "approved": "Approved ✓",
+      "illustration": "Illustration: four AI agents working on an order-sync integration, with a human approval step."
+    },
+    "stats": {
+      "years": "Years shipping",
+      "projects": "Projects delivered",
+      "languages": "Working languages — EN · SQ · IT",
+      "reply": "Reply time on every enquiry"
+    },
+    "measuredEyebrow": "MEASURED GROWTH",
+    "measuredTitle": "Launch is where *measurement* starts.",
+    "measuredBody": "Analytics, Search Console and lead attribution are connected before launch — so every change is judged by the enquiries it brings in, not by opinion.",
+    "measuredChips": {
+      "analytics": "Analytics",
+      "console": "Search Console",
+      "attribution": "Lead attribution",
+      "vitals": "Core Web Vitals"
+    },
+    "chart": {
+      "title": "ORGANIC ENQUIRIES",
+      "before": "Before",
+      "after": "After launch",
+      "launch": "LAUNCH",
+      "toastTitle": "New enquiry",
+      "toastBody": "Contact form · just now",
+      "search": "Search",
+      "maps": "Maps",
+      "ads": "Ads",
+      "illustration": "Illustration of enquiries rising after a launch. Not real client data."
+    },
+    "servicesEyebrow": "SERVICES",
+    "servicesTitle": "Digital services built around your *business*.",
+    "allServices": "All services",
+    "tool1k": "PRICE ESTIMATOR",
+    "tool1": "Estimate your project in 60 seconds.",
+    "tool1c": "Get my estimate",
+    "tool2k": "FREE WEBSITE AUDIT",
+    "tool2": "See what’s slowing your site down.",
+    "tool2c": "Audit my site",
+    "tool3k": "FREE STRATEGY CALL",
+    "tool3": "Book 30 minutes with a senior developer.",
+    "tool3c": "Pick a time",
+    "workEyebrow": "SELECTED WORK",
+    "workTitle": "Outcomes, not just *deliverables*.",
+    "viewAllWork": "View all work",
+    "readCaseStudy": "Read case study",
+    "livePreview": "LIVE PREVIEW",
+    "whyEyebrow": "WHY DRH.AL",
+    "whyTitle": "A digital partner that thinks like an *operator*.",
+    "whyBody": "The people you meet on the first call are the people who design, build and launch your product.",
+    "whyIdea": "IDEA",
+    "whyResults": "RESULTS",
+    "why": {
+      "1": {
+        "title": "Strategy first",
+        "body": "Every build starts from a business question: more qualified leads, fewer manual steps, a smoother path to purchase."
+      },
+      "2": {
+        "title": "Senior-level execution",
+        "body": "Senior people do the work and stay involved from scoping to delivery."
+      },
+      "3": {
+        "title": "Performance by default",
+        "body": "Core Web Vitals are built in from day one, not patched in at the end."
+      },
+      "4": {
+        "title": "Conversion focus",
+        "body": "Pages are designed around the action you need visitors to take."
+      },
+      "5": {
+        "title": "Scalable architecture",
+        "body": "Typed, documented code built for handover — you own it, no lock-in."
+      },
+      "6": {
+        "title": "Clear communication",
+        "body": "Written scope, milestones, scheduled calls and one point of contact."
+      }
+    },
+    "industriesEyebrow": "INDUSTRIES",
+    "industriesTitle": "Built for the industries we know *best*.",
+    "processEyebrow": "HOW WE WORK",
+    "processTitle": "A clear path from idea to *results*.",
+    "process": {
+      "1": {
+        "title": "Discovery & Strategy",
+        "body": "Goals, audience, competitors, technical needs and success metrics."
+      },
+      "2": {
+        "title": "Design & UX",
+        "body": "Information architecture, user flows, wireframes and high-fidelity UI."
+      },
+      "3": {
+        "title": "Development",
+        "body": "Production-grade code for speed, SEO, accessibility, scale and security."
+      },
+      "4": {
+        "title": "Launch & Growth",
+        "body": "Measurement, optimisation and ongoing SEO and marketing."
+      }
+    },
+    "testimonialsEyebrow": "CLIENTS",
+    "testimonialsTitle": "What clients *say*.",
+    "journalEyebrow": "JOURNAL",
+    "journalTitle": "Insights on web, apps & *growth*.",
+    "allArticles": "All articles",
+    "faqEyebrow": "FAQ",
+    "faqTitle": "Questions we are asked before every *project*.",
+    "faqMore": "Something else? Write to"
   },
   "work": {
     "title": "Our Work",
     "heroTitle": "Websites, applications and digital experiences built for growth.",
     "heroDescription": "Explore selected projects delivered by drh.al for businesses in Albania and international markets.",
     "filterAll": "All",
-    "filterWebsites": "Websites",
-    "filterWebApps": "Web Apps",
-    "filterMobileApps": "Mobile Apps",
-    "filterEcommerce": "E-commerce",
-    "filterSeo": "SEO",
-    "filterBranding": "Branding",
-    "filterByService": "Filter by service",
     "filterByIndustry": "Filter by industry",
-    "allIndustries": "All industries",
     "empty": "No projects match these filters yet.",
-    "clearFilters": "Clear filters",
-    "showing": "Showing {count} of {total} projects"
+    "crumb": "Work",
+    "v2HeroTitle": "Selected\n*work*.",
+    "v2Lead": "Outcomes, not just deliverables. Websites and platforms for brands in Albania, Italy, the UK and the US.",
+    "projectCount": "{count} projects",
+    "nextKicker": "NEXT PROJECT",
+    "nextTitle": "Your project\n*here*.",
+    "nextBody": "Tell us what you’re building. Reply within 24 hours."
   },
   "project": {
     "client": "Client",
@@ -89,7 +253,38 @@
     "process": "How we work",
     "relatedWork": "Selected work",
     "faq": "Frequently asked questions",
-    "allServices": "All services"
+    "allServices": "All services",
+    "v2HeroTitle": "Services that\nmove the *numbers*.",
+    "v2Lead": "Websites, web apps, mobile apps and growth marketing — planned around a business goal and built by a senior team that stays with you after launch.",
+    "filterLabel": "Filter services",
+    "filterAll": "All",
+    "tabBuild": "Build",
+    "tabDesign": "Design",
+    "tabGrow": "Grow",
+    "groupBuild": "BUILD",
+    "groupDesign": "DESIGN",
+    "groupGrow": "GROW",
+    "aiEyebrow": "New · AI engineering",
+    "aiBody": "Agent workflows, retrieval over your own content and integrations with your ERP, CRM or storefront — evaluated before launch.",
+    "investmentEyebrow": "Investment",
+    "investmentTitle": "Priced by scope, *not pages*.",
+    "investmentNote": "Indicative ranges. You get a fixed price once scope is clear.",
+    "fromPrice": "from {price}",
+    "getQuote": "Get a quote",
+    "tiers": {
+      "focused": {
+        "label": "FOCUSED",
+        "body": "A focused business site or high-intent landing page."
+      },
+      "corporate": {
+        "label": "CORPORATE",
+        "body": "Larger multilingual corporate sites with CMS, custom design and SEO groundwork."
+      },
+      "platforms": {
+        "label": "PLATFORMS",
+        "body": "Custom web apps, platforms and e-commerce, quoted against a specification."
+      }
+    }
   },
   "industries": {
     "title": "Industries",
@@ -99,74 +294,69 @@
     "solutions": "How we solve them",
     "relevantServices": "Relevant services",
     "relevantWork": "Relevant work",
-    "faq": "Frequently asked questions"
+    "faq": "Frequently asked questions",
+    "v2HeroTitle": "Industries we\nknow *best*.",
+    "v2Lead": "Every sector buys differently. We start from how your customers actually decide — then design the site around that moment.",
+    "counter": "INDUSTRY {n} / {total}",
+    "weBuild": "What we build in",
+    "nextIndustry": "Next industry",
+    "explore": "Explore the industry",
+    "challengesTitle": "What gets in the *way*.",
+    "solutionsTitle": "How we *solve* it.",
+    "otherIndustries": "Other industries"
   },
   "blog": {
     "title": "Insights",
     "heroTitle": "Insights on Web, Apps & Growth",
     "heroDescription": "Practical writing on building, launching and growing digital products — from the team that ships them.",
     "featured": "Featured",
-    "allPosts": "All articles",
     "categories": "Categories",
     "allCategories": "All",
-    "tags": "Tags",
     "search": "Search articles",
-    "searchPlaceholder": "Search articles…",
     "empty": "No articles found.",
     "tableOfContents": "On this page",
-    "relatedPosts": "Related articles",
     "relatedService": "Related service",
-    "by": "By",
-    "share": "Share",
     "ctaTitle": "Want this done properly?",
     "ctaBody": "We build and grow digital products for businesses in Albania and worldwide.",
-    "ctaButton": "Start a Project"
+    "ctaButton": "Start a Project",
+    "crumb": "Journal",
+    "v2HeroTitle": "Insights on web,\napps & *growth*.",
+    "v2Lead": "Practical guides from the team that builds the sites — no fluff, no noise.",
+    "readArticle": "Read article",
+    "noMatch": "No articles match “{query}”."
   },
   "contact": {
     "title": "Start a Project",
     "heroTitle": "Tell Us What You're Building",
     "heroDescription": "Have an idea, an existing website that needs improvement or a digital product ready for its next stage?\n\nTell us about your project. We'll review your requirements and reply within 24 hours with the recommended next steps.",
-    "detailsTitle": "Contact details",
     "responseTime": "We reply within 24 business hours.",
-    "whatsappCta": "Message us on WhatsApp",
-    "bookCall": "Book a call"
+    "bookCall": "Book a call",
+    "v2Title": "Start a *project*.",
+    "inbox": "INBOX · 24H",
+    "preferTalk": "PREFER TO TALK?",
+    "bookCallCard": "Book a free 30-min call",
+    "chatWithUs": "Chat with us"
   },
   "form": {
     "fullName": "Full Name",
-    "fullNamePlaceholder": "Jane Doe",
     "email": "Work Email",
-    "emailPlaceholder": "you@company.com",
     "phone": "Phone",
-    "phonePlaceholder": "+355 …",
     "company": "Company",
-    "companyPlaceholder": "Company name",
     "website": "Website URL",
-    "websitePlaceholder": "https://",
     "service": "What Do You Need?",
-    "servicePlaceholder": "Select a service",
     "budget": "Estimated Budget",
-    "budgetPlaceholder": "Select a range",
     "timeline": "Timeline",
-    "timelinePlaceholder": "Select a timeline",
     "message": "Project Details",
     "messagePlaceholder": "Goals, must-haves, current website and useful references…",
     "messageHint": "{count} / {max} characters",
     "attachment": "Attachment",
-    "attachmentHint": "Optional. PDF, DOC or DOCX, up to 10 MB.",
-    "attachmentChoose": "Choose file",
     "attachmentRemove": "Remove file",
     "privacy": "I agree to the <link>Privacy Policy</link>.",
     "submit": "Send Project Brief",
     "submitting": "Sending…",
-    "optional": "optional",
-    "required": "required",
-    "successTitle": "Brief received.",
-    "successBody": "Thank you — your project brief is with us. We review every enquiry personally and will reply within 24 business hours.",
-    "successNote": "A confirmation is on its way to your inbox.",
     "successAnother": "Send another brief",
     "errorTitle": "That didn't send.",
     "errorBody": "Something went wrong on our side. Please try again, or email us directly at {email}.",
-    "verifying": "Verifying…",
     "spamCheckFailed": "Spam verification failed. Please refresh and try again.",
     "rateLimited": "Too many submissions from this connection. Please try again later.",
     "budgetOptions": {
@@ -208,7 +398,10 @@
       "privacyRequired": "Please accept the Privacy Policy to continue.",
       "urlInvalid": "Please enter a valid URL.",
       "fileTooLarge": "That file is larger than 10 MB.",
-      "fileType": "Only PDF, DOC and DOCX files are accepted."
+      "fileType": "Only PDF, DOC and DOCX files are accepted.",
+      "dateInvalid": "Please pick a weekday within the next 60 days.",
+      "timeRequired": "Please pick a time.",
+      "urlRequired": "Please enter your website address."
     }
   },
   "newsletter": {
@@ -218,7 +411,8 @@
     "submit": "Subscribe",
     "success": "Almost there — check your inbox to confirm.",
     "error": "That didn't work. Please try again.",
-    "invalid": "Please enter a valid email address."
+    "invalid": "Please enter a valid email address.",
+    "subscribed": "Subscribed ✓"
   },
   "footer": {
     "services": "Services",
@@ -230,7 +424,24 @@
     "cookies": "Cookies",
     "terms": "Terms",
     "cookieSettings": "Cookie Settings",
-    "builtBy": "Built by drh.al"
+    "ctaBadge": "Taking on new projects",
+    "ctaTitle": "Let’s build something people *remember*.",
+    "ctaBody": "Tell us about your project. We reply within 24 hours with next steps — no obligation.",
+    "ctaButton": "Start a Project",
+    "badgeText": "LET’S TALK · FREE STRATEGY CALL · ",
+    "badgeLabel": "Book a free strategy call",
+    "dock": "Book a free call",
+    "whatsappLabel": "Chat on WhatsApp",
+    "tagline": "Digital products built in Albania for ambitious businesses *worldwide*.",
+    "work": "Work",
+    "industries": "Industries",
+    "about": "About",
+    "journal": "Journal",
+    "contactPage": "Contact",
+    "priceEstimator": "Price estimator",
+    "freeAudit": "Free site audit",
+    "bookCall": "Book a call",
+    "location": "Albania · Worldwide"
   },
   "cookies": {
     "title": "We use cookies",
@@ -246,8 +457,7 @@
     "marketing": "Marketing",
     "marketingBody": "Used to measure advertising campaigns and show relevant ads.",
     "alwaysOn": "Always on",
-    "manageTitle": "Cookie preferences",
-    "policyLink": "Read our cookie policy"
+    "manageTitle": "Cookie preferences"
   },
   "search": {
     "title": "Search",
@@ -257,9 +467,7 @@
     "groupProjects": "Projects",
     "groupServices": "Services",
     "groupIndustries": "Industries",
-    "groupBlog": "Articles",
-    "groupPages": "Pages",
-    "openHint": "Press <kbd>⌘</kbd> <kbd>K</kbd> to search"
+    "groupBlog": "Articles"
   },
   "notFound": {
     "code": "404",
@@ -276,109 +484,78 @@
     "home": "Go home"
   },
   "legal": {
-    "privacyTitle": "Privacy Policy",
-    "termsTitle": "Terms of Service",
-    "cookiesTitle": "Cookie Policy",
     "lastUpdated": "Last updated"
-  },
-  "a11y": {
-    "breadcrumb": "Breadcrumb",
-    "pagination": "Pagination",
-    "mainNavigation": "Main navigation",
-    "footerNavigation": "Footer navigation",
-    "socialLinks": "Social links"
   },
   "cta": {
     "title": "Let's Build Something People Remember",
     "body": "Tell us what you're building, what isn't working today and where you want to go.\n\nWe'll review your requirements and reply within 24 hours with the recommended next steps.",
-    "button": "Start a Project",
-    "available": "Taking on new projects"
-  },
-  "ai": {
-    "eyebrow": "AI Engineering",
-    "title": "AI that does the work, not the talking",
-    "body": "We build AI into products where it earns its place — agent workflows that carry a task end to end, retrieval over your own content, and integrations that put a model behind the systems your business already runs on. Every build ships with evaluations, so you can see what it does before it touches a customer.",
-    "cta": "Discuss an AI build",
-    "secondaryCta": "See all services",
-    "capabilities": {
-      "agents": {
-        "title": "Agent workflows",
-        "body": "Multi-step tasks split across specialised agents, with a human approving the steps that matter."
-      },
-      "retrieval": {
-        "title": "Retrieval over your data",
-        "body": "Answers grounded in your own documents and records, with citations back to the source."
-      },
-      "integration": {
-        "title": "System integration",
-        "body": "Models wired into the ERP, CRM or storefront you already run, not bolted on beside it."
-      },
-      "evaluation": {
-        "title": "Evaluation first",
-        "body": "Test sets and scoring before launch, so quality is measured rather than assumed."
-      }
-    },
-    "studio": {
-      "teamLabel": "AI agent team",
-      "active": "{count} agents active",
-      "lead": "Lead agent",
-      "roles": {
-        "architect": "Architect",
-        "coder": "Coder",
-        "tester": "Tester",
-        "reviewer": "Reviewer"
-      },
-      "status": {
-        "architect": "Architect is planning the integration…",
-        "coder": "Coder is writing syncOrders()…",
-        "tester": "Tester is running the test suite…",
-        "reviewer": "Reviewer is checking the diff…"
-      },
-      "log": {
-        "planning": "Architect: mapping storefront → warehouse",
-        "planned": "Architect: integration shape agreed",
-        "writing": "Coder: implementing syncOrders()",
-        "written": "Coder: syncOrders() complete",
-        "testing": "Tester: running integration tests",
-        "tested": "Tester: 24 passed, 0 failed",
-        "reviewing": "Reviewer: reading the diff"
-      }
-    }
+    "button": "Start a Project"
   },
   "about": {
     "studioEyebrow": "Inside the studio",
-    "studioTitle": "Where ideas become shipped code",
-    "studioBody": "Every project runs through the same disciplined pipeline: typed code, automated checks and performance budgets that fail the build before they can fail your users. Our tooling, including the AI agents we build for ourselves, takes the repetitive work, so senior people spend their time on the decisions that matter.",
-    "point1": "Strictly typed, peer-reviewed code",
-    "point2": "Tests and Lighthouse checks on every change",
-    "point3": "AI-assisted, always human-approved",
-    "editorLabel": "Animated illustration: a small robot types code into an editor, then the build passes.",
-    "workspaceEyebrow": "Where the work happens",
-    "workspaceTitle": "A small senior team with a serious toolbox",
-    "workspaceBody": "We stay small on purpose. The people you meet in the first call are the people who design, build and launch your product, from architecture diagrams to the last pixel of the dashboard.",
-    "imageAlt": "A developer workspace at night: code open on a laptop, an analytics dashboard on a large monitor and an architecture diagram above them.",
-    "badgeBuild": "Build passing",
-    "badgeSpeed": "Lighthouse 95+",
     "stat1Value": "8+",
     "stat1Label": "Years shipping",
     "stat2Value": "100+",
     "stat2Label": "Projects delivered",
     "stat3Value": "3",
-    "stat3Label": "Working languages"
-  },
-  "robot": {
-    "ariaLabel": "Say hi to the drh.al robot",
-    "hint": "Tap the robot to say hi",
-    "message1": "Hi there! 👋",
-    "message2": "Let's build something great.",
-    "message3": "Fast sites. Happy clients.",
-    "message4": "I write the code, you grow the business.",
-    "message5": "Hehe, that tickles! 😄"
-  },
-  "faq": {
-    "stillTitle": "Still have a question?",
-    "stillBody": "Talk to the people who will actually build it. We reply within 24 hours.",
-    "ask": "Ask us directly"
+    "crumb": "About",
+    "heroStart": "A small senior team\nthat builds",
+    "heroSr": "A small senior team that builds {words}.",
+    "word1": "websites",
+    "word2": "web apps",
+    "word3": "mobile apps",
+    "v2Lead": "drh.al is a web development and digital agency in Albania. The people you meet on the first call are the people who design, build and launch your product.",
+    "stat3LabelLong": "Working languages — EN · SQ · IT",
+    "philosophyEyebrow": "Philosophy",
+    "philosophy": "Technology should solve real business problems. We start from your goals — more qualified leads, fewer manual steps, a smoother path to purchase — and work back to the build. A technical and strategic partner, not a design studio that also codes.",
+    "pipelineTitle": "A disciplined *pipeline*, every change.",
+    "pipelineNote": "Our own AI agents handle repetitive work, so senior people spend their time on the decisions that matter.",
+    "pipeline": {
+      "1": {
+        "title": "Strictly typed",
+        "body": "Peer-reviewed TypeScript, documented decisions."
+      },
+      "2": {
+        "title": "Tested & measured",
+        "body": "Tests and Lighthouse checks on every change."
+      },
+      "3": {
+        "title": "AI-assisted, human-approved",
+        "body": "Agents do the repetitive work. People sign off."
+      }
+    },
+    "valuesEyebrow": "What makes us different",
+    "valuesTitle": "Six promises we *keep*.",
+    "values": {
+      "1": {
+        "title": "Business questions first",
+        "body": "We ask what the site must achieve before we talk about how it looks."
+      },
+      "2": {
+        "title": "Senior people do the work",
+        "body": "And stay involved from scoping to delivery."
+      },
+      "3": {
+        "title": "Built for handover",
+        "body": "Clear code, documented decisions, client ownership — never locked in."
+      },
+      "4": {
+        "title": "Results are measured",
+        "body": "Analytics, Search Console and lead attribution, connected from day one."
+      },
+      "5": {
+        "title": "Honest advice",
+        "body": "We will advise against features that don’t justify their complexity."
+      },
+      "6": {
+        "title": "Engaged after launch",
+        "body": "Launch is where measurement starts, not where we disappear."
+      }
+    },
+    "marketsEyebrow": "Where we work",
+    "marketsTitle": "Albania-based. *Remote* by default.",
+    "marketsBody": "Clients in Tirana and Albania’s main commercial centres, and across Europe — including Italy. Written scope, scheduled calls, visible progress and one point of contact.",
+    "mapLabel": "Map showing Albania with links to Italy, the UK and the US"
   },
   "sections": {
     "services": "What we do",
@@ -390,7 +567,212 @@
     "blog": "Journal",
     "faq": "FAQ"
   },
-  "hero": {
-    "scroll": "Scroll"
+  "service": {
+    "selectedWork": "Selected work",
+    "mockUrl": "yourbusiness.al",
+    "mockLeadTitle": "NEW LEAD",
+    "mockLeadBody": "Quote request from the contact form",
+    "overview": "Overview",
+    "includedTitle": "Everything a serious site *needs*.",
+    "whyTitle": "Built to *perform*, not just look good.",
+    "processTitle": "Four steps. *No surprises*.",
+    "stepOf": "STEP {n} / {total}",
+    "stack": "Stack",
+    "faqTitle": "Good *questions*."
+  },
+  "caseStudy": {
+    "year": "Year",
+    "stack": "Stack",
+    "newTab": "opens in a new tab",
+    "coverAlt": "{client} website — desktop screenshot",
+    "mobileAlt": "{client} website — mobile screenshot",
+    "beforeAlt": "{client} — the previous website",
+    "beforeAfterEyebrow": "Before / after",
+    "beforeAfterTitle": "Drag to see the *difference*.",
+    "before": "BEFORE",
+    "after": "AFTER",
+    "compare": "Compare before and after",
+    "clientWords": "In the client’s words"
+  },
+  "article": {
+    "team": "drh.al team",
+    "copyLink": "Copy link",
+    "copied": "Link copied ✓",
+    "shareLinkedIn": "Share on LinkedIn",
+    "ctaTitle": "Want a free performance check?",
+    "ctaBody": "We’ll review your site and reply within 24 hours.",
+    "ctaButton": "Request a review",
+    "keepReading": "Keep *reading*."
+  },
+  "contactForm": {
+    "stepOf": "STEP {n} / {total}",
+    "progress": "Form progress",
+    "step1": "Service",
+    "step2": "Budget & timeline",
+    "step3": "Your details",
+    "step1Title": "What do you need?",
+    "step2Title": "Budget & timeline",
+    "step3Title": "Tell us about it",
+    "detailsHint": "up to {max} characters",
+    "attach": "Attach a brief — PDF, DOC or DOCX, up to 10 MB",
+    "back": "Back",
+    "continue": "Continue",
+    "send": "Send project",
+    "doneTitle": "Thanks — it’s *on our desk*.",
+    "doneBody": "We’ll reply within 24 business hours with next steps and a time for a free strategy call.",
+    "doneBook": "Book your call now"
+  },
+  "pricing": {
+    "metaTitle": "Project Price Estimator — Websites & Apps | drh.al",
+    "metaDescription": "Pick what you need and see an indicative price range for your website, store, web app or mobile app in 60 seconds. You get a fixed price once scope is clear.",
+    "ogKicker": "Price estimator",
+    "ogTitle": "Your project, priced in 60 seconds.",
+    "crumbRoot": "Pricing",
+    "crumb": "Project estimator",
+    "heroTitle": "Your project,\npriced in *60 seconds*.",
+    "lead": "Pick what you need and see an indicative range instantly. You get a fixed price once scope is clear.",
+    "sixty": "60 SECONDS",
+    "step1": "01 — WHAT ARE WE BUILDING?",
+    "step2": "02 — HOW BIG IS IT?",
+    "step3": "03 — LANGUAGES",
+    "step4": "04 — FEATURES",
+    "step5": "05 — TIMELINE",
+    "pagesLabel": "Pages or screens",
+    "from": "from {price}",
+    "types": {
+      "business": "Business website",
+      "corporate": "Multilingual corporate site",
+      "ecommerce": "Online store",
+      "webapp": "Web app / platform",
+      "mobile": "Mobile app"
+    },
+    "features": {
+      "cms": "Editable CMS",
+      "forms": "Booking & forms",
+      "pay": "Online payments",
+      "seo": "SEO setup",
+      "integr": "ERP / CRM integration",
+      "ai": "AI assistant",
+      "copy": "Copywriting",
+      "brand": "Brand identity"
+    },
+    "standard": "Standard",
+    "fast": "Fast-track",
+    "estimateLabel": "INDICATIVE ESTIMATE",
+    "typicalRange": "Typical range for this scope",
+    "specNote": "Quoted against a written specification",
+    "summary": {
+      "project": "Project",
+      "pages": "Pages / screens",
+      "languages": "Languages",
+      "features": "Features",
+      "timeline": "Timeline",
+      "featureCount": "{count} selected",
+      "none": "None"
+    },
+    "cta": "Get my exact quote",
+    "call": "Talk it through on a free call",
+    "disclaimer": "Indicative only. Fixed price once scope is clear — no obligation.",
+    "briefIntro": "Estimate from the drh.al price estimator",
+    "briefRange": "Indicative range"
+  },
+  "book": {
+    "metaTitle": "Book a Free 30-Minute Strategy Call | drh.al",
+    "metaDescription": "Book a free, no-obligation 30-minute video call with the drh.al team. Leave with a clear goal, the right stack, a realistic timeline and an indicative budget.",
+    "ogKicker": "Free strategy call",
+    "ogTitle": "Book 30 minutes with a senior developer.",
+    "crumbRoot": "Contact",
+    "crumb": "Book a call",
+    "heroTitle": "Book a free *30-minute* strategy call.",
+    "chip30": "30 minutes",
+    "chipVideo": "Video call",
+    "chipFree": "Free, no obligation",
+    "leaveWith": "You’ll leave with",
+    "outcome1": "A clear read on what your site or app should achieve.",
+    "outcome2": "The right stack and a realistic timeline.",
+    "outcome3": "An indicative budget range — then a fixed quote.",
+    "host": "drh.al senior team",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "unavailable": "unavailable",
+    "timezone": "Times shown in Europe/Tirane (CET)",
+    "pickDay": "Pick a day",
+    "times": "Available times",
+    "continue": "Continue",
+    "requestNote": "Pick a preferred time and we’ll confirm it by email.",
+    "dateInvalid": "Please pick a weekday within the next 60 days.",
+    "changeTime": "Change time",
+    "slotBadge": "30 MIN · VIDEO CALL",
+    "topic": "What would you like to discuss?",
+    "confirm": "Request this time",
+    "doneTitle": "Request *received*.",
+    "doneBody": "We’ll confirm {when} by email within 24 hours.",
+    "calendlyTitle": "Book a time with drh.al"
+  },
+  "audit": {
+    "metaTitle": "Free Website Audit — Speed, SEO & Conversion | drh.al",
+    "metaDescription": "A senior developer reviews your site’s speed, SEO, accessibility and conversion and emails you a clear, prioritised report within 24 hours. Free.",
+    "ogKicker": "Free website audit",
+    "ogTitle": "What’s slowing your site down?",
+    "crumbRoot": "Free tools",
+    "crumb": "Website audit",
+    "heroTitle": "What’s slowing your site *down*?",
+    "lead": "A senior developer reviews speed, SEO, accessibility and conversion — and emails you a clear, prioritised report within 24 hours. Free.",
+    "urlLabel": "Website URL",
+    "emailLabel": "Email",
+    "submit": "Audit my site",
+    "noSpam": "NO SPAM · ONE REPORT · UNSUBSCRIBE ANYTIME",
+    "urlInvalid": "Please enter your website address, e.g. yourbusiness.al.",
+    "queuing": "Queuing your audit…",
+    "doneTitle": "Your audit is in the queue.",
+    "doneBody": "Expect your report within 24 hours. Want to go through it together?",
+    "doneCta": "Book a free walkthrough",
+    "flag1": "IMAGE 2.4 MB — UNOPTIMISED",
+    "flag2": "CTA BELOW THE FOLD ON MOBILE",
+    "checkEyebrow": "What we check",
+    "checkTitle": "Six areas that cost you *enquiries*.",
+    "checks": {
+      "speed": {
+        "title": "Speed & Core Web Vitals",
+        "body": "LCP, INP and CLS on real mobile connections."
+      },
+      "seo": {
+        "title": "Technical SEO",
+        "body": "Indexing, metadata, hreflang, structured data and sitemaps."
+      },
+      "a11y": {
+        "title": "Accessibility",
+        "body": "Contrast, keyboard use, labels and screen-reader basics."
+      },
+      "mobile": {
+        "title": "Mobile experience",
+        "body": "Tap targets, layout shifts and what shows above the fold."
+      },
+      "conversion": {
+        "title": "Conversion paths",
+        "body": "How easy it is to call, book, enquire or buy."
+      },
+      "security": {
+        "title": "Security & hygiene",
+        "body": "HTTPS, headers, outdated plugins and broken links."
+      }
+    },
+    "sampleTitle": "What your report looks like",
+    "sampleBadge": "SAMPLE — NOT YOUR SITE",
+    "gauges": {
+      "performance": "Performance",
+      "seo": "SEO",
+      "accessibility": "Accessibility",
+      "conversion": "Conversion"
+    },
+    "high": "HIGH",
+    "medium": "MEDIUM",
+    "effortLow": "EFFORT · LOW",
+    "effortMedium": "EFFORT · MEDIUM",
+    "fixes": {
+      "1": "Compress and resize hero images (saves ~2 MB per visit)",
+      "2": "Move the call-to-action above the fold on mobile",
+      "3": "Add hreflang for the Albanian and Italian versions"
+    }
   }
 }

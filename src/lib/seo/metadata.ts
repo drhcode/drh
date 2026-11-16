@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import { publicEnv } from '@/lib/env';
-import { routing, type AppLocale } from '@/i18n/routing';
+import { localeLabels, routing, type AppLocale } from '@/i18n/routing';
+import { cmsAvailability } from '@/i18n/availability';
 import type { TranslationStatus } from '@/lib/data/types';
 import { truncate } from '@/lib/utils';
 import { getCompanySettings } from '@/lib/data';
 
 export const SITE_NAME = 'drh.al';
 
-/** Absolute URL for a locale-relative path. `/` and `/sq` for the home page. */
+/** Absolute URL for a locale-relative path. `/`, `/sq` and `/it` for the home page. */
 export function absoluteUrl(path: string, locale: AppLocale = 'en'): string {
   const clean = path === '/' ? '' : path.startsWith('/') ? path : `/${path}`;
   const prefix = locale === routing.defaultLocale ? '' : `/${locale}`;
@@ -32,11 +33,16 @@ interface BuildMetadataOptions {
    */
   isIndexable?: boolean;
   /**
-   * Which languages actually have this content. Only translated languages get
-   * an hreflang entry — pointing hreflang at a fallback page is worse than
-   * omitting it.
+   * Which CMS languages actually have this content. Shorthand for
+   * `available: cmsAvailability(translations)`.
    */
   translations?: TranslationStatus;
+  /**
+   * Locales in which this page genuinely exists. Only these get an hreflang
+   * entry — pointing hreflang at a fallback page is worse than omitting it —
+   * and a locale outside this list is served `noindex`.
+   */
+  available?: AppLocale[];
   type?: 'website' | 'article';
   publishedTime?: string | null;
   modifiedTime?: string | null;
@@ -58,19 +64,19 @@ export async function buildMetadata({
   canonical,
   isIndexable = true,
   translations,
+  available: explicit,
   type = 'website',
   publishedTime,
   modifiedTime,
 }: BuildMetadataOptions): Promise<Metadata> {
   const url = canonical ?? absoluteUrl(path, locale);
 
-  const available = translations
-    ? routing.locales.filter((code) => translations[code])
-    : routing.locales;
+  const available = explicit ?? (translations ? cmsAvailability(translations) : [...routing.locales]);
+  const indexable = isIndexable && available.includes(locale);
 
   const languages: Record<string, string> = {};
-  for (const code of available) {
-    languages[code === 'en' ? 'en' : 'sq'] = absoluteUrl(path, code);
+  for (const code of routing.locales) {
+    if (available.includes(code)) languages[code] = absoluteUrl(path, code);
   }
   if (available.includes('en')) {
     languages['x-default'] = absoluteUrl(path, 'en');
@@ -89,7 +95,7 @@ export async function buildMetadata({
       canonical: url,
       languages: Object.keys(languages).length > 1 ? languages : undefined,
     },
-    robots: isIndexable
+    robots: indexable
       ? { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } }
       : { index: false, follow: true },
     openGraph: {
@@ -98,7 +104,8 @@ export async function buildMetadata({
       siteName: SITE_NAME,
       title: ogTitle ?? title,
       description: ogDescription ?? description,
-      locale: locale === 'sq' ? 'sq_AL' : 'en_GB',
+      locale: localeLabels[locale].ogLocale,
+      alternateLocale: available.filter((code) => code !== locale).map((code) => localeLabels[code].ogLocale),
       images: [{ url: image, width: 1200, height: 630, alt: ogTitle ?? title }],
       ...(type === 'article'
         ? {
