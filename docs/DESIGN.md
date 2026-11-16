@@ -1,167 +1,127 @@
 # Design system
 
-The visual identity is built from tokens in `src/app/globals.css`. No component
-hard-codes a colour, radius or shadow.
+The public site follows the "drh.al — Website Redesign" artboards (redesign v2).
+The admin keeps its own, denser design language and shares only the base tokens.
 
-## The idea
-
-A **warm neutral ground** paired with **one cool, precise accent**.
-
-The warmth is the point. Most developer-adjacent agency sites use pure greys,
-which read as cold and generic. Shifting the neutrals a few degrees warm
-(`oklch(0.987 0.0025 85)` for the light ground, `oklch(0.148 0.006 65)` for dark)
-makes the palette feel considered without becoming decorative. The single cool
-accent then does all the signalling work — CTAs, links, focus, charts — so
-nothing else has to compete for attention.
-
-This is deliberately not Linear's cool violet, Vercel's pure monochrome, or
-Stripe's indigo. Warm neutrals plus electric blue is its own combination.
+| File | Holds |
+| --- | --- |
+| `src/styles/site.css` | Public palette, theme tokens, motion, component classes. Loaded by the localized layout only, so the admin never downloads it. |
+| `src/app/globals.css` | Tailwind, the shared base/admin tokens, and the Tailwind colour mapping for the public tokens. |
+| `src/app/fonts.ts` | Self-hosted fonts (`next/font/local`). |
+| `src/lib/theme.ts` | Theme resolution, persistence and the pre-paint script. |
 
 ## Tokens
 
-| Group | Purpose |
-| --- | --- |
-| `--background`, `--surface`, `--surface-raised`, `--surface-sunken` | Four elevation levels |
-| `--foreground`, `--muted-foreground`, `--subtle-foreground` | Three text weights |
-| `--border`, `--border-strong`, `--ring` | Hairlines and focus |
-| `--accent` + `-hover`, `-foreground`, `-subtle`, `-border` | The single accent, complete |
-| `--success`, `--warning`, `--danger`, `--info` | Status only — never decoration |
-| `--chart-1` … `--chart-6` | Chart series, ordered by visual priority |
+Two themes, defined on `<html>` as `.t-dark` (default) and `.t-light`. `.inv`
+flips a band to the opposite theme (the ivory "Selected work" band on a dark page).
 
-Every token is defined in `:root` and redefined under `.dark`, so both themes are
-complete by construction rather than by patching.
+| Token | Use | Tailwind |
+| --- | --- | --- |
+| `--bg` `--fg` | Page ground and primary text | `bg-bg`, `text-fg` |
+| `--s1` `--s2` | Raised surfaces (cards, panels) | `bg-s1`, `bg-s2` |
+| `--ln` `--ln2` | Hairlines and outlines | `border-ln`, `border-ln2` |
+| `--t1` `--t2` `--t3` | Text, from strongest to quietest | `text-t1` … |
+| `--acct` | Accent text and focus ring — lime in dark, deep green in light | `text-acct` |
+| `#D4FF3A` / `#0b0d0c` | The fixed brand lime and ink (CTAs, lime bands) | `bg-lime`, `text-ink` |
 
-## Typography
+Shared UI primitives (dialogs, menus, cookie banner, toasts) use the older
+`--background`/`--foreground` tokens; `site.css` remaps those onto the public
+palette, so they follow the visitor's theme.
 
-Inter for text, JetBrains Mono for code and numeric labels. Headings are tight
-(`-0.022em`, `-0.032em` at h1) and set at weight 560 — heavier than regular,
-lighter than bold, which reads as confident rather than shouty. Body copy is
-constrained to ~44rem (`.container-prose`) because line length does more for
-readability than font choice.
+Contrast (WCAG): every text token on every surface is at least 4.5:1 in both
+themes. The lowest pairs are light-theme `--acct` on `--s2` (4.88:1) and
+`--t3` on `--s2` (5.05:1). Ink on lime is 16.9:1. Fixed lime is only ever used
+as text on ink.
+
+## Type
+
+- **Inter Tight** — everything read or clicked; display headings at weight 600
+  with tight negative tracking.
+- **Instrument Serif italic** — the accent word in a headline. Copy marks it with
+  asterisks (`"Built for *growth*."`); CMS titles without markers accent their
+  last word (`<Accent autoLast>`). Accents never wrap.
+- **JetBrains Mono** — eyebrows, breadcrumbs, labels and numbers.
+
+Fonts are committed `woff2` files loaded with `next/font/local` — the Hostinger
+build server cannot reliably fetch Google Fonts. Only the families the public
+site renders are preloaded; the admin's Manrope and Geist Mono load on demand.
+
+## Theme
+
+Dark is the brand default. On a first visit the OS `prefers-color-scheme`
+decides; once the visitor uses the sun/moon switch, that choice wins and is
+stored in localStorage **and** a `drh-theme` cookie. A tiny blocking script in
+`<head>` applies the theme before first paint, so there is no flash. The cookie
+is deliberately not read on the server: that would make every page dynamic.
 
 ## Motion
 
-Framer Motion, used sparingly:
+CSS only — no animation library. Keyframes live in `site.css`:
+rise, reveal (scroll-driven), marquee, draw / draw-v / drawloop, flow, orbit,
+glow, shine, bob, sweep, recscroll, curtain, ripple and a few page-specific ones.
 
-- **Hero:** one staggered fade-up, 14px of travel, on load only
-- **Sections:** 12px reveal, once, on scroll into view
-- **Cards:** 1.03 scale on the image, arrow shift on hover
-- **Metrics:** count-up on first view
-- **Overlays:** 140–180ms fade/pop
+- **Scroll reveals** use `animation-timeline: view()` inside `@supports`.
+  Browsers without view timelines skip to the end state — content is simply
+  visible, never stuck hidden.
+- **Hero headlines and lead paragraphs** slide in without fading (`.rise-t`), so
+  the page's largest text is painted at first render. Smaller hero elements use
+  the full fade (`.rise`).
+- **Page curtain**: lime panel with "drh.al" sweeping up, on first load and on
+  every client-side route change (keyed by pathname). Next's experimental view
+  transitions were not used — they require the experimental React channel.
+- **Pointer effects** (`src/components/fx/pointer-fx.tsx`): spotlight that
+  follows the cursor or finger, a tap ripple, `--px/--py` parallax on the home
+  orbit, magnetic primary buttons and the 3D tilt on the home performance card.
+  Magnetic and tilt ignore touch input. Everything writes CSS variables inside
+  one `requestAnimationFrame`.
+- **Reduced motion**: `prefers-reduced-motion: reduce` switches off every
+  animation and transition on the public site, shows drawn lines fully drawn,
+  hides the curtain and freezes pointer effects.
+- **Below the fold**, home sections and the footer use `content-visibility:
+  auto`, so the browser does not lay them out until they approach the viewport.
 
-Everything is disabled by the global `prefers-reduced-motion` rule, and the
-metrics counter renders its final value immediately when motion is reduced —
-the animation is never the only way to read a number.
+## Components
+
+| Folder | What |
+| --- | --- |
+| `components/site` | Shell: header (frosted, hides on scroll down), locale and theme switches, footer with CTA band, floating dock, curtain, ⌘K search (lazy). |
+| `components/brand` | Primitives: accent headline, section head, icons, brand mark, service icons. |
+| `components/blocks` | Content blocks shared by the home page and CMS landing pages: page hero, service cards, project cards, lists (industries, process, why, journal, FAQ), marquees. |
+| `components/{home,services,work,industries,blog,pricing,book,audit}` | Page-specific client pieces. |
+| `components/sections/page-sections.tsx` | Renders a CMS landing page from its fixed catalogue of section blocks, using the blocks above. |
+
+Marquees server-render their list once and clone it in the browser for the
+seamless loop, which keeps page weight down.
+
+## Accessibility
+
+- One visible focus treatment: a 2px `--acct` outline, ink on lime surfaces.
+- Real semantics for interactive widgets: ARIA tabs with arrow keys (service
+  process, industries), radio groups for single choices (contact form, estimator,
+  booking slots), toggle buttons for filters, native range inputs for the
+  estimator and the before/after slider.
+- The mobile menu traps focus, closes on Escape and returns focus to its button.
+- Decorative SVG and motion are `aria-hidden`; illustrative panels (agent
+  studio, growth chart) are labelled as illustrations.
+- Every input has a label; errors are announced with `role="alert"`.
+
+## Admin vs public
+
+The admin is deliberately a different language: denser type, a sunken canvas
+with elevated panels, a persistent sidebar, 14px base. It shares the base tokens
+and the theme preference (same storage, same pre-paint script) but none of the
+public components.
 
 ### Route progress
 
 `src/components/route-progress.tsx` — a 2px accent bar at the top of the
-viewport, mounted once in the root layout so it covers the public site and the
-admin.
-
-A full-screen loader was the wrong shape here: the public site is statically
-generated and prefetched, so an overlay would hide content that is already
-present and make navigation feel slower than it is. The bar earns its place in
-`/admin`, where every route is a server round trip through Supabase.
-
-Three decisions carry it:
-
-- **Nothing shows under ~140ms.** Instant static navigations would otherwise
-  produce a flash that reads as a glitch rather than as feedback.
-- **It eases toward 90% and stops**, completing only on arrival. It never
-  implies progress it has no way to measure.
-- **Arrival is detected by watching `location.href` inside the animation loop**,
-  not via `useSearchParams()`. That hook would need a Suspense boundary in a
-  layout — putting static generation at risk — and is known to go stale there.
-  All 85 pages stay statically generated.
-
-Link clicks are caught by one capture-phase listener that ignores modified
-clicks, downloads, new-tab targets, external origins and hash-only jumps.
-Programmatic `router.push` calls fire no click, so the admin filters, date-range
-picker, command palette, language switcher and site search call
-`startRouteProgress()` explicitly.
-
-Under reduced motion the bar still appears — it is feedback, not decoration —
-but holds one position instead of easing.
-
-### The hero field
-
-`src/components/sections/hero-field.tsx` makes the hero's existing 72px grid
-respond to the pointer — mouse, pen or finger — rather than adding unrelated
-decoration on top of it. Two layers:
-
-1. **An accent glow** that follows the pointer, moved with a GPU `translate3d`
-   and nothing else. Its colour is the `--accent-glow` token, which carries its
-   own alpha so no `color-mix()` is needed. (Lightning CSS shims `color-mix`
-   with a full-strength fallback rule, which would render a solid accent disc on
-   older browsers — the token avoids that entirely.)
-2. **Nodes on the grid intersections**, drawn to a DPR-aware canvas, lit by a
-   quadratic proximity falloff within 210px. Only the intersections inside that
-   window are visited, so a frame touches roughly 30 points.
-
-The listeners sit on the hero `<section>`, not on the visual stack. The stack is
-`pointer-events: none` so it can never block a scroll or a tap — which by spec
-also means it receives no pointer events at all, so listening there would fire
-nothing.
-
-Why it stays quiet:
-
-- **The loop stops.** When the pointer leaves, the effect eases to zero, clears
-  the canvas and cancels its rAF. At rest it costs nothing — it never becomes
-  the "constant animation" the brief rules out.
-- **It pauses off-screen** via `IntersectionObserver`, so scrolling past the hero
-  does not keep a loop alive.
-- **It never blocks input.** The whole stack is `pointer-events-none` and every
-  listener is passive, so scroll and tap are untouched.
-- **It is progressive enhancement.** The static grid is plain CSS and renders
-  identically before hydration, without JavaScript, and under reduced motion —
-  where no canvas, no glow and no listeners are created at all.
-- **Touch is handled explicitly.** Touch fires `pointerup`/`pointercancel` rather
-  than `pointerleave`, so the effect fades shortly after contact ends instead of
-  sticking under the last touch point.
-
-## Accessibility
-
-- One focus treatment everywhere: `:focus-visible` with a 2px accent ring
-- Semantic landmarks, a skip link, labelled forms and dialogs
-- Mobile nav uses ≥44px tap targets and is a purpose-built layout, not a shrunk desktop menu
-- Every drag interaction has a keyboard and select-based alternative
-- Wide tables scroll inside their own container; the page body never does
-
-## Admin vs public
-
-The admin is deliberately a different language: denser type, a sunken canvas with
-elevated panels, a persistent sidebar, 14px base instead of 17px. It shares the
-tokens — so themes and brand stay consistent — but not the layout vocabulary. It
-should read as an internal tool, not as the marketing site with a menu attached.
+viewport, mounted by the shared document so it covers the public site and the
+admin. Nothing shows under ~140ms, it eases toward 90% and completes only on
+arrival, and under reduced motion it holds one position instead of easing.
 
 ## Adding a component
 
-1. Reach for `src/components/ui` first.
-2. Use tokens. If a value is missing, add a token rather than a literal.
-3. Both themes, or it is not done.
-4. Check keyboard operation and focus visibility before styling states.
-
-## Service pages
-
-The service detail page leads with a split hero: content on the left, a cover
-illustration on the right, stacking to a single column below `lg`.
-
-**Covers** are generated by `scripts/gen-service-covers.cjs` — a dark ink frame
-around a light interface, one motif per service (editor, layered panels, phones,
-article blocks, storefront, design system, search results, campaign dashboard).
-They read as product screenshots rather than stock photography, work on both
-themes without a second asset, and are replaced from
-/admin/services → Cover image. Next.js serves SVG directly rather than through
-the image optimizer, so no `dangerouslyAllowSVG` is needed.
-
-**Mobile specifics**, since this page carries the most content:
-
-- The H1 starts at `2rem` rather than `text-4xl`, so a headline like "Web
-  Development in Albania for Ambitious Businesses" breaks cleanly at 375px.
-- The breadcrumb wraps instead of overflowing on long service names.
-- Both CTAs are full-width below `sm`, side by side above it.
-- The offset accent panel behind the cover sits at `-12px`, inside the container's
-  20px padding — it adds depth without ever creating horizontal scroll.
-- "What's included" is a bordered `gap-px` grid: three columns on desktop, one on
-  mobile, with no reflow artefacts at any width.
+1. Reach for `components/blocks` and `components/brand` first.
+2. Use the tokens (`bg-s1`, `text-t2`, `border-ln` …). If a value is missing,
+   add a token rather than a literal.
+3. Check both themes, 390px and 1440px, keyboard operation and reduced motion.

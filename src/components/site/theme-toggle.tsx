@@ -3,15 +3,14 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const STORAGE_KEY = 'drh-theme';
+import { currentTheme, setTheme } from '@/lib/theme';
 
 /**
- * Shared by the public header and the admin shell.
+ * The admin shell's theme button. The public site uses `ThemeSwitch`, which
+ * shares the same storage, cookie and pre-paint script (src/lib/theme.ts).
  *
  * The admin is English-only and has no NextIntlClientProvider, so this takes a
- * label rather than reaching for translation context — a UI atom used in both
- * trees must not depend on one of them.
+ * label rather than reaching for translation context.
  */
 export function ThemeToggle({
   className,
@@ -29,19 +28,12 @@ export function ThemeToggle({
     // rendering it during the server pass would guarantee a mismatch.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    setIsDark(document.documentElement.classList.contains('dark'));
+    setIsDark(currentTheme(document.documentElement) === 'dark');
   }, []);
 
   const toggle = React.useCallback(() => {
-    const next = !document.documentElement.classList.contains('dark');
-    document.documentElement.classList.toggle('dark', next);
-    document.documentElement.style.colorScheme = next ? 'dark' : 'light';
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light');
-    } catch {
-      // Private browsing — the preference just is not remembered.
-    }
-    setIsDark(next);
+    const next = currentTheme(document.documentElement) === 'dark' ? 'light' : 'dark';
+    setIsDark(setTheme(next) === 'dark');
   }, []);
 
   return (
