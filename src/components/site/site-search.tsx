@@ -24,8 +24,12 @@ const GROUP_ICON = {
   page: FileText,
 } as const;
 
-/** Site-wide search, opened with ⌘K / Ctrl+K (spec §71). */
-export function SiteSearch() {
+/**
+ * Site-wide search, opened with ⌘K / Ctrl+K (spec §71). The redesigned header
+ * has no search button, so it mounts this with `showTrigger={false}` and the
+ * palette stays reachable from the keyboard shortcut.
+ */
+export function SiteSearch({ showTrigger = true }: { showTrigger?: boolean } = {}) {
   const t = useTranslations('search');
   const tNav = useTranslations('nav');
   const locale = useLocale();
@@ -81,6 +85,7 @@ export function SiteSearch() {
 
   return (
     <>
+      {showTrigger && (
       <Button
         variant="ghost"
         size="icon-sm"
@@ -90,6 +95,7 @@ export function SiteSearch() {
       >
         <Search className="size-4" />
       </Button>
+      )}
 
       <CommandDialog
         open={open}

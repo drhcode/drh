@@ -1,328 +1,186 @@
 'use client';
 
 import * as React from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, ChevronDown, Menu } from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { Logo } from './logo';
-import { ServiceIcon } from './service-icon';
-import { ThemeToggle } from './theme-toggle';
-import { LanguageSwitcher } from './language-switcher';
-import { SiteSearch } from './site-search';
+import { BrandMark } from '@/components/brand/brand-mark';
+import { Close, Menu } from '@/components/brand/icons';
+import { ThemeSwitch } from './theme-switch';
+import { LocaleSwitch } from './locale-switch';
 import { cn } from '@/lib/utils';
 
-export interface HeaderService {
-  slug: string;
-  title: string;
-  shortDescription?: string | null;
-  iconKey?: string | null;
-}
+const LINKS = [
+  { key: 'services', href: '/services' },
+  { key: 'work', href: '/work' },
+  { key: 'industries', href: '/industries' },
+  { key: 'about', href: '/about' },
+  { key: 'journal', href: '/blog' },
+  { key: 'pricing', href: '/pricing' },
+] as const;
 
-const NAV_KEYS = ['work', 'industries', 'about', 'blog'] as const;
-const NAV_HREF: Record<(typeof NAV_KEYS)[number], string> = {
-  work: '/work',
-  industries: '/industries',
-  about: '/about',
-  blog: '/blog',
-};
+export const HEADER_HEIGHT = 88;
 
-export interface HeaderBranding {
-  logo: string | null;
-  logoDark: string | null;
-  companyName: string;
-}
+/** ⌘K palette (cmdk + dialog) loads after hydration, off the critical path. */
+const SiteSearch = dynamic(() => import('./site-search').then((m) => m.SiteSearch), { ssr: false });
 
-export function SiteHeader({
-  featuredServices,
-  allServices,
-  branding,
-}: {
-  featuredServices: HeaderService[];
-  allServices: { slug: string; title: string }[];
-  branding: HeaderBranding;
-}) {
+/**
+ * Fixed, frosted header. Hides while scrolling down past 240px and returns on
+ * any upward scroll; gains a hairline and shadow once the page has moved.
+ * Below 861px the links collapse into a full-screen menu.
+ */
+export function SiteHeader() {
   const t = useTranslations('nav');
-  const tA11y = useTranslations('a11y');
   const pathname = usePathname();
+  const [open, setOpen] = React.useState(false);
+  const [hidden, setHidden] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const toggleRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let last = window.scrollY;
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setHidden(y > last && y > 240);
+        setScrolled(y > 8);
+        last = y;
+      });
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
-  // Navigating closes the mobile sheet. Reconciled during render so the panel
-  // never paints open on the new route.
-  const [lastPathname, setLastPathname] = React.useState(pathname);
-  if (pathname !== lastPathname) {
-    setLastPathname(pathname);
-    if (mobileOpen) setMobileOpen(false);
-  }
+  // Close the menu on navigation.
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpen(false);
+  }, [pathname]);
+
+  // Full-screen menu: lock page scroll, close on Escape, keep focus inside.
+  React.useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    menuRef.current?.querySelector<HTMLElement>('a, button')?.focus();
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        toggleRef.current?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !menuRef.current) return;
+      const items = [toggleRef.current, ...menuRef.current.querySelectorAll<HTMLElement>('a, button')].filter(
+        Boolean,
+      ) as HTMLElement[];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    /*
-      Fixed rather than sticky, so the hero runs underneath it and its particle
-      field shows through. The outer height never changes between states — only
-      the surface does — so nothing on the page shifts when it frosts over.
-    */
-    <header className="fixed inset-x-0 top-0 z-50">
-      <div className="container-page">
-        <div
-          className={cn(
-            'mt-3 flex h-14 items-center justify-between gap-4 rounded-full border px-3 pl-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 md:h-16 md:px-4 md:pl-5',
-            scrolled
-              ? 'border-border/70 bg-background/70 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/60'
-              : 'border-transparent bg-transparent',
-          )}
-        >
-          <Link href="/" className="shrink-0 rounded-md" aria-label={branding.companyName}>
-            <Logo
-              src={branding.logo}
-              srcDark={branding.logoDark}
-              alt={branding.companyName}
-              priority
-            />
+    <>
+      <div aria-hidden="true" style={{ height: HEADER_HEIGHT }} />
+      <header
+        className="navbar fixed inset-x-0 top-0 z-50 border-b border-transparent text-fg"
+        data-hidden={hidden && !open}
+        data-scrolled={scrolled || open}
+      >
+        <div className="wrap flex items-center gap-6" style={{ height: HEADER_HEIGHT }}>
+          <Link href="/" aria-label={t('home')} className="rounded-xl">
+            <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label={tA11y('mainNavigation')}>
-            <ServicesMenu featured={featuredServices} all={allServices} />
-            {NAV_KEYS.map((key) => (
+          <nav aria-label={t('mainNavigation')} className="hide-sm ml-auto flex gap-0.5">
+            {LINKS.map((link) => (
               <Link
-                key={key}
-                href={NAV_HREF[key]}
-                className={cn(
-                  'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive(NAV_HREF[key])
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
+                key={link.key}
+                href={link.href}
+                className="nl"
+                aria-current={isActive(link.href) ? 'page' : undefined}
               >
-                {t(key)}
+                {t(link.key)}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-1">
-            <div className="hidden items-center gap-1 sm:flex">
-              <SiteSearch />
-              <ThemeToggle label={t('toggleTheme')} />
-              <LanguageSwitcher />
-            </div>
-            <Button asChild size="sm" className="ml-1 hidden sm:inline-flex">
-              <Link href="/contact">{t('startProject')}</Link>
-            </Button>
+          <div className="hide-sm flex items-center gap-2.5">
+            <LocaleSwitch />
+            <ThemeSwitch />
+            <Link href="/contact" className="btn btn-p h-[46px] px-[22px] text-[15px]">
+              {t('startProject')}
+            </Link>
+          </div>
 
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full border border-border/70 bg-surface/60 backdrop-blur-sm lg:hidden"
-                  aria-label={t('openMenu')}
-                >
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
-              <MobileMenu services={allServices} branding={branding} />
-            </Sheet>
+          <div className="show-sm ml-auto flex items-center gap-2">
+            <ThemeSwitch />
+            <button
+              ref={toggleRef}
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              aria-label={open ? t('closeMenu') : t('openMenu')}
+              className="grid size-12 cursor-pointer place-items-center rounded-full border border-ln2 bg-transparent text-fg"
+            >
+              {open ? <Close size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
-      </div>
-    </header>
-  );
-}
 
-/** Desktop services mega menu (spec §7). */
-function ServicesMenu({
-  featured,
-  all,
-}: {
-  featured: HeaderService[];
-  all: { slug: string; title: string }[];
-}) {
-  const t = useTranslations('nav');
-  const [open, setOpen] = React.useState(false);
-  const closeTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const cancelClose = React.useCallback(() => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-  }, []);
-
-  const scheduleClose = React.useCallback(() => {
-    cancelClose();
-    closeTimer.current = setTimeout(() => setOpen(false), 120);
-  }, [cancelClose]);
-
-  React.useEffect(() => cancelClose, [cancelClose]);
-
-  const secondary = all.filter((s) => !featured.some((f) => f.slug === s.slug));
-
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => {
-        cancelClose();
-        setOpen(true);
-      }}
-      onMouseLeave={scheduleClose}
-    >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => setOpen((value) => !value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') setOpen(false);
-        }}
-        className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        {t('services')}
-        <ChevronDown className={cn('size-3.5 transition-transform', open && 'rotate-180')} />
-      </button>
+        <SiteSearch showTrigger={false} />
+      </header>
 
       {open && (
         <div
-          className="anim-pop absolute left-1/2 top-full z-50 w-[46rem] -translate-x-1/2 pt-3"
-          data-state="open"
+          id="mobile-menu"
+          ref={menuRef}
+          className="slide-down show-sm fixed inset-x-0 bottom-0 z-40 flex flex-col overflow-y-auto border-t border-ln bg-bg px-5 pb-8 pt-2"
+          style={{ top: HEADER_HEIGHT }}
         >
-          <div className="overflow-hidden rounded-xl border border-border bg-surface-raised shadow-lg">
-            <div className="grid grid-cols-2 gap-1 p-2">
-              {featured.map((service) => (
-                <Link
-                  key={service.slug}
-                  href={`/services/${service.slug}`}
-                  onClick={() => setOpen(false)}
-                  className="group flex gap-3 rounded-lg p-3 transition-colors hover:bg-surface-sunken"
-                >
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-accent transition-colors group-hover:border-accent-border group-hover:bg-accent-subtle">
-                    <ServiceIcon iconKey={service.iconKey ?? null} className="size-4" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-foreground">
-                      {service.title}
-                    </span>
-                    {service.shortDescription && (
-                      <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-muted-foreground">
-                        {service.shortDescription}
-                      </span>
-                    )}
-                  </span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-surface-sunken px-5 py-3">
-              {secondary.map((service) => (
-                <Link
-                  key={service.slug}
-                  href={`/services/${service.slug}`}
-                  onClick={() => setOpen(false)}
-                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-accent"
-                >
-                  {service.title}
-                </Link>
-              ))}
+          <nav aria-label={t('mainNavigation')} className="flex flex-col">
+            {LINKS.map((link) => (
               <Link
-                href="/services"
-                onClick={() => setOpen(false)}
-                className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                key={link.key}
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={cn(
+                  'border-b border-ln py-4 text-[30px] font-semibold tracking-[-0.03em]',
+                  isActive(link.href) ? 'text-acct' : 'text-fg',
+                )}
               >
-                {t('viewAllServices')}
-                <ArrowRight className="size-3" />
+                {t(link.key)}
               </Link>
-            </div>
-          </div>
+            ))}
+          </nav>
+          <LocaleSwitch size="lg" className="mt-5" />
+          <Link href="/contact" className="btn btn-p mt-4 h-14 w-full text-base">
+            {t('startProject')}
+          </Link>
         </div>
       )}
-    </div>
-  );
-}
-
-/** Mobile navigation — large tap targets, not a shrunken desktop menu (spec §8). */
-function MobileMenu({
-  services,
-  branding,
-}: {
-  services: { slug: string; title: string }[];
-  branding: HeaderBranding;
-}) {
-  const t = useTranslations('nav');
-
-  return (
-    <SheetContent closeLabel={t('closeMenu')} className="p-0">
-      <SheetTitle className="sr-only">{t('menu')}</SheetTitle>
-
-      <div className="flex h-16 shrink-0 items-center border-b border-border px-5">
-        <Logo src={branding.logo} srcDark={branding.logoDark} alt={branding.companyName} />
-      </div>
-
-      <nav className="scrollbar-thin flex-1 overflow-y-auto px-3 py-4">
-        <SheetClose asChild>
-          <Link
-            href="/work"
-            className="flex min-h-14 items-center rounded-lg px-3 text-lg font-medium text-foreground transition-colors hover:bg-surface-sunken"
-          >
-            {t('work')}
-          </Link>
-        </SheetClose>
-
-        <div className="mt-1">
-          <p className="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-wider text-subtle-foreground">
-            {t('services')}
-          </p>
-          {services.map((service) => (
-            <SheetClose asChild key={service.slug}>
-              <Link
-                href={`/services/${service.slug}`}
-                className="flex min-h-12 items-center rounded-lg px-3 text-[0.9375rem] text-muted-foreground transition-colors hover:bg-surface-sunken hover:text-foreground"
-              >
-                {service.title}
-              </Link>
-            </SheetClose>
-          ))}
-          <SheetClose asChild>
-            <Link
-              href="/services"
-              className="flex min-h-12 items-center gap-1.5 rounded-lg px-3 text-[0.9375rem] font-medium text-accent"
-            >
-              {t('viewAllServices')}
-              <ArrowRight className="size-3.5" />
-            </Link>
-          </SheetClose>
-        </div>
-
-        <div className="mt-2 border-t border-border pt-2">
-          {(['industries', 'about', 'blog'] as const).map((key) => (
-            <SheetClose asChild key={key}>
-              <Link
-                href={NAV_HREF[key]}
-                className="flex min-h-14 items-center rounded-lg px-3 text-lg font-medium text-foreground transition-colors hover:bg-surface-sunken"
-              >
-                {t(key)}
-              </Link>
-            </SheetClose>
-          ))}
-        </div>
-      </nav>
-
-      <div className="shrink-0 border-t border-border p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <LanguageSwitcher />
-          <ThemeToggle label={t('toggleTheme')} />
-        </div>
-        <SheetClose asChild>
-          <Button asChild size="lg" className="w-full">
-            <Link href="/contact">{t('startProject')}</Link>
-          </Button>
-        </SheetClose>
-      </div>
-    </SheetContent>
+    </>
   );
 }
