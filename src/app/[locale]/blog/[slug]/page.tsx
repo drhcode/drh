@@ -2,24 +2,22 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
+import { contentLanguage, hasContentLanguage, isAppLocale, routing } from '@/i18n/routing';
 import { getBlogPost, getBlogPosts, getRelatedBlogPosts } from '@/lib/data';
 import { withHeadingAnchors } from '@/lib/content/html';
-import { Badge } from '@/components/ui/badge';
-import { Section } from '@/components/sections/section';
-import { BlogCard } from '@/components/sections/blog-section';
-import { GlowGrid } from '@/components/ui/glow';
-import { CtaSection } from '@/components/sections/cta-section';
-import { TableOfContents } from '@/components/site/table-of-contents';
+import { formatDate, plainText, truncate } from '@/lib/utils';
+import { Accent } from '@/components/brand/accent';
+import { ArrowRight } from '@/components/brand/icons';
+import { Crumbs } from '@/components/blocks/page-hero';
+import { BrandMark } from '@/components/brand/brand-mark';
+import { ShareButtons } from '@/components/blog/share-buttons';
 import { JsonLd } from '@/components/seo/json-ld';
 import { DraftBanner } from '@/components/site/draft-banner';
-import { buildMetadata, seoText } from '@/lib/seo/metadata';
+import { TableOfContents } from '@/components/site/table-of-contents';
+import { absoluteUrl, buildMetadata, seoText } from '@/lib/seo/metadata';
 import { articleSchema, breadcrumbSchema, jsonLdGraph } from '@/lib/seo/schema';
-import { formatDate, plainText, truncate } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -36,18 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isAppLocale(locale)) return {};
 
-  const post = await getBlogPost(locale, slug);
+  const post = await getBlogPost(contentLanguage(locale), slug);
   if (!post) return {};
 
   return buildMetadata({
     locale,
     path: `/blog/${post.slug}`,
     title: seoText(post.seo.title, post.title, post.title),
-    description: seoText(
-      post.seo.description,
-      post.excerpt,
-      truncate(plainText(post.contentHtml), 180),
-    ),
+    description: seoText(post.seo.description, post.excerpt, truncate(plainText(post.contentHtml), 180)),
     ogImage: post.seo.ogImage,
     ogTitle: post.seo.ogTitle,
     ogDescription: post.seo.ogDescription,
@@ -62,160 +56,165 @@ export default async function BlogPostPage({ params }: Props) {
   const { locale, slug } = await params;
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
+  const language = contentLanguage(locale);
 
   // Draft mode is enabled only by the admin preview route, which checks
   // authorisation first, so unpublished content stays private.
   const preview = (await draftMode()).isEnabled;
-  const post = await getBlogPost(locale, slug, { includeUnpublished: preview });
+  const post = await getBlogPost(language, slug, { includeUnpublished: preview });
   if (!post) notFound();
 
-  const [t, tCommon, related] = await Promise.all([
+  const [t, tCommon, tArticle, related] = await Promise.all([
     getTranslations('blog'),
     getTranslations('common'),
-    getRelatedBlogPosts(locale, post, 3),
+    getTranslations('article'),
+    getRelatedBlogPosts(language, post, 2),
   ]);
 
   const { html, toc } = withHeadingAnchors(post.contentHtml ?? '');
+  // Italian pages show the English article; mark it so screen readers switch voice.
+  const contentLang = hasContentLanguage(locale) && post.translations[locale] ? undefined : 'en';
 
   return (
     <>
       <DraftBanner path={`/blog/${slug}`} />
       <JsonLd
         json={jsonLdGraph(
-          articleSchema(post, locale as AppLocale),
+          articleSchema(post, locale),
           breadcrumbSchema(
             [
-              { name: 'Home', path: '/' },
-              { name: t('title'), path: '/blog' },
+              { name: tCommon('home'), path: '/' },
+              { name: t('crumb'), path: '/blog' },
               { name: post.title, path: `/blog/${post.slug}` },
             ],
-            locale as AppLocale,
+            locale,
           ),
         )}
       />
 
-      <article>
-        <header className="hero-top relative overflow-hidden border-b border-border">
-          <HeroField />
-          <div className="container-page relative pb-12 pt-14 md:pt-20">
-            <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-              <Link href="/blog" className="transition-colors hover:text-accent">
-                {t('title')}
-              </Link>
-              {post.category && (
-                <>
-                  <span className="mx-2 text-subtle-foreground">/</span>
-                  <span className="text-foreground">{post.category.title}</span>
-                </>
-              )}
-            </nav>
+      <div aria-hidden="true" className="fixed inset-x-0 top-0 z-[55] h-1">
+        <div className="read-progress h-full bg-lime" />
+      </div>
 
-            <div className="mt-7 max-w-3xl">
-              <h1 className="text-balance text-[2.25rem] leading-[1.06] md:text-5xl lg:text-[3.75rem]">
-                {post.title}
-              </h1>
-
-              {post.excerpt && (
-                <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{post.excerpt}</p>
-              )}
-
-              <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-subtle-foreground">
-                {post.authorName && (
-                  <span>
-                    {t('by')} <span className="text-foreground">{post.authorName}</span>
-                  </span>
-                )}
-                {post.publishedAt && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <time dateTime={post.publishedAt}>{formatDate(post.publishedAt, locale)}</time>
-                  </>
-                )}
-                <span aria-hidden="true">·</span>
-                <span>{tCommon('minRead', { minutes: post.readingTime })}</span>
-              </div>
+      <article lang={contentLang}>
+        <header className="mx-auto max-w-[980px] px-[clamp(20px,4vw,48px)] pb-12 pt-[clamp(56px,8vw,104px)]">
+          <Crumbs
+            items={[{ label: t('crumb'), href: '/blog' }, { label: post.category?.title ?? post.title }]}
+            label={tCommon('breadcrumb')}
+          />
+          <h1 className="rise-t d1 mt-7 text-[clamp(44px,6.4vw,92px)] font-semibold leading-[.96] tracking-[-0.05em]">
+            <Accent text={post.title} />
+          </h1>
+          {post.excerpt && <p className="rise d2 mt-7 text-[21px] leading-[1.55] text-t2">{post.excerpt}</p>}
+          <div className="rise d3 mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-ln pt-6">
+            <div className="flex items-center gap-3.5">
+              <BrandMark compact className="[&>span:last-child]:hidden" />
+              <span>
+                <span className="block font-semibold">{post.authorName ?? tArticle('team')}</span>
+                <span className="mono text-xs uppercase text-t3">
+                  {post.publishedAt && (
+                    <time dateTime={post.publishedAt}>
+                      {formatDate(post.publishedAt, locale, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </time>
+                  )}
+                  {' · '}
+                  {tCommon('minRead', { minutes: post.readingTime })}
+                </span>
+              </span>
             </div>
+            <ShareButtons
+              url={absoluteUrl(`/blog/${post.slug}`, locale)}
+              labels={{ copy: tArticle('copyLink'), copied: tArticle('copied'), linkedin: tArticle('shareLinkedIn') }}
+            />
           </div>
         </header>
 
         {post.featuredImage && (
-          <div className="container-page py-10 md:py-12">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-surface-sunken">
-              <Image
-                src={post.featuredImage}
-                alt=""
-                fill
-                priority
-                sizes="(min-width: 1280px) 1200px, 100vw"
-                className="object-cover"
-              />
+          <div className="rise d3 wrap">
+            <div className="relative h-[clamp(240px,36vw,520px)] overflow-hidden rounded-[32px] border border-ln bg-s1">
+              <Image src={post.featuredImage} alt="" fill priority sizes="(max-width: 1280px) 100vw, 1184px" className="object-cover" />
             </div>
           </div>
         )}
 
-        <div className="container-page pb-16 pt-4 md:pb-20">
-          <div className="grid gap-12 lg:grid-cols-12">
-            {toc.length > 2 && (
-              <aside className="lg:col-span-3 lg:order-2">
-                <TableOfContents entries={toc} label={t('tableOfContents')} />
-              </aside>
+        <div className="wrap flex flex-wrap gap-16 pb-[120px] pt-20">
+          {toc.length > 1 && (
+            <aside className="hide-sm flex-[0_0_240px]">
+              <TableOfContents entries={toc} label={t('tableOfContents')} />
+            </aside>
+          )}
+          <div className="min-w-0 max-w-[720px] flex-[1_1_560px]">
+            {/* Article HTML is authored by drh.al staff in the admin editor. */}
+            <div className="prose-v2" dangerouslySetInnerHTML={{ __html: html }} />
+
+            {post.tags.length > 0 && (
+              <ul className="mt-12 flex flex-wrap gap-2 border-t border-ln pt-8">
+                {post.tags.map((tag) => (
+                  <li key={tag.slug} className="rounded-full border border-ln2 px-3.5 py-1.5 text-sm text-t2">
+                    {tag.title}
+                  </li>
+                ))}
+              </ul>
             )}
 
-            <div className={toc.length > 2 ? 'lg:col-span-8 lg:order-1' : 'lg:col-span-8 lg:col-start-3'}>
-              {/*
-                Article HTML is authored by drh.al staff in the admin editor and
-                rendered through the fixed .prose-drh stylesheet.
-              */}
-              <div className="prose-drh" dangerouslySetInnerHTML={{ __html: html }} />
+            {post.relatedService && (
+              <Link
+                href={`/services/${post.relatedService.slug}`}
+                className="card mt-10 flex items-center justify-between gap-4 rounded-[22px] border border-ln bg-s1 p-6 text-fg"
+              >
+                <span>
+                  <span className="label block">{t('relatedService')}</span>
+                  <span className="mt-2 block text-xl font-semibold">{post.relatedService.title}</span>
+                </span>
+                <span className="arrow-dot size-11 border border-ln2">
+                  <ArrowRight />
+                </span>
+              </Link>
+            )}
 
-              {post.tags.length > 0 && (
-                <ul className="mt-12 flex flex-wrap gap-2 border-t border-border pt-8">
-                  {post.tags.map((tag) => (
-                    <li key={tag.slug}>
-                      <Badge>{tag.title}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {/* Blog → Services internal link (spec §70) */}
-              {post.relatedService && (
-                <div className="mt-10 rounded-xl border border-border bg-surface-sunken p-6">
-                  <p className="text-xs font-medium uppercase tracking-wider text-subtle-foreground">
-                    {t('relatedService')}
-                  </p>
-                  <Link
-                    href={`/services/${post.relatedService.slug}`}
-                    className="group mt-2 inline-flex items-center gap-2 text-lg font-medium text-foreground transition-colors hover:text-accent"
-                  >
-                    {post.relatedService.title}
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
-              )}
+            <div className="reveal on-lime mt-12 flex flex-wrap items-center justify-between gap-5 rounded-[26px] bg-lime p-9 text-ink max-sm:p-7">
+              <div className="max-w-[400px]">
+                <p className="m-0 text-[26px] font-semibold tracking-[-0.02em]">{tArticle('ctaTitle')}</p>
+                <p className="mt-1.5 text-[15px] text-lime-ink">{tArticle('ctaBody')}</p>
+              </div>
+              <Link href="/audit" className="btn btn-ink btn-md">
+                {tArticle('ctaButton')}
+              </Link>
             </div>
           </div>
         </div>
       </article>
 
       {related.length > 0 && (
-        <Section bordered>
-          <h2 className="text-2xl md:text-3xl">{t('relatedPosts')}</h2>
-          <GlowGrid as="ul" className="mt-10 grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
-            {related.map((item) => (
-              <li key={item.slug}>
-                <BlogCard
-                  post={item}
-                  locale={locale}
-                  readingLabel={tCommon('minRead', { minutes: item.readingTime })}
-                />
-              </li>
-            ))}
-          </GlowGrid>
-        </Section>
+        <section className="border-t border-ln">
+          <div className="wrap py-24">
+            <h2 className="m-0 text-[clamp(36px,4vw,56px)] font-semibold tracking-[-0.04em]">
+              <Accent text={tArticle('keepReading')} />
+            </h2>
+            <ul className="mt-10 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))]">
+              {related.map((item) => (
+                <li key={item.slug}>
+                  <Link href={`/blog/${item.slug}`} className="card reveal flex items-center gap-5 rounded-[22px] border border-ln p-5 text-fg">
+                    <span className="relative grid size-24 flex-none place-items-center overflow-hidden rounded-2xl bg-lime text-4xl font-bold text-ink">
+                      {item.featuredImage ? (
+                        <Image src={item.featuredImage} alt="" fill sizes="96px" className="object-cover" />
+                      ) : (
+                        item.title.charAt(0)
+                      )}
+                    </span>
+                    <span>
+                      <span className="mono block text-xs uppercase text-t3">
+                        {[item.category?.title, tCommon('minShort', { minutes: item.readingTime })].filter(Boolean).join(' · ')}
+                      </span>
+                      <span className="mt-1.5 block text-xl font-semibold tracking-[-0.02em]">{item.title}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       )}
-
-      <CtaSection title={t('ctaTitle')} body={t('ctaBody')} primaryCta={t('ctaButton')} />
     </>
   );
 }

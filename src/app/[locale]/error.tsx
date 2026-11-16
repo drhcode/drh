@@ -2,18 +2,10 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { RotateCcw } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
 
 /** Public site error boundary. */
-export default function LocaleError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function LocaleError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const t = useTranslations('error');
 
   React.useEffect(() => {
@@ -21,22 +13,17 @@ export default function LocaleError({
   }, [error]);
 
   return (
-    <div className="hero-top container-page flex min-h-[60vh] flex-col justify-center py-20">
-      <div className="max-w-xl">
-        <h1 className="text-3xl md:text-4xl">{t('title')}</h1>
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{t('body')}</p>
-        {error.digest && (
-          <p className="mt-3 font-mono text-xs text-subtle-foreground">Ref: {error.digest}</p>
-        )}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button onClick={reset}>
-            <RotateCcw className="size-4" />
-            {t('retry')}
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/">{t('home')}</Link>
-          </Button>
-        </div>
+    <div className="wrap flex min-h-[60vh] flex-col justify-center py-20">
+      <h1 className="m-0 text-[clamp(36px,4vw,56px)] font-semibold tracking-[-0.04em]">{t('title')}</h1>
+      <p className="lead mt-4 max-w-[560px]">{t('body')}</p>
+      {error.digest && <p className="mono mt-3 text-xs text-t3">Ref: {error.digest}</p>}
+      <div className="mt-8 flex flex-wrap gap-3">
+        <button type="button" onClick={reset} className="btn btn-p btn-md">
+          {t('retry')}
+        </button>
+        <Link href="/" className="btn btn-g btn-md">
+          {t('home')}
+        </Link>
       </div>
     </div>
   );

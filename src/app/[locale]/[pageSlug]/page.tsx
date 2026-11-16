@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
+import { contentLanguage, isAppLocale, routing, type AppLocale } from '@/i18n/routing';
 import { LEGAL_SLUGS, LEGAL_LAST_UPDATED, getLegalDocument } from '@/content/legal';
 import { getCompanySettings, getLandingPageSlugs, getPage } from '@/lib/data';
 import { withHeadingAnchors } from '@/lib/content/html';
 import { PageSections } from '@/components/sections/page-sections';
+import { TableOfContents } from '@/components/site/table-of-contents';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata, seoText } from '@/lib/seo/metadata';
 import { breadcrumbSchema, jsonLdGraph, organizationSchema } from '@/lib/seo/schema';
@@ -48,16 +49,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isAppLocale(locale)) return {};
 
   if (isLegalSlug(pageSlug)) {
-    const doc = getLegalDocument(pageSlug, locale);
+    const doc = getLegalDocument(pageSlug, contentLanguage(locale));
     return buildMetadata({
       locale,
       path: `/${pageSlug}`,
       title: `${doc.title} | drh.al`,
       description: doc.intro,
+      // Legal documents exist in English and Albanian.
+      available: ['en', 'sq'],
     });
   }
 
-  const page = await getPage(locale, pageSlug);
+  const page = await getPage(contentLanguage(locale), pageSlug);
   if (!page || page.kind !== 'landing') return {};
 
   return buildMetadata({
@@ -79,7 +82,7 @@ export default async function RootLevelPage({ params }: Props) {
 
   if (isLegalSlug(pageSlug)) return <LegalDocumentPage slug={pageSlug} locale={locale} />;
 
-  const page = await getPage(locale, pageSlug);
+  const page = await getPage(contentLanguage(locale), pageSlug);
   if (!page || page.kind !== 'landing') notFound();
 
   const settings = await getCompanySettings();
@@ -94,39 +97,42 @@ export default async function RootLevelPage({ params }: Props) {
               { name: 'Home', path: '/' },
               { name: page.title, path: `/${pageSlug}` },
             ],
-            locale as AppLocale,
+            locale,
           ),
         )}
       />
-      <PageSections sections={page.sections} locale={locale} />
+      <PageSections sections={page.sections} locale={contentLanguage(locale)} />
     </>
   );
 }
 
 async function LegalDocumentPage({ slug, locale }: { slug: LegalSlug; locale: AppLocale }) {
-  const doc = getLegalDocument(slug, locale);
+  const language = contentLanguage(locale);
+  const doc = getLegalDocument(slug, language);
   const t = await getTranslations('legal');
-  const { html } = withHeadingAnchors(doc.html);
+  const { html, toc } = withHeadingAnchors(doc.html);
 
   return (
-    <article>
-      <header className="border-b border-border">
-        <div className="container-page pb-12 pt-14 md:pt-20">
-          <div className="max-w-2xl">
-            <h1 className="text-[2.75rem] leading-[1.04] md:text-6xl">{doc.title}</h1>
-            <p className="mt-5 text-base leading-relaxed text-muted-foreground">{doc.intro}</p>
-            <p className="mt-6 text-sm text-subtle-foreground">
-              {t('lastUpdated')}{' '}
-              <time dateTime={LEGAL_LAST_UPDATED}>{formatDate(LEGAL_LAST_UPDATED, locale)}</time>
-            </p>
-          </div>
+    <article lang={locale === language ? undefined : language}>
+      <header className="grid-bg border-b border-ln">
+        <div className="wrap pb-14 pt-[clamp(56px,8vw,104px)]">
+          <h1 className="rise m-0 max-w-[900px] text-[clamp(44px,6.4vw,92px)] font-semibold leading-[.96] tracking-[-0.05em]">
+            {doc.title}
+          </h1>
+          <p className="lead rise d1 mt-6 max-w-[680px]">{doc.intro}</p>
+          <p className="mono rise d2 mt-6 text-xs uppercase text-t3">
+            {t('lastUpdated')} <time dateTime={LEGAL_LAST_UPDATED}>{formatDate(LEGAL_LAST_UPDATED, locale)}</time>
+          </p>
         </div>
       </header>
 
-      <div className="container-page py-14 md:py-16">
-        <div className="max-w-2xl">
-          <div className="prose-drh" dangerouslySetInnerHTML={{ __html: html }} />
-        </div>
+      <div className="wrap flex flex-wrap gap-16 py-20">
+        {toc.length > 2 && (
+          <aside className="hide-sm flex-[0_0_240px]">
+            <TableOfContents entries={toc} label={doc.title} />
+          </aside>
+        )}
+        <div className="prose-v2 min-w-0 max-w-[720px] flex-[1_1_560px] text-[17px]" dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </article>
   );

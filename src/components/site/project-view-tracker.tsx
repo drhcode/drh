@@ -1,9 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowRight, ExternalLink } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics/events';
 
 /**
@@ -36,31 +34,27 @@ export function OutboundProjectLink({
   href,
   projectId,
   slug,
-  label,
+  children,
+  className,
 }: {
   href: string;
   projectId: string;
   slug: string;
-  label: string;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <Button asChild variant="outline" size="sm" className="mt-7">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() =>
-          track(ANALYTICS_EVENTS.outboundProjectClicked, {
-            entity_type: 'project',
-            entity_id: projectId,
-            slug,
-          })
-        }
-      >
-        {label}
-        <ExternalLink className="size-3.5" />
-      </a>
-    </Button>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      onClick={() =>
+        track(ANALYTICS_EVENTS.outboundProjectClicked, { entity_type: 'project', entity_id: projectId, slug })
+      }
+    >
+      {children}
+    </a>
   );
 }
 
@@ -68,27 +62,23 @@ export function OutboundProjectLink({
 export function CaseStudyCtaButton({
   projectId,
   slug,
-  label,
+  children,
+  className,
 }: {
   projectId: string;
   slug: string;
-  label: string;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <Button asChild size="lg" className="group w-full sm:w-auto">
-      <Link
-        href="/contact"
-        onClick={() =>
-          track(ANALYTICS_EVENTS.caseStudyCtaClicked, {
-            entity_type: 'project',
-            entity_id: projectId,
-            slug,
-          })
-        }
-      >
-        {label}
-        <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
-      </Link>
-    </Button>
+    <Link
+      href="/contact"
+      className={className}
+      onClick={() =>
+        track(ANALYTICS_EVENTS.caseStudyCtaClicked, { entity_type: 'project', entity_id: projectId, slug })
+      }
+    >
+      {children}
+    </Link>
   );
 }
