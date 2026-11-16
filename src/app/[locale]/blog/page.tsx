@@ -109,7 +109,7 @@ export default async function BlogPage({ params }: Props) {
 
       <section className="wrap pb-[120px] pt-[72px]">
         <BlogFilter
-          posts={posts.map(toPostCard)}
+          posts={posts.map((post) => toPostCard(post, locale))}
           featuredSlug={featured?.slug ?? null}
           categories={categories}
           locale={locale}

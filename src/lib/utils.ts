@@ -33,6 +33,8 @@ export function plainText(html: string | null | undefined): string {
     .trim();
 }
 
+const INTL_LOCALES: Record<string, string> = { en: 'en-GB', sq: 'sq-AL', it: 'it-IT' };
+
 export function formatDate(
   value: string | Date | null | undefined,
   locale: string,
@@ -41,7 +43,7 @@ export function formatDate(
   if (!value) return '';
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(locale === 'sq' ? 'sq-AL' : 'en-GB', options).format(date);
+  return new Intl.DateTimeFormat(INTL_LOCALES[locale] ?? 'en-GB', options).format(date);
 }
 
 export function formatNumber(value: number, locale = 'en'): string {

@@ -100,10 +100,18 @@ export function WhyGauge({ idea, results }: { idea: string; results: string }) {
 export type PostCardData = Pick<
   BlogPostView,
   'slug' | 'title' | 'excerpt' | 'featuredImage' | 'category' | 'publishedAt' | 'readingTime'
->;
+> & {
+  /**
+   * Date already formatted on the server. Node and the browser ship different
+   * ICU data (Albanian month names differ), so formatting in a client
+   * component would cause a hydration mismatch.
+   */
+  dateLabel?: string;
+};
 
-export function toPostCard(post: BlogPostView): PostCardData {
+export function toPostCard(post: BlogPostView, locale?: string): PostCardData {
   return {
+    dateLabel: locale ? formatDate(post.publishedAt, locale, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined,
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt,
@@ -123,7 +131,7 @@ const PLATES = [
 export function PostMeta({ post, locale, minLabel }: { post: PostCardData; locale: string; minLabel: string }) {
   return (
     <p className="mono text-xs uppercase text-t3">
-      {[post.category?.title, formatDate(post.publishedAt, locale, { day: 'numeric', month: 'short', year: 'numeric' }), minLabel]
+      {[post.category?.title, post.dateLabel ?? formatDate(post.publishedAt, locale, { day: 'numeric', month: 'short', year: 'numeric' }), minLabel]
         .filter(Boolean)
         .join(' · ')}
     </p>
