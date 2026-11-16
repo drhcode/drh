@@ -1,6 +1,10 @@
 import { ImageResponse } from 'next/og';
+import { DRH_LOGO_HEIGHT, DRH_LOGO_PATH, DRH_LOGO_VIEWBOX, DRH_LOGO_WIDTH } from '@/components/brand/drh-logo';
 
 export const OG_SIZE = { width: 1200, height: 630 };
+
+const LOGO_H = 56;
+const LOGO_W = Math.round((LOGO_H * DRH_LOGO_WIDTH) / DRH_LOGO_HEIGHT);
 
 /**
  * Branded 1200×630 social card for code-owned pages (pricing, book, audit).
@@ -22,26 +26,9 @@ export function brandedOgImage({ kicker, title, accent }: { kicker: string; titl
           fontFamily: 'sans-serif',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 34, fontWeight: 700 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: '#D4FF3A',
-              color: '#0b0d0c',
-              fontSize: 26,
-            }}
-          >
-            drh
-          </div>
-          <div style={{ display: 'flex' }}>
-            drh<span style={{ color: '#D4FF3A' }}>.</span>al
-          </div>
-        </div>
+        <svg width={LOGO_W} height={LOGO_H} viewBox={DRH_LOGO_VIEWBOX}>
+          <path d={DRH_LOGO_PATH} fillRule="evenodd" fill="#F2F4F0" />
+        </svg>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 26, letterSpacing: 4, color: '#D4FF3A' }}>{kicker.toUpperCase()}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', marginTop: 24, fontSize: 84, fontWeight: 700, lineHeight: 1.02, letterSpacing: -3 }}>

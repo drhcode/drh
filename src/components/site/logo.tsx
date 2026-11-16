@@ -1,11 +1,12 @@
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { DrhLogo } from '@/components/brand/drh-logo';
 
 /**
  * Site logo.
  *
  * Renders the uploaded logo from /admin/settings when one exists, and falls
- * back to the built-in wordmark when it does not — so a fresh install still
+ * back to the built-in DRH logo when it does not — so a fresh install still
  * looks finished.
  *
  * Uploaded images carry no stored dimensions, so they are drawn with `fill`
@@ -27,18 +28,7 @@ export function Logo({
   priority?: boolean;
 }) {
   if (!src) {
-    return (
-      <span
-        className={cn(
-          'inline-flex items-baseline text-[1.0625rem] font-semibold tracking-tight text-foreground',
-          className,
-        )}
-      >
-        drh
-        <span className="text-accent">.</span>
-        al
-      </span>
-    );
+    return <DrhLogo title={alt} className={cn('h-6 text-foreground', className)} />;
   }
 
   // Only render a second image when a genuinely different dark variant is set.
@@ -69,16 +59,3 @@ export function Logo({
   );
 }
 
-export function LogoMark({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex size-8 items-center justify-center rounded-lg bg-foreground text-[0.8125rem] font-bold tracking-tight text-background',
-        className,
-      )}
-      aria-hidden="true"
-    >
-      d<span className="text-accent">.</span>
-    </span>
-  );
-}

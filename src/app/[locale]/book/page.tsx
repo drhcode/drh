@@ -8,6 +8,7 @@ import { pickMessages } from '@/i18n/pick';
 import { uiAvailability } from '@/i18n/availability';
 import { siteConfig } from '@/config/site';
 import { Check, Clock, Video } from '@/components/brand/icons';
+import { DrhLogo } from '@/components/brand/drh-logo';
 import { PageHero } from '@/components/blocks/page-hero';
 import { Booking } from '@/components/book/booking';
 import { JsonLd } from '@/components/seo/json-ld';
@@ -117,8 +118,8 @@ export default async function BookPage({ params }: Props) {
             {host?.photo ? (
               <Image src={host.photo} alt="" width={52} height={52} className="size-[52px] rounded-2xl object-cover" />
             ) : (
-              <span aria-hidden="true" className="grid size-[52px] place-items-center rounded-2xl bg-lime text-[15px] font-bold text-ink">
-                drh
+              <span aria-hidden="true" className="grid size-[52px] flex-none place-items-center rounded-2xl bg-lime text-ink">
+                <DrhLogo className="h-auto w-[32px]" />
               </span>
             )}
             <span>

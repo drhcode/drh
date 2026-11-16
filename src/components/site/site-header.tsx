@@ -4,7 +4,7 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { BrandMark } from '@/components/brand/brand-mark';
+import { DrhLogo } from '@/components/brand/drh-logo';
 import { Close, Menu } from '@/components/brand/icons';
 import { ThemeSwitch } from './theme-switch';
 import { LocaleSwitch } from './locale-switch';
@@ -109,8 +109,8 @@ export function SiteHeader() {
         data-scrolled={scrolled || open}
       >
         <div className="wrap flex items-center gap-6" style={{ height: HEADER_HEIGHT }}>
-          <Link href="/" aria-label={t('home')} className="rounded-xl">
-            <BrandMark />
+          <Link href="/" aria-label={t('home')} className="-m-2 rounded-lg p-2 transition-colors hover:text-acct">
+            <DrhLogo className="h-[22px] sm:h-6" />
           </Link>
 
           <nav aria-label={t('mainNavigation')} className="hide-sm ml-auto flex gap-0.5">

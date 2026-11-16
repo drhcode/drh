@@ -24,6 +24,7 @@ export function organizationSchema(settings: CompanySettings): JsonLdValue {
     '@id': `${publicEnv.siteUrl}/#organization`,
     name: settings.companyName,
     url: publicEnv.siteUrl,
+    logo: `${publicEnv.siteUrl}/brand/drh-logo.png`,
     description: settings.tagline,
     email: settings.email,
     telephone: settings.phone,
