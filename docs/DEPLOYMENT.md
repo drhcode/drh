@@ -59,6 +59,45 @@ npm run build
 # then restart the Node app from hPanel
 ```
 
+## Releasing redesign v2
+
+The redesign adds two database migrations. Apply them **before** deploying the
+new code — the audit form and the project editor write to the new table and
+column:
+
+1. In the Supabase SQL editor, run `supabase/migrations/0004_audit_requests.sql`
+   then `supabase/migrations/0005_project_before_image.sql`. Both are additive
+   and safe to re-run.
+2. Optional: set `NEXT_PUBLIC_CALENDLY_URL` (e.g. `https://calendly.com/drh-al/30min`)
+   to embed Calendly on /book. Without it, /book collects a preferred time and
+   stores the request as a lead.
+3. Deploy as usual (`git pull` → `npm ci` → `npm run build` → restart).
+
+If the code reaches the server before the migrations, nothing breaks: audit
+requests fall back to the `leads` table and project saves skip the new
+`before_image` field. Apply the migrations afterwards anyway.
+
+### Pages are statically generated again
+
+Every public page is prerendered at build time and revalidated hourly; admin
+saves revalidate immediately (`revalidatePath('/', 'layout')`). The response
+header `x-nextjs-cache: HIT` confirms a page is being served from the cache.
+Draft previews still render live with the editor's session.
+
+### Rollback
+
+The release is one merge commit on `main`. To roll back:
+
+```bash
+git revert -m 1 <merge-commit>   # or: git checkout <previous-commit>
+npm ci && npm run build
+# then restart the Node app from hPanel
+```
+
+Migrations 0004 and 0005 are additive (a new table and a nullable column), so
+the previous code runs unchanged against the migrated database — no database
+rollback is needed.
+
 ## Checking what the build can actually see
 
 Before guessing, ask the build. On the server, in the app root:

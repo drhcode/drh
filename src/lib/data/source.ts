@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createPublicReadClient } from '@/lib/supabase/public';
 import { isSupabaseConfigured } from '@/lib/env';
 import * as seed from '@/content/seed';
 import type {
@@ -41,7 +41,7 @@ function titlesFrom(rows: TranslationRowLike[] | null | undefined): TitleMap {
 // Technologies
 // ─────────────────────────────────────────────────────────────────────────────
 export const fetchTechnologies = cache(async (): Promise<TechnologyRow[]> => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createPublicReadClient();
   if (!supabase) return seed.technologies.filter((t) => t.is_active);
 
   const { data } = await supabase
@@ -130,7 +130,7 @@ function seedRawProjects(): RawProject[] {
 
 export const fetchProjects = cache(
   async (options: { includeUnpublished?: boolean } = {}): Promise<RawProject[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       const rows = seedRawProjects();
       return options.includeUnpublished
@@ -152,7 +152,7 @@ export const fetchProjects = cache(
 
 export const fetchProjectBySlug = cache(
   async (slug: string, options: { includeUnpublished?: boolean } = {}) => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       return (
         seedRawProjects().find(
@@ -192,7 +192,7 @@ function seedRawServices(): RawService[] {
 
 export const fetchServices = cache(
   async (options: { includeUnpublished?: boolean } = {}): Promise<RawService[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       const rows = seedRawServices();
       return options.includeUnpublished
@@ -236,7 +236,7 @@ function seedRawIndustries(): RawIndustry[] {
 
 export const fetchIndustries = cache(
   async (options: { includeUnpublished?: boolean } = {}): Promise<RawIndustry[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       const rows = seedRawIndustries();
       return options.includeUnpublished
@@ -302,7 +302,7 @@ function seedRawBlogPosts(): RawBlogPost[] {
 
 export const fetchBlogPosts = cache(
   async (options: { includeUnpublished?: boolean } = {}): Promise<RawBlogPost[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       const rows = seedRawBlogPosts();
       return (
@@ -351,7 +351,7 @@ export const fetchBlogPostBySlug = cache(
 );
 
 export const fetchBlogCategories = cache(async () => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createPublicReadClient();
   if (!supabase) return seed.blogCategories;
   const { data } = await supabase.from('blog_categories').select('*').order('sort_order');
   return data ?? seed.blogCategories;
@@ -362,7 +362,7 @@ export const fetchBlogCategories = cache(async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 export const fetchFaqs = cache(
   async (options: { category?: string; serviceId?: string; industryId?: string } = {}): Promise<FaqRow[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       return seed.faqs.filter(
         (f) => f.is_active && (!options.category || f.category === options.category),
@@ -381,7 +381,7 @@ export const fetchFaqs = cache(
 
 export const fetchTestimonials = cache(
   async (options: { featuredOnly?: boolean } = {}): Promise<TestimonialRow[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) return seed.testimonials;
 
     let query = supabase.from('testimonials').select('*').eq('is_active', true);
@@ -404,7 +404,7 @@ function seedRawPages(): RawPage[] {
 
 export const fetchPages = cache(
   async (options: { kind?: 'system' | 'landing'; includeUnpublished?: boolean } = {}): Promise<RawPage[]> => {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createPublicReadClient();
     if (!supabase) {
       return seedRawPages().filter(
         (p) =>
@@ -438,7 +438,7 @@ export const fetchPageBySlug = cache(
 // Settings
 // ─────────────────────────────────────────────────────────────────────────────
 export const fetchCompanySettings = cache(async (): Promise<CompanySettings> => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createPublicReadClient();
   if (!supabase) return seed.defaultCompanySettings;
 
   const { data } = await supabase
