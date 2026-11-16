@@ -4,6 +4,7 @@ import { localeLabels, routing } from '@/i18n/routing';
 import type { CompanySettings } from '@/content/seed/settings';
 import { Accent } from '@/components/brand/accent';
 import { ArrowRight, ArrowUpRight } from '@/components/brand/icons';
+import { DRH_LOGO_HEIGHT, DRH_LOGO_PATH, DRH_LOGO_VIEWBOX, DRH_LOGO_WIDTH } from '@/components/brand/drh-logo';
 import { CookieSettingsLink } from './cookie-settings-link';
 import { NewsletterForm } from './newsletter-form';
 import { TrackedLink } from './tracked-link';
@@ -169,21 +170,31 @@ export async function SiteFooter({
   );
 }
 
-/** The outlined "drh.al" wordmark that draws itself as it scrolls in. */
+/**
+ * The outlined DRH logo that draws itself as it scrolls in. pathLength
+ * normalises the outline to the 1200-unit dash the .wordmark-draw animation
+ * expects, and the stroke stays 1.5px at every width.
+ */
 function Wordmark() {
   return (
-    <svg viewBox="0 0 1200 300" aria-hidden="true" className="mt-24 block h-auto w-full overflow-visible">
-      <text
+    <svg
+      viewBox={DRH_LOGO_VIEWBOX}
+      width={DRH_LOGO_WIDTH}
+      height={DRH_LOGO_HEIGHT}
+      aria-hidden="true"
+      focusable="false"
+      className="mt-24 block h-auto w-full overflow-visible"
+    >
+      <path
         className="wordmark-draw"
-        x="0"
-        y="250"
+        d={DRH_LOGO_PATH}
+        pathLength={1200}
         fill="none"
         stroke="#4b524e"
         strokeWidth="1.5"
-        style={{ fontSize: 340, fontWeight: 700, letterSpacing: -24, fontFamily: 'var(--font-display)' }}
-      >
-        drh<tspan fill="#D4FF3A" stroke="none">.</tspan>al
-      </text>
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }

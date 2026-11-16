@@ -39,7 +39,7 @@ function shell({ preheader, body }: { preheader: string; body: string }): string
   <tr><td align="center">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
       <tr><td style="padding:26px 32px;border-bottom:1px solid ${LINE};">
-        <span style="font-size:17px;font-weight:700;letter-spacing:-0.3px;color:${INK};">drh<span style="color:${ACCENT};">.</span>al</span>
+        <a href="${publicEnv.siteUrl}" style="display:inline-block;text-decoration:none;"><img src="${publicEnv.siteUrl}/brand/drh-logo.png" width="96" height="30" alt="drh.al" style="display:block;width:96px;height:30px;border:0;outline:none;font-size:17px;font-weight:700;color:${INK};"></a>
       </td></tr>
       <tr><td style="padding:32px;">${body}</td></tr>
       <tr><td style="padding:20px 32px;border-top:1px solid ${LINE};background:${PAPER};">

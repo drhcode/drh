@@ -11,7 +11,7 @@ import { formatDate, plainText, truncate } from '@/lib/utils';
 import { Accent } from '@/components/brand/accent';
 import { ArrowRight } from '@/components/brand/icons';
 import { Crumbs } from '@/components/blocks/page-hero';
-import { BrandMark } from '@/components/brand/brand-mark';
+import { DrhLogo } from '@/components/brand/drh-logo';
 import { ShareButtons } from '@/components/blog/share-buttons';
 import { JsonLd } from '@/components/seo/json-ld';
 import { DraftBanner } from '@/components/site/draft-banner';
@@ -108,7 +108,9 @@ export default async function BlogPostPage({ params }: Props) {
           {post.excerpt && <p className="rise d2 mt-7 text-[21px] leading-[1.55] text-t2">{post.excerpt}</p>}
           <div className="rise d3 mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-ln pt-6">
             <div className="flex items-center gap-3.5">
-              <BrandMark compact className="[&>span:last-child]:hidden" />
+              <span aria-hidden="true" className="grid size-10 flex-none place-items-center rounded-[10px] bg-lime text-ink">
+                <DrhLogo className="h-auto w-[26px]" />
+              </span>
               <span>
                 <span className="block font-semibold">{post.authorName ?? tArticle('team')}</span>
                 <span className="mono text-xs uppercase text-t3">

@@ -24,7 +24,7 @@ export default async function AdminLoginPage({
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Logo className="text-xl" />
+          <Logo className="mx-auto h-8" />
           <p className="mt-3 text-sm text-muted-foreground">
             Sign in to the drh.al control panel.
           </p>

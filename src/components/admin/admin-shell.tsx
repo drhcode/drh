@@ -9,6 +9,7 @@ import { can } from '@/lib/auth/permissions';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { NAV_GROUPS, QUICK_COMMANDS } from './nav-config';
 import { AdminIcon } from './admin-icon';
+import { DrhLogo } from '@/components/brand/drh-logo';
 import { AdminCommandPalette } from './admin-command-palette';
 import { NotificationCenter, type AdminNotification } from './notification-center';
 import { Button } from '@/components/ui/button';
@@ -209,12 +210,7 @@ function SidebarContent({
     <>
       <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-5">
         <Link href="/admin" className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-md bg-foreground text-xs font-bold text-background">
-            d
-          </span>
-          <span className="text-sm font-semibold tracking-tight text-foreground">
-            drh<span className="text-accent">.</span>al
-          </span>
+          <DrhLogo title="drh.al" className="h-[18px] text-foreground" />
           <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-subtle-foreground">
             Admin
           </span>

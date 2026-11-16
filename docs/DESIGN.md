@@ -46,6 +46,24 @@ Fonts are committed `woff2` files loaded with `next/font/local` — the Hostinge
 build server cannot reliably fetch Google Fonts. Only the families the public
 site renders are preloaded; the admin's Manrope and Geist Mono load on demand.
 
+## Logo
+
+The DRH logo lives in `components/brand/drh-logo.tsx` as one SVG path, traced
+from the master artwork. Everything uses that path:
+
+- `<DrhLogo />` renders it inline in `currentColor`. Size it by height (`h-6`)
+  and give it a colour with `text-*`; on lime use `text-ink`. Pass `title`
+  when the logo is the only content of a link, or label the link itself.
+- The footer draws it as an outline, and the services hub and the social
+  cards (`lib/seo/og-image.tsx`) embed the same path.
+- `npm run brand:assets` writes `public/brand/drh-logo.svg` and `.png` (ink on
+  transparent, used by email headers and the Organization JSON-LD) and the
+  fallback social card `public/og/default.png`. A test fails if the SVG file
+  no longer matches the path.
+
+The favicon (`public/favicon.jpg` or the one set in /admin/settings) is managed
+separately.
+
 ## Theme
 
 Dark is the brand default. On a first visit the OS `prefers-color-scheme`
@@ -85,7 +103,7 @@ glow, shine, bob, sweep, recscroll, curtain, ripple and a few page-specific ones
 | Folder | What |
 | --- | --- |
 | `components/site` | Shell: header (frosted, hides on scroll down), locale and theme switches, footer with CTA band, floating dock, curtain, ⌘K search (lazy). |
-| `components/brand` | Primitives: accent headline, section head, icons, brand mark, service icons. |
+| `components/brand` | Primitives: accent headline, section head, icons, DRH logo, service icons. |
 | `components/blocks` | Content blocks shared by the home page and CMS landing pages: page hero, service cards, project cards, lists (industries, process, why, journal, FAQ), marquees. |
 | `components/{home,services,work,industries,blog,pricing,book,audit}` | Page-specific client pieces. |
 | `components/sections/page-sections.tsx` | Renders a CMS landing page from its fixed catalogue of section blocks, using the blocks above. |

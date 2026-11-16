@@ -7,6 +7,7 @@ import { getCompanySettings, getServices } from '@/lib/data';
 import { PRICE_TIERS, formatEuro } from '@/config/pricing';
 import { Accent } from '@/components/brand/accent';
 import { SectionHead } from '@/components/brand/section-head';
+import { DRH_LOGO_HEIGHT, DRH_LOGO_PATH, DRH_LOGO_VIEWBOX, DRH_LOGO_WIDTH } from '@/components/brand/drh-logo';
 import { Magnetic } from '@/components/fx/pointer-fx';
 import { PageHero } from '@/components/blocks/page-hero';
 import { ServiceFilter, type ServiceGroup } from '@/components/services/service-filter';
@@ -216,9 +217,10 @@ function OctagonVisual() {
       </g>
       <circle className="glow" cx="210" cy="210" r="56" fill="#D4FF3A" fillOpacity=".12" />
       <circle cx="210" cy="210" r="34" fill="#D4FF3A" />
-      <text x="210" y="216" textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: '#0b0d0c', letterSpacing: -0.5 }}>
-        drh
-      </text>
+      {/* Logo centred in the hub: 44 units wide at the artwork's aspect ratio. */}
+      <svg x="188" y={210 - (22 * DRH_LOGO_HEIGHT) / DRH_LOGO_WIDTH} width="44" height={(44 * DRH_LOGO_HEIGHT) / DRH_LOGO_WIDTH} viewBox={DRH_LOGO_VIEWBOX}>
+        <path d={DRH_LOGO_PATH} fillRule="evenodd" style={{ fill: '#0b0d0c' }} />
+      </svg>
     </svg>
   );
 }
