@@ -4,7 +4,7 @@ The public website and internal admin platform for **drh.al**, a digital agency 
 
 Two applications in one codebase:
 
-- **The public site** — a bilingual (EN/SQ) marketing site built for lead generation and search visibility. Statically generated, CMS-driven, no hardcoded content.
+- **The public site** — a multilingual (EN/SQ/IT) marketing site built for lead generation and search visibility. Statically generated, CMS-driven; interface copy lives in `messages/`.
 - **`/admin`** — an internal SaaS-style control panel: lead CRM, content management, analytics, SEO tooling and settings.
 
 ---
@@ -15,13 +15,13 @@ Two applications in one codebase:
 | --- | --- |
 | Framework | Next.js 15 (App Router, Server Components) |
 | Language | TypeScript, strict |
-| Styling | Tailwind CSS v4 with a token-based design system |
+| Styling | Tailwind CSS v4 + `src/styles/site.css` (design tokens, dark/light themes) — see [docs/DESIGN.md](docs/DESIGN.md) |
 | UI | Radix primitives, hand-built components |
-| Motion | Framer Motion (reduced-motion aware) |
+| Motion | CSS keyframes and scroll-driven animations; off under reduced motion |
 | Database | Supabase / PostgreSQL with Row Level Security |
 | Auth | Supabase Auth + a server-side role matrix |
 | Storage | Supabase Storage (public `media`, private `lead-attachments`) |
-| i18n | next-intl — `/` for English, `/sq` for Albanian |
+| i18n | next-intl — `/` English, `/sq` Albanian, `/it` Italian (interface only; CMS content is EN/SQ) |
 | Forms | React Hook Form + Zod (revalidated on the server) |
 | Email | Resend |
 | Spam | Cloudflare Turnstile + honeypot + rate limiting |
@@ -131,6 +131,7 @@ src/
     [locale]/            Public site — one tree, two languages
       [pageSlug]/        Legal documents + SEO landing pages
       work/ services/ industries/ blog/ about/ contact/
+      pricing/ book/ audit/  Estimator, call booking, free audit (redesign v2)
     admin/
       (auth)/login/      Sign-in, outside the admin shell
       (dashboard)/       Everything behind authentication
@@ -177,7 +178,13 @@ scripts/                 Seed generation, admin bootstrap, placeholders
 
 ### Translations
 
-English is the default and is served without a prefix. Albanian lives under `/sq`.
+English is the default and is served without a prefix. Albanian lives under `/sq`, Italian under `/it`.
+
+Italian is an interface locale: navigation, page copy and forms are translated in
+`messages/it.json`, while CMS content (services, projects, posts, FAQs) falls back to
+English. Those `/it` pages are therefore `noindex` and left out of hreflang and the
+sitemap until the CMS stores Italian content. Untranslated interface keys render in
+English; `npm run i18n:missing` lists them.
 
 A translation exists only when it has a title. When a language is missing:
 
@@ -287,6 +294,8 @@ npm run typecheck         # tsc --noEmit
 npm run seed:sql          # regenerate supabase/seed.sql from the TS seed content
 npm run bootstrap:admin   # create the first super admin
 npm run gen:placeholders  # regenerate placeholder imagery
+npm run i18n:missing      # untranslated interface strings per locale
+npm test                  # unit tests (estimator, theme, forms, i18n)
 ```
 
 ---
