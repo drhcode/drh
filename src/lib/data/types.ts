@@ -68,6 +68,8 @@ export interface ProjectView {
   projectDate: string | null;
   coverImage: string | null;
   coverImageMobile: string | null;
+  /** Previous-site screenshot; enables the before/after slider when set. */
+  beforeImage: string | null;
   websiteUrl: string | null;
   featured: boolean;
   status: ContentStatus;

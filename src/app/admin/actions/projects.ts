@@ -102,6 +102,7 @@ export async function saveProject(formData: FormData): Promise<SaveResult> {
       project_date: text(formData.get('project_date')),
       cover_image: text(formData.get('cover_image')),
       cover_image_mobile: text(formData.get('cover_image_mobile')),
+      before_image: text(formData.get('before_image')),
       og_image: text(formData.get('og_image')),
       canonical_url: text(formData.get('canonical_url')),
       website_url: text(formData.get('website_url')),
@@ -114,15 +115,28 @@ export async function saveProject(formData: FormData): Promise<SaveResult> {
         parsed.data.status === 'published' ? (text(formData.get('published_at')) ?? new Date().toISOString()) : null,
     };
 
+    // `before_image` arrives with migration 0005. Until that migration has run,
+    // PostgREST rejects the unknown column — retry without it rather than
+    // failing every project save.
+    const missingColumn = (error: { code?: string } | null) =>
+      error?.code === 'PGRST204' || error?.code === '42703';
+    const { before_image: _beforeImage, ...rowWithoutBefore } = row;
+
     if (isNew) {
-      const { data, error } = await supabase.from('projects').insert(row).select('id').single();
+      let { data, error } = await supabase.from('projects').insert(row).select('id').single();
+      if (missingColumn(error)) {
+        ({ data, error } = await supabase.from('projects').insert(rowWithoutBefore).select('id').single());
+      }
       if (error) {
         if (error.code === '23505') return { ok: false, error: 'That slug is already in use.' };
         throw error;
       }
-      projectId = data.id as string;
+      projectId = data!.id as string;
     } else {
-      const { error } = await supabase.from('projects').update(row).eq('id', projectId!);
+      let { error } = await supabase.from('projects').update(row).eq('id', projectId!);
+      if (missingColumn(error)) {
+        ({ error } = await supabase.from('projects').update(rowWithoutBefore).eq('id', projectId!));
+      }
       if (error) {
         if (error.code === '23505') return { ok: false, error: 'That slug is already in use.' };
         throw error;

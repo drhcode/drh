@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "services": "Servizi",
+    "work": "Lavori",
+    "industries": "Settori",
+    "about": "Chi siamo",
+    "journal": "Blog",
+    "pricing": "Prezzi",
+    "startProject": "Inizia un progetto"
+  },
+  "footer": {
+    "ctaBadge": "Accettiamo nuovi progetti",
+    "ctaTitle": "Costruiamo qualcosa che le persone *ricordano*.",
+    "ctaBody": "Raccontaci il tuo progetto. Rispondiamo entro 24 ore con i prossimi passi — senza impegno.",
+    "ctaButton": "Inizia un progetto",
+    "dock": "Prenota una call"
+  },
+  "home": {
+    "badge": "Accettiamo nuovi progetti — risposta entro 24 ore",
+    "heroLine1": "Sviluppo Web,",
+    "heroLine2": "App Mobile & SEO",
+    "heroLine3": "in",
+    "heroAccent": "Albania",
+    "sub": "Siti web ad alte prestazioni, web app su misura, app mobile, SEO e performance marketing — strategia, design e sviluppo senior pensati per una crescita misurabile. In Albania e nel mondo.",
+    "cta1": "Inizia un progetto",
+    "cta2": "Guarda i lavori",
+    "trust1": "Call strategica gratuita",
+    "trust2": "Risposta entro 24h",
+    "trust3": "Albania e nel mondo",
+    "trusted": "SCELTI DA AZIENDE IN ALBANIA, ITALIA, REGNO UNITO E USA",
+    "aiTitle": "AI che lavora, non che *parla*.",
+    "measuredTitle": "Il lancio è dove inizia la *misurazione*.",
+    "servicesTitle": "Servizi digitali costruiti intorno al tuo *business*.",
+    "tool1k": "CALCOLA IL PREVENTIVO",
+    "tool1": "Stima il tuo progetto in 60 secondi.",
+    "tool1c": "Calcola la stima",
+    "tool2k": "AUDIT GRATUITO",
+    "tool2": "Scopri cosa rallenta il tuo sito.",
+    "tool2c": "Analizza il mio sito",
+    "tool3k": "CALL STRATEGICA GRATUITA",
+    "tool3": "Prenota 30 minuti con uno sviluppatore senior.",
+    "tool3c": "Scegli un orario",
+    "workTitle": "Risultati, non solo *consegne*.",
+    "whyTitle": "Un partner digitale che ragiona da *imprenditore*.",
+    "industriesTitle": "Pensato per i settori che conosciamo *meglio*.",
+    "processTitle": "Un percorso chiaro dall’idea ai *risultati*.",
+    "testimonialsTitle": "Cosa dicono i *clienti*.",
+    "journalTitle": "Idee su web, app e *crescita*.",
+    "faqTitle": "Le domande che ci fanno prima di ogni *progetto*."
+  }
+}

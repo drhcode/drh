@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
-import { routing, type AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@/i18n/routing';
+import { cmsAvailability, uiAvailability } from '@/i18n/availability';
 import {
   getBlogPosts,
   getIndustries,
@@ -46,7 +47,14 @@ function toEntries(items: Localised[]): MetadataRoute.Sitemap {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const allLocales = [...routing.locales];
+  /*
+   * Pages whose content comes from the CMS exist in English and Albanian.
+   * Italian URLs render English fallback content and are noindex until the
+   * CMS holds Italian translations, so they are not listed. The code-owned
+   * tools (pricing, book, audit) are listed in every locale whose interface
+   * copy is fully translated.
+   */
+  const allLocales: AppLocale[] = cmsAvailability(null);
 
   const [projects, services, industries, posts, landingPages] = await Promise.all([
     getProjects('en'),
@@ -64,6 +72,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/about', changeFrequency: 'monthly', priority: 0.7, locales: allLocales },
     { path: '/blog', changeFrequency: 'weekly', priority: 0.8, locales: allLocales },
     { path: '/contact', changeFrequency: 'yearly', priority: 0.9, locales: allLocales },
+    { path: '/pricing', changeFrequency: 'monthly', priority: 0.8, locales: uiAvailability(['pricing']) },
+    { path: '/book', changeFrequency: 'monthly', priority: 0.7, locales: uiAvailability(['book']) },
+    { path: '/audit', changeFrequency: 'monthly', priority: 0.7, locales: uiAvailability(['audit']) },
     ...LEGAL_SLUGS.map<Localised>((slug) => ({
       path: `/${slug}`,
       changeFrequency: 'yearly',
@@ -78,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/work/${project.slug}`,
       changeFrequency: 'monthly',
       priority: 0.8,
-      locales: allLocales.filter((locale) => project.translations[locale]),
+      locales: cmsAvailability(project.translations),
     }));
 
   const serviceEntries = services
@@ -87,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/services/${service.slug}`,
       changeFrequency: 'monthly',
       priority: 0.9,
-      locales: allLocales.filter((locale) => service.translations[locale]),
+      locales: cmsAvailability(service.translations),
     }));
 
   const industryEntries = industries
@@ -96,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/industries/${industry.slug}`,
       changeFrequency: 'monthly',
       priority: 0.7,
-      locales: allLocales.filter((locale) => industry.translations[locale]),
+      locales: cmsAvailability(industry.translations),
     }));
 
   const postEntries = posts
@@ -106,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
       lastModified: post.publishedAt ?? undefined,
-      locales: allLocales.filter((locale) => post.translations[locale]),
+      locales: cmsAvailability(post.translations),
     }));
 
   const landingEntries = landingPages
@@ -115,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/${page.slug}`,
       changeFrequency: 'monthly',
       priority: 0.8,
-      locales: allLocales.filter((locale) => page.translations[locale]),
+      locales: cmsAvailability(page.translations),
     }));
 
   return toEntries([

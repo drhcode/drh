@@ -16,6 +16,14 @@ const supabaseHost = (() => {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  /*
+   * Render metadata (title, description, canonical, hreflang, Open Graph)
+   * into <head> for every user agent. Next 15 otherwise streams it into the
+   * body for clients it does not recognise as crawlers, and SEO tools, link
+   * previews and some search engines then miss it. Resolving it up front costs
+   * nothing noticeable here — it uses the same cached data as the page.
+   */
+  htmlLimitedBots: /.*/,
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

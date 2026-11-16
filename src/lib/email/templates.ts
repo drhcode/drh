@@ -145,6 +145,39 @@ export function adminLeadEmail(lead: AdminLeadEmailData): { subject: string; htm
 }
 
 /** Customer confirmation (spec §83). */
+/**
+ * Team notification for the lighter-weight requests: a strategy call request
+ * from /book and a website audit request from /audit. Same shell as the lead
+ * email; rows are rendered only when they have a value.
+ */
+export function adminRequestEmail({
+  kind,
+  title,
+  rows,
+  note,
+  href,
+  hrefLabel,
+}: {
+  kind: string;
+  title: string;
+  rows: [label: string, value: string | null | undefined][];
+  note?: string | null;
+  href: string;
+  hrefLabel: string;
+}): { subject: string; html: string; text: string } {
+  const body = `
+    <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:${ACCENT};font-weight:600;">${esc(kind)}</p>
+    <h1 style="margin:0 0 24px;font-size:22px;line-height:1.3;color:${INK};">${esc(title)}</h1>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE};">
+      ${rows.map(([label, value]) => row(label, value ? esc(value) : '')).join('')}
+    </table>
+    ${note ? `<div style="margin-top:22px;background:${PAPER};border:1px solid ${LINE};border-radius:10px;padding:16px;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${esc(note)}</div>` : ''}
+    <div style="margin-top:28px;">${button(href, hrefLabel)}</div>
+  `;
+  const text = [`${kind} — ${title}`, '', ...rows.filter(([, v]) => v).map(([l, v]) => `${l}: ${v}`), '', note ?? '', '', href].join('\n');
+  return { subject: `${kind} — ${title}`, html: shell({ preheader: title, body }), text };
+}
+
 export function leadConfirmationEmail({
   name,
   language,

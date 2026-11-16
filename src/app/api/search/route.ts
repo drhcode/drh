@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSearchIndex } from '@/lib/data';
-import { isAppLocale } from '@/i18n/routing';
+import { contentLanguage, isAppLocale } from '@/i18n/routing';
 
 export const revalidate = 900;
 
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const requested = request.nextUrl.searchParams.get('locale') ?? 'en';
   const locale = isAppLocale(requested) ? requested : 'en';
 
-  const results = await getSearchIndex(locale);
+  const results = await getSearchIndex(contentLanguage(locale), locale);
 
   return NextResponse.json(
     { results },

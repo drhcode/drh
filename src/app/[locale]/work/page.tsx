@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
-import { getIndustries, getProjects } from '@/lib/data';
-import { WorkGrid } from '@/components/site/work-grid';
-import { CtaSection } from '@/components/sections/cta-section';
+import { contentLanguage, isAppLocale, routing } from '@/i18n/routing';
+import { getProjects } from '@/lib/data';
+import { PageHero } from '@/components/blocks/page-hero';
+import { toCardData } from '@/components/blocks/project-cards';
+import { WorkGrid } from '@/components/work/work-grid';
+import { MarqueeTrack } from '@/components/blocks/marquee-track';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { breadcrumbSchema, jsonLdGraph } from '@/lib/seo/schema';
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: '/work',
     title: `${t('title')} — Selected Projects | drh.al`,
     description: t('heroDescription'),
+    available: ['en', 'sq'],
   });
 }
 
@@ -38,12 +40,14 @@ export default async function WorkPage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const t = await getTranslations('work');
-  const tCta = await getTranslations('cta');
-  const [projects, industries] = await Promise.all([
-    getProjects(locale),
-    getIndustries(locale),
+  const [t, tCommon, tHome, projects] = await Promise.all([
+    getTranslations('work'),
+    getTranslations('common'),
+    getTranslations('home'),
+    getProjects(contentLanguage(locale)),
   ]);
+
+  const clients = projects.map((project) => project.clientName);
 
   return (
     <>
@@ -51,37 +55,57 @@ export default async function WorkPage({ params }: Props) {
         json={jsonLdGraph(
           breadcrumbSchema(
             [
-              { name: 'Home', path: '/' },
+              { name: tCommon('home'), path: '/' },
               { name: t('title'), path: '/work' },
             ],
-            locale as AppLocale,
+            locale,
           ),
         )}
       />
 
-      <section className="hero-top relative overflow-hidden border-b border-border">
-        <HeroField />
-        <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24 relative">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
-            {t('title')}
-          </p>
-          <h1 className="max-w-3xl text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.75rem]">
-            {t('heroTitle')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            {t('heroDescription')}
-          </p>
-        </div>
+      <PageHero
+        crumbs={[{ label: tCommon('home'), href: '/' }, { label: t('crumb') }]}
+        crumbsLabel={tCommon('breadcrumb')}
+        title={t('v2HeroTitle')}
+        titleClassName="whitespace-pre-line text-[clamp(64px,12vw,200px)] leading-[.85] tracking-[-0.06em]"
+      >
+        <p className="lead rise d2 mt-8 max-w-[400px] text-lg">{t('v2Lead')}</p>
+      </PageHero>
+
+      <section className="wrap pb-[120px] pt-16" aria-labelledby="work-grid-heading">
+        <h2 id="work-grid-heading" className="sr-only">
+          {t('title')}
+        </h2>
+        <WorkGrid
+          projects={projects.map(toCardData)}
+          labels={{
+            filter: t('filterByIndustry'),
+            all: t('filterAll'),
+            count: t.raw('projectCount') as string,
+            live: tHome('livePreview'),
+            nextKicker: t('nextKicker'),
+            nextTitle: t('nextTitle'),
+            nextBody: t('nextBody'),
+            nextCta: tHome('cta1'),
+          }}
+        />
       </section>
 
-      <div className="container-page py-12 md:py-16">
-        <WorkGrid
-          projects={projects}
-          industries={industries.map((i) => ({ slug: i.slug, title: i.title }))}
-        />
-      </div>
-
-      <CtaSection title={tCta('title')} body={tCta('body')} primaryCta={tCta('button')} />
+      {clients.length > 0 && (
+        <section className="overflow-hidden border-y border-ln py-14" aria-label={tHome('clientsLabel')}>
+          <p className="wrap mono mb-8 text-[13px] tracking-[.1em] text-t3">{tHome('trusted')}</p>
+          <MarqueeTrack className="gap-[72px] pr-[72px] [animation-duration:45s]">
+            <ul className="flex gap-[72px]">
+              {clients.map((client) => (
+                <li key={client} className="whitespace-nowrap text-[clamp(32px,4vw,56px)] font-semibold tracking-[-0.04em] text-t1">
+                  {client}
+                </li>
+              ))}
+            </ul>
+          </MarqueeTrack>
+        </section>
+      )}
+      <div className="h-24" />
     </>
   );
 }

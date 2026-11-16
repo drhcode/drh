@@ -1,16 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
-import { Link } from '@/i18n/navigation';
-import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
+import { contentLanguage, isAppLocale, routing } from '@/i18n/routing';
 import { getIndustries } from '@/lib/data';
-import { Section } from '@/components/sections/section';
-import { Reveal } from '@/components/sections/reveal';
-import { GlowGrid } from '@/components/ui/glow';
-import { IndustryGlyph } from '@/components/site/industry-glyph';
-import { CtaSection } from '@/components/sections/cta-section';
+import { PageHero } from '@/components/blocks/page-hero';
+import { IndustryExplorer } from '@/components/industries/industry-explorer';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { breadcrumbSchema, jsonLdGraph } from '@/lib/seo/schema';
@@ -35,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: '/industries',
     title: `${t('heroTitle')} | drh.al`,
     description: t('heroDescription'),
+    available: ['en', 'sq'],
   });
 }
 
@@ -43,9 +38,11 @@ export default async function IndustriesPage({ params }: Props) {
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const t = await getTranslations('industries');
-  const tCta = await getTranslations('cta');
-  const industries = await getIndustries(locale);
+  const [t, tCommon, industries] = await Promise.all([
+    getTranslations('industries'),
+    getTranslations('common'),
+    getIndustries(contentLanguage(locale)),
+  ]);
 
   return (
     <>
@@ -53,59 +50,47 @@ export default async function IndustriesPage({ params }: Props) {
         json={jsonLdGraph(
           breadcrumbSchema(
             [
-              { name: 'Home', path: '/' },
+              { name: tCommon('home'), path: '/' },
               { name: t('title'), path: '/industries' },
             ],
-            locale as AppLocale,
+            locale,
           ),
         )}
       />
 
-      <section className="hero-top relative overflow-hidden border-b border-border">
-        <HeroField />
-        <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24 relative">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
-            {t('title')}
-          </p>
-          <h1 className="max-w-3xl text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.75rem]">
-            {t('heroTitle')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            {t('heroDescription')}
-          </p>
-        </div>
+      <PageHero
+        crumbs={[{ label: tCommon('home'), href: '/' }, { label: t('title') }]}
+        crumbsLabel={tCommon('breadcrumb')}
+        title={t('v2HeroTitle')}
+        titleClassName="whitespace-pre-line"
+        lead={<p>{t('v2Lead')}</p>}
+        visual={
+          <div className="spin-slow hide-sm pointer-events-none absolute right-[6%] top-[60px] size-[300px]" style={{ animationDuration: '30s' }} aria-hidden="true">
+            <div className="absolute inset-0 rounded-full border border-ln2" />
+            <div className="absolute -top-2 left-1/2 size-4 rounded-full bg-lime" />
+            <div className="absolute -left-1.5 top-1/2 size-3 rounded-full bg-fg" />
+            <div className="absolute bottom-[30px] right-[30px] size-2.5 rounded-full bg-[#8F9893]" />
+          </div>
+        }
+      />
+
+      <section className="wrap py-[clamp(64px,8vw,112px)]">
+        <IndustryExplorer
+          items={industries.map((industry) => ({
+            slug: industry.slug,
+            title: industry.title,
+            insight: industry.description ?? industry.heroSubtitle,
+            build: industry.solutions.slice(0, 3).map((item) => item.title),
+          }))}
+          labels={{
+            list: t('title'),
+            counter: t.raw('counter') as string,
+            build: t('weBuild'),
+            next: t('nextIndustry'),
+            more: t('explore'),
+          }}
+        />
       </section>
-
-      <Section bordered={false}>
-        <GlowGrid as="ul" className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-          {industries.map((industry, index) => (
-            <Reveal as="li" key={industry.slug} delay={Math.min(index, 9) * 0.04} className="bg-surface">
-              <Link
-                href={`/industries/${industry.slug}`}
-                data-glow
-                className="glow-cell group flex h-full flex-col p-7 transition-colors hover:bg-surface-sunken md:p-8"
-              >
-                <IndustryGlyph
-                  iconKey={industry.iconKey}
-                  className="size-9 text-accent transition-transform duration-300 group-hover:scale-110"
-                />
-
-                <h2 className="mt-5 text-lg font-medium text-foreground transition-colors group-hover:text-accent">
-                  {industry.title}
-                </h2>
-                {industry.description && (
-                  <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {industry.description}
-                  </p>
-                )}
-                <ArrowRight className="mt-6 size-4 text-subtle-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent" />
-              </Link>
-            </Reveal>
-          ))}
-        </GlowGrid>
-      </Section>
-
-      <CtaSection title={tCta('title')} body={tCta('body')} primaryCta={tCta('button')} />
     </>
   );
 }

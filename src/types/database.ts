@@ -126,6 +126,8 @@ export interface ProjectRow {
   project_date: string | null;
   cover_image: string | null;
   cover_image_mobile: string | null;
+  /** Screenshot of the previous site, for the before/after slider (migration 0005). */
+  before_image?: string | null;
   og_image: string | null;
   canonical_url: string | null;
   website_url: string | null;

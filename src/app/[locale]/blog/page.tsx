@@ -1,19 +1,17 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { HeroField } from '@/components/sections/hero-field';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { isAppLocale, routing, type AppLocale } from '@/i18n/routing';
+import { contentLanguage, isAppLocale, routing } from '@/i18n/routing';
 import { getBlogCategories, getBlogPosts } from '@/lib/data';
-import { Badge } from '@/components/ui/badge';
-import { BlogIndex } from '@/components/site/blog-index';
-import { GlowGrid } from '@/components/ui/glow';
-import { CtaSection } from '@/components/sections/cta-section';
+import { ArrowRight } from '@/components/brand/icons';
+import { PageHero } from '@/components/blocks/page-hero';
+import { PostMeta, toPostCard } from '@/components/blocks/lists';
+import { BlogFilter } from '@/components/blog/blog-filter';
 import { JsonLd } from '@/components/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { breadcrumbSchema, jsonLdGraph } from '@/lib/seo/schema';
-import { formatDate } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -35,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: '/blog',
     title: `${t('heroTitle')} | drh.al`,
     description: t('heroDescription'),
+    available: ['en', 'sq'],
   });
 }
 
@@ -42,17 +41,16 @@ export default async function BlogPage({ params }: Props) {
   const { locale } = await params;
   if (!isAppLocale(locale)) notFound();
   setRequestLocale(locale);
+  const language = contentLanguage(locale);
 
-  const [t, tCommon, tCta, posts, categories] = await Promise.all([
+  const [t, tCommon, posts, categories] = await Promise.all([
     getTranslations('blog'),
     getTranslations('common'),
-    getTranslations('cta'),
-    getBlogPosts(locale),
-    getBlogCategories(locale),
+    getBlogPosts(language),
+    getBlogCategories(language),
   ]);
 
   const featured = posts.find((post) => post.featured) ?? posts[0];
-  const rest = featured ? posts.filter((post) => post.slug !== featured.slug) : posts;
 
   return (
     <>
@@ -60,90 +58,71 @@ export default async function BlogPage({ params }: Props) {
         json={jsonLdGraph(
           breadcrumbSchema(
             [
-              { name: 'Home', path: '/' },
-              { name: t('title'), path: '/blog' },
+              { name: tCommon('home'), path: '/' },
+              { name: t('crumb'), path: '/blog' },
             ],
-            locale as AppLocale,
+            locale,
           ),
         )}
       />
 
-      <section className="hero-top relative overflow-hidden border-b border-border">
-        <HeroField />
-        <div className="container-page pb-14 pt-16 md:pb-16 md:pt-24 relative">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-accent">
-            {t('title')}
-          </p>
-          <h1 className="max-w-3xl text-balance text-[2.75rem] leading-[1.02] md:text-6xl lg:text-[4.75rem]">
-            {t('heroTitle')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            {t('heroDescription')}
-          </p>
-        </div>
-      </section>
+      <PageHero
+        crumbs={[{ label: tCommon('home'), href: '/' }, { label: t('crumb') }]}
+        crumbsLabel={tCommon('breadcrumb')}
+        title={t('v2HeroTitle')}
+        titleClassName="whitespace-pre-line"
+        lead={<p>{t('v2Lead')}</p>}
+      />
 
       {featured && (
-        <GlowGrid className="container-page py-12 md:py-16">
-          <article className="group">
-            <Link
-              href={`/blog/${featured.slug}`}
-              className="grid gap-8 focus-visible:outline-none lg:grid-cols-2 lg:gap-12 lg:items-center"
-            >
-              <div
-                data-glow
-                className="glow-card focus-frame relative aspect-[16/10] overflow-hidden rounded-xl border border-border bg-surface-sunken"
-              >
-                {featured.featuredImage && (
-                  <Image
-                    src={featured.featuredImage}
-                    alt=""
-                    fill
-                    priority
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-                  />
-                )}
-              </div>
-
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="accent">{t('featured')}</Badge>
-                  {featured.category && <Badge>{featured.category.title}</Badge>}
-                  <span className="text-xs text-subtle-foreground">
-                    {tCommon('minRead', { minutes: featured.readingTime })}
-                  </span>
+        <section className="wrap pt-16">
+          <Link
+            href={`/blog/${featured.slug}`}
+            className="card rise d3 flex flex-wrap overflow-hidden rounded-[32px] border border-ln bg-s1 text-fg"
+          >
+            <div className="relative min-h-[420px] flex-[1_1_520px] overflow-hidden bg-lime max-sm:min-h-[260px]">
+              {featured.featuredImage ? (
+                <Image src={featured.featuredImage} alt="" fill priority sizes="(max-width: 860px) 100vw, 680px" className="zoom object-cover" />
+              ) : (
+                <div className="zoom absolute inset-0 grid place-items-center">
+                  <div className="spin-slow absolute size-[360px] rounded-full border-2 border-dashed border-[#0b0d0c55]" style={{ animationDuration: '20s' }} />
                 </div>
-
-                <h2 className="mt-4 text-balance text-2xl leading-snug transition-colors group-hover:text-accent md:text-3xl">
-                  {featured.title}
-                </h2>
-
-                {featured.excerpt && (
-                  <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                    {featured.excerpt}
-                  </p>
-                )}
-
-                {featured.publishedAt && (
-                  <time
-                    dateTime={featured.publishedAt}
-                    className="mt-5 block text-sm text-subtle-foreground"
-                  >
-                    {formatDate(featured.publishedAt, locale)}
-                  </time>
-                )}
-              </div>
-            </Link>
-          </article>
-        </GlowGrid>
+              )}
+              <span className="mono absolute left-6 top-6 rounded-full bg-ink px-3.5 py-2 text-xs tracking-[.08em] text-lime">
+                {t('featured').toUpperCase()}
+              </span>
+            </div>
+            <div className="flex flex-[1_1_400px] flex-col gap-5 p-[clamp(32px,4vw,56px)]">
+              <PostMeta post={featured} locale={locale} minLabel={tCommon('minRead', { minutes: featured.readingTime })} />
+              <h2 className="m-0 text-[clamp(34px,3.6vw,52px)] font-semibold leading-[1.02] tracking-[-0.04em]">{featured.title}</h2>
+              {featured.excerpt && <p className="m-0 text-[17px] leading-relaxed text-t2">{featured.excerpt}</p>}
+              <span className="mt-auto inline-flex items-center gap-3 font-semibold">
+                {t('readArticle')}
+                <span className="arrow-dot size-12 border border-ln2">
+                  <ArrowRight />
+                </span>
+              </span>
+            </div>
+          </Link>
+        </section>
       )}
 
-      <div className="container-page pb-16">
-        <BlogIndex posts={rest} categories={categories} />
-      </div>
-
-      <CtaSection title={tCta('title')} body={tCta('body')} primaryCta={tCta('button')} />
+      <section className="wrap pb-[120px] pt-[72px]">
+        <BlogFilter
+          posts={posts.map((post) => toPostCard(post, locale))}
+          featuredSlug={featured?.slug ?? null}
+          categories={categories}
+          locale={locale}
+          labels={{
+            categories: t('categories'),
+            all: t('allCategories'),
+            search: t('search'),
+            empty: t.raw('noMatch') as string,
+            min: tCommon.raw('minShort') as string,
+          }}
+        />
+        {posts.length === 0 && <p className="text-t3">{t('empty')}</p>}
+      </section>
     </>
   );
 }
